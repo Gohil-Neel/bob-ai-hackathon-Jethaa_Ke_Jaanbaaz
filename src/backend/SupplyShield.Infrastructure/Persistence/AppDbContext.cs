@@ -265,5 +265,72 @@ public class AppDbContext : DbContext
             e.HasIndex(x => new { x.ContextType, x.ContextEntityId });
             e.HasIndex(x => x.ModelName);
         });
+
+        // ── Apply snake_case naming convention across all PostgreSQL tables & columns ──
+        foreach (var entity in modelBuilder.Model.GetEntityTypes())
+        {
+            var tableName = entity.GetTableName();
+            if (!string.IsNullOrEmpty(tableName))
+            {
+                entity.SetTableName(ToSnakeCase(tableName));
+            }
+
+            foreach (var property in entity.GetProperties())
+            {
+                var columnName = property.GetColumnName();
+                if (!string.IsNullOrEmpty(columnName))
+                {
+                    property.SetColumnName(ToSnakeCase(columnName));
+                }
+            }
+
+            foreach (var key in entity.GetKeys())
+            {
+                var keyName = key.GetName();
+                if (!string.IsNullOrEmpty(keyName))
+                {
+                    key.SetName(ToSnakeCase(keyName));
+                }
+            }
+
+            foreach (var key in entity.GetForeignKeys())
+            {
+                var constraintName = key.GetConstraintName();
+                if (!string.IsNullOrEmpty(constraintName))
+                {
+                    key.SetConstraintName(ToSnakeCase(constraintName));
+                }
+            }
+
+            foreach (var index in entity.GetIndexes())
+            {
+                var databaseName = index.GetDatabaseName();
+                if (!string.IsNullOrEmpty(databaseName))
+                {
+                    index.SetDatabaseName(ToSnakeCase(databaseName));
+                }
+            }
+        }
+    }
+
+    private static string ToSnakeCase(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        var sb = new System.Text.StringBuilder();
+        for (int i = 0; i < input.Length; i++)
+        {
+            char c = input[i];
+            if (char.IsUpper(c))
+            {
+                if (i > 0 && input[i - 1] != '_')
+                    sb.Append('_');
+                sb.Append(char.ToLowerInvariant(c));
+            }
+            else
+            {
+                sb.Append(c);
+            }
+        }
+        return sb.ToString();
     }
 }

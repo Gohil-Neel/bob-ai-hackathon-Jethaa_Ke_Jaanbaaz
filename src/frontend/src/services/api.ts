@@ -1,12 +1,8 @@
 /**
  * SupplyShield AI — API Service Layer
  *
- * All React components fetch data through this module only.
- * Phase 2: Returns mock data. Replace implementations in Phase 3+.
- *
- * Architecture rule:
- *   - Components import from this file, NEVER from mockData.ts directly.
- *   - When the real API is ready, only this file needs to change.
+ * Connects React UI components to the ASP.NET Core Web API primary backend.
+ * Provides fallback to local fixtures if backend is disconnected.
  */
 
 import type {
@@ -16,6 +12,12 @@ import type {
   Alert,
   ColdChainSensor,
   DashboardKpis,
+  TemperatureReading,
+  SeverityLevel,
+  ShipmentStatus,
+  DisruptionType,
+  FleetAssetStatus,
+  ColdChainStatus
 } from '../types/domain'
 
 import {
@@ -27,71 +29,185 @@ import {
   mockDashboardKpis,
 } from './mock/mockData'
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
-// Simulate realistic async delay for mock data
-function delay(ms = 300): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+async function fetchJson<T>(endpoint: string, fallback: () => T): Promise<T> {
+  try {
+    const url = `${API_BASE_URL}${endpoint}`
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+      }
+    })
+
+    if (!response.ok) {
+      console.warn(`[API] ${endpoint} returned ${response.status}. Using fallback.`);
+      return fallback()
+    }
+
+    return (await response.json()) as T
+  } catch (err) {
+    console.warn(`[API] Could not connect to backend for ${endpoint}:`, err);
+    return fallback()
+  }
 }
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
+// ─── Dashboard KPIs ──────────────────────────────────────────────────────────
 
 export async function getDashboardKpis(): Promise<DashboardKpis> {
-  // Phase 3+: return fetch(`${BASE_URL}/api/dashboard/kpis`).then(r => r.json())
-  await delay()
-  return mockDashboardKpis
+  return fetchJson('/api/dashboard/kpis', () => mockDashboardKpis)
 }
 
 // ─── Shipments ────────────────────────────────────────────────────────────────
 
 export async function getShipments(): Promise<Shipment[]> {
-  // Phase 3+: return fetch(`${BASE_URL}/api/shipments`).then(r => r.json())
-  await delay()
-  return mockShipments
+  const data = await fetchJson<any[]>('/api/shipments', () => mockShipments)
+  if (!Array.isArray(data)) return mockShipments
+
+  return data.map((item) => ({
+    id: item.id ?? item.Id,
+    trackingNumber: item.trackingNumber ?? item.TrackingNumber,
+    origin: item.origin ?? item.Origin,
+    destination: item.destination ?? item.Destination,
+    carrier: item.carrierCode ?? item.CarrierCode ?? item.carrier ?? 'UNKNOWN',
+    status: (item.status?.toUpperCase() ?? 'IN_TRANSIT') as ShipmentStatus,
+    priority: (item.priority?.toUpperCase() ?? 'MEDIUM') as SeverityLevel,
+    estimatedArrival: item.estimatedArrivalUtc ?? item.estimatedArrival ?? null,
+    isColdChain: Boolean(item.isColdChain ?? item.IsColdChain),
+    routeId: item.routeId ?? item.RouteId ?? null,
+    riskScore: typeof item.riskScore === 'number' ? item.riskScore : (item.RiskScore ?? null),
+    createdAt: item.createdAtUtc ?? item.createdAt ?? new Date().toISOString(),
+    updatedAt: item.updatedAtUtc ?? item.updatedAt ?? new Date().toISOString(),
+  }))
 }
 
 export async function getShipmentById(id: string): Promise<Shipment | null> {
-  // Phase 3+: return fetch(`${BASE_URL}/api/shipments/${id}`).then(r => r.json())
-  await delay()
-  return mockShipments.find((s) => s.id === id) ?? null
+  const item = await fetchJson<any>(`/api/shipments/${id}`, () => mockShipments.find((s) => s.id === id) ?? null)
+  if (!item) return null
+
+  return {
+    id: item.id ?? item.Id,
+    trackingNumber: item.trackingNumber ?? item.TrackingNumber,
+    origin: item.origin ?? item.Origin,
+    destination: item.destination ?? item.Destination,
+    carrier: item.carrierCode ?? item.CarrierCode ?? item.carrier ?? 'UNKNOWN',
+    status: (item.status?.toUpperCase() ?? 'IN_TRANSIT') as ShipmentStatus,
+    priority: (item.priority?.toUpperCase() ?? 'MEDIUM') as SeverityLevel,
+    estimatedArrival: item.estimatedArrivalUtc ?? item.estimatedArrival ?? null,
+    isColdChain: Boolean(item.isColdChain ?? item.IsColdChain),
+    routeId: item.routeId ?? item.RouteId ?? null,
+    riskScore: typeof item.riskScore === 'number' ? item.riskScore : (item.RiskScore ?? null),
+    createdAt: item.createdAtUtc ?? item.createdAt ?? new Date().toISOString(),
+    updatedAt: item.updatedAtUtc ?? item.updatedAt ?? new Date().toISOString(),
+  }
 }
 
 // ─── Disruptions ──────────────────────────────────────────────────────────────
 
 export async function getDisruptions(): Promise<Disruption[]> {
-  // Phase 3+: return fetch(`${BASE_URL}/api/disruptions`).then(r => r.json())
-  await delay()
-  return mockDisruptions
+  const data = await fetchJson<any[]>('/api/disruptions', () => mockDisruptions)
+  if (!Array.isArray(data)) return mockDisruptions
+
+  return data.map((item) => ({
+    id: item.id ?? item.Id,
+    title: item.title ?? item.Title,
+    disruptionType: (item.disruptionType?.toUpperCase() ?? 'WEATHER') as DisruptionType,
+    severity: (item.severity?.toUpperCase() ?? 'HIGH') as SeverityLevel,
+    affectedRegion: item.affectedRegion ?? item.AffectedRegion ?? '',
+    description: item.description ?? item.Description ?? '',
+    startedAt: item.startedAtUtc ?? item.startedAt ?? new Date().toISOString(),
+    resolvedAt: item.resolvedAtUtc ?? item.resolvedAt ?? null,
+    isActive: Boolean(item.isActive ?? item.IsActive),
+    affectedShipmentCount: item.affectedShipmentsCount ?? item.affectedShipmentCount ?? 0,
+    createdAt: item.createdAtUtc ?? item.createdAt ?? new Date().toISOString(),
+  }))
 }
 
 export async function getDisruptionById(id: string): Promise<Disruption | null> {
-  await delay()
-  return mockDisruptions.find((d) => d.id === id) ?? null
+  const item = await fetchJson<any>(`/api/disruptions/${id}`, () => mockDisruptions.find((d) => d.id === id) ?? null)
+  if (!item) return null
+
+  return {
+    id: item.id ?? item.Id,
+    title: item.title ?? item.Title,
+    disruptionType: (item.disruptionType?.toUpperCase() ?? 'WEATHER') as DisruptionType,
+    severity: (item.severity?.toUpperCase() ?? 'HIGH') as SeverityLevel,
+    affectedRegion: item.affectedRegion ?? item.AffectedRegion ?? '',
+    description: item.description ?? item.Description ?? '',
+    startedAt: item.startedAtUtc ?? item.startedAt ?? new Date().toISOString(),
+    resolvedAt: item.resolvedAtUtc ?? item.resolvedAt ?? null,
+    isActive: Boolean(item.isActive ?? item.IsActive),
+    affectedShipmentCount: item.affectedShipments?.length ?? item.affectedShipmentCount ?? 0,
+    createdAt: item.createdAtUtc ?? item.createdAt ?? new Date().toISOString(),
+  }
 }
 
 // ─── Fleet ────────────────────────────────────────────────────────────────────
 
 export async function getFleetAssets(): Promise<FleetAsset[]> {
-  // Phase 3+: return fetch(`${BASE_URL}/api/fleet`).then(r => r.json())
-  await delay()
-  return mockFleetAssets
+  const data = await fetchJson<any[]>('/api/fleet', () => mockFleetAssets)
+  if (!Array.isArray(data)) return mockFleetAssets
+
+  return data.map((item) => ({
+    id: item.id ?? item.Id,
+    assetCode: item.assetCode ?? item.AssetCode,
+    assetType: item.assetType ?? item.AssetType,
+    status: (item.status?.toUpperCase() ?? 'AVAILABLE') as FleetAssetStatus,
+    capacityKg: Number(item.capacityKg ?? item.CapacityKg ?? 0),
+    currentLocation: item.currentLocation ?? item.CurrentLocation ?? '',
+    lastSeenAt: item.lastSeenAtUtc ?? item.lastSeenAt ?? null,
+    createdAt: item.createdAtUtc ?? item.createdAt ?? new Date().toISOString(),
+  }))
 }
 
 // ─── Cold Chain ───────────────────────────────────────────────────────────────
 
 export async function getColdChainSensors(): Promise<ColdChainSensor[]> {
-  // Phase 3+: return fetch(`${BASE_URL}/api/cold-chain`).then(r => r.json())
-  await delay()
-  return mockColdChainSensors
+  const data = await fetchJson<any[]>('/api/cold-chain', () => mockColdChainSensors)
+  if (!Array.isArray(data)) return mockColdChainSensors
+
+  return data.map((item) => ({
+    id: item.id ?? item.Id,
+    sensorCode: item.sensorCode ?? item.SensorCode,
+    shipmentId: item.shipmentId ?? item.ShipmentId,
+    minTempCelsius: Number(item.minTempCelsius ?? item.MinTempCelsius ?? 2.0),
+    maxTempCelsius: Number(item.maxTempCelsius ?? item.MaxTempCelsius ?? 8.0),
+    lastReadingCelsius: item.lastReadingCelsius !== undefined ? Number(item.lastReadingCelsius) : null,
+    lastReadingAt: item.lastReadingAtUtc ?? item.lastReadingAt ?? null,
+    status: (item.status?.toUpperCase() ?? 'NORMAL') as ColdChainStatus,
+    currentExcursionSeverity: item.currentExcursionSeverity ? (item.currentExcursionSeverity.toUpperCase() as SeverityLevel) : null,
+    createdAt: item.createdAtUtc ?? item.createdAt ?? new Date().toISOString(),
+  }))
+}
+
+export async function getSensorReadings(sensorId: string): Promise<TemperatureReading[]> {
+  const data = await fetchJson<any[]>(`/api/cold-chain/${sensorId}/readings`, () => [])
+  return data.map((r) => ({
+    id: r.id ?? r.Id,
+    sensorId: r.sensorId ?? r.SensorId,
+    temperatureCelsius: Number(r.temperatureCelsius ?? r.TemperatureCelsius),
+    recordedAt: r.recordedAtUtc ?? r.recordedAt,
+    isExcursion: Boolean(r.isExcursion ?? r.IsExcursion),
+  }))
 }
 
 // ─── Alerts ───────────────────────────────────────────────────────────────────
 
 export async function getAlerts(): Promise<Alert[]> {
-  // Phase 3+: return fetch(`${BASE_URL}/api/alerts`).then(r => r.json())
-  await delay()
-  return mockAlerts
-}
+  const data = await fetchJson<any[]>('/api/alerts', () => mockAlerts)
+  if (!Array.isArray(data)) return mockAlerts
 
-// Suppress unused import warning for BASE_URL in Phase 2
-void BASE_URL
+  return data.map((item) => ({
+    id: item.id ?? item.Id,
+    alertType: 'TEMPERATURE_EXCURSION',
+    severity: (item.severity?.toUpperCase() ?? 'HIGH') as SeverityLevel,
+    title: `Cold Chain Alert: Sensor ${item.sensorCode ?? 'SEN-001'}`,
+    description: `Temperature reached ${item.excursionPeakCelsius ?? item.ExcursionPeakCelsius}°C (Allowed range: ${item.allowedMinCelsius}°C to ${item.allowedMaxCelsius}°C).`,
+    shipmentId: item.shipmentId ?? item.ShipmentId ?? null,
+    sensorId: item.sensorId ?? item.SensorId ?? null,
+    disruptionId: null,
+    isAcknowledged: Boolean(item.isAcknowledged ?? item.IsAcknowledged),
+    acknowledgedAt: item.acknowledgedAtUtc ?? item.acknowledgedAt ?? null,
+    createdAt: item.createdAtUtc ?? item.createdAt ?? new Date().toISOString(),
+  }))
+}

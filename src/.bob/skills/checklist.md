@@ -47,20 +47,20 @@
 - [x] Validation and repeatability
 
 ### 6 Backend
-- [ ] Domain model
-- [ ] Application services
-- [ ] EF Core/repositories
-- [ ] Controllers/DTOs
-- [ ] Validation/error handling
-- [ ] Tests
+- [x] Domain model
+- [x] Application services
+- [x] EF Core/repositories
+- [x] Controllers/DTOs
+- [x] Validation/error handling
+- [x] Tests
 
 ### 7 UI
-- [ ] Command Center
-- [ ] KPIs/map/tables
-- [ ] Disruptions
-- [ ] Priority actions
-- [ ] Cold-chain/fleet/AI panels
-- [ ] Loading/empty/error states
+- [x] Command Center
+- [x] KPIs/map/tables
+- [x] Disruptions
+- [x] Priority actions
+- [x] Cold-chain/fleet/AI panels
+- [x] Loading/empty/error states
 
 ### 8–10 Intelligence
 - [ ] Disruption impact

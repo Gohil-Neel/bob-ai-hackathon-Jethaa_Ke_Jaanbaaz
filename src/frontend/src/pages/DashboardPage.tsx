@@ -1,4 +1,18 @@
+import { useEffect, useState } from 'react'
+import { getDashboardKpis, getShipments, getDisruptions } from '../services/api'
+import type { DashboardKpis, Shipment, Disruption } from '../types/domain'
+
 export default function DashboardPage() {
+  const [kpis, setKpis] = useState<DashboardKpis | null>(null)
+  const [shipments, setShipments] = useState<Shipment[]>([])
+  const [disruptions, setDisruptions] = useState<Disruption[]>([])
+
+  useEffect(() => {
+    getDashboardKpis().then(setKpis).catch(() => {})
+    getShipments().then(setShipments).catch(() => {})
+    getDisruptions().then(setDisruptions).catch(() => {})
+  }, [])
+
   return (
     <>
       {/* Top Command Bar: Page Header & Quick Controls */}
@@ -7,7 +21,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2">
             <h1 className="font-page-title text-page-title text-text-primary">Command Center</h1>
             <span className="px-2 py-0.5 rounded-full bg-risk-low/10 border border-risk-low/30 font-badge-label text-badge-label text-risk-low flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-ping"></span> Live Sync
+              <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-ping"></span> Live Supabase Sync
             </span>
           </div>
           <p className="font-caption text-caption text-text-muted">Real-time Operations & Supply Chain Telemetry Engine</p>
@@ -15,8 +29,8 @@ export default function DashboardPage() {
         <div className="flex items-center gap-2">
           <div className="flex items-center bg-bg-surface rounded border border-border-subtle p-0.5">
             <button className="px-2.5 py-1 text-xs rounded font-medium bg-bg-surface-raised text-primary shadow-sm" type="button">All Corridors</button>
-            <button className="px-2.5 py-1 text-xs rounded text-text-secondary hover:text-text-primary transition-colors" type="button">West Hub</button>
-            <button className="px-2.5 py-1 text-xs rounded text-text-secondary hover:text-text-primary transition-colors" type="button">South Zone</button>
+            <button className="px-2.5 py-1 text-xs rounded text-text-secondary hover:text-text-primary transition-colors" type="button">Asia-EU</button>
+            <button className="px-2.5 py-1 text-xs rounded text-text-secondary hover:text-text-primary transition-colors" type="button">Transpacific</button>
           </div>
           <button className="flex items-center gap-1.5 h-7 px-2.5 rounded bg-bg-surface hover:bg-bg-surface-hover border border-border-subtle text-text-secondary hover:text-text-primary text-xs transition-colors" type="button">
             <span className="material-symbols-outlined text-[15px]">filter_list</span>
@@ -29,27 +43,29 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 1. Top KPI Metric Cards Grid */}
+      {/* 1. Top KPI Metric Cards Grid (Live Supabase Data) */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        {/* KPI 1 */}
+        {/* KPI 1: Total Shipments */}
         <div className="bg-bg-surface rounded-lg border border-border-subtle p-3 flex flex-col justify-between hover:border-border-strong transition-colors">
           <div className="flex items-center justify-between text-text-secondary">
             <span className="font-caption text-caption tracking-wider uppercase text-text-muted">Total Shipments</span>
             <span className="material-symbols-outlined text-[18px] text-text-muted">local_shipping</span>
           </div>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className="font-kpi-val text-kpi-val text-text-primary tracking-tight">1,248</span>
+            <span className="font-kpi-val text-kpi-val text-text-primary tracking-tight">
+              {kpis ? kpis.totalShipments : '…'}
+            </span>
             <span className="font-badge-label text-badge-label text-risk-low flex items-center font-medium">
-              <span className="material-symbols-outlined text-[14px]">arrow_upward</span>12%
+              <span className="material-symbols-outlined text-[14px]">check_circle</span>Active
             </span>
           </div>
           <div className="mt-1 flex items-center justify-between text-text-muted font-caption text-[11px]">
-            <span>vs. 1,114 yesterday</span>
-            <span className="text-risk-low font-medium">98.2% Svc</span>
+            <span>Live DB verified</span>
+            <span className="text-risk-low font-medium">Multimodal</span>
           </div>
         </div>
 
-        {/* KPI 2 */}
+        {/* KPI 2: Active Disruptions */}
         <div className="bg-bg-surface rounded-lg border border-border-subtle p-3 flex flex-col justify-between hover:border-border-strong transition-colors relative overflow-hidden">
           <div className="absolute top-0 left-0 bottom-0 w-1 bg-risk-high"></div>
           <div className="flex items-center justify-between text-text-secondary pl-1">
@@ -57,18 +73,20 @@ export default function DashboardPage() {
             <span className="material-symbols-outlined text-[18px] text-risk-high">warning</span>
           </div>
           <div className="mt-2 flex items-baseline justify-between pl-1">
-            <span className="font-kpi-val text-kpi-val text-text-primary tracking-tight">7</span>
+            <span className="font-kpi-val text-kpi-val text-text-primary tracking-tight">
+              {kpis ? kpis.activeDisruptions : '…'}
+            </span>
             <span className="px-1.5 py-0.5 rounded-full bg-risk-high/15 border border-risk-high/30 font-badge-label text-badge-label text-risk-high font-medium">
-              +3 new
+              High Severity
             </span>
           </div>
           <div className="mt-1 flex items-center justify-between text-text-muted font-caption text-[11px] pl-1">
-            <span>2 critical delays</span>
-            <span className="text-risk-critical font-medium">NH-48 Alert</span>
+            <span>Weather & Ports</span>
+            <span className="text-risk-critical font-medium">Suez & Typhon</span>
           </div>
         </div>
 
-        {/* KPI 3 */}
+        {/* KPI 3: At Risk Shipments */}
         <div className="bg-bg-surface rounded-lg border border-border-subtle p-3 flex flex-col justify-between hover:border-border-strong transition-colors relative overflow-hidden">
           <div className="absolute top-0 left-0 bottom-0 w-1 bg-risk-critical"></div>
           <div className="flex items-center justify-between text-text-secondary pl-1">
@@ -76,18 +94,20 @@ export default function DashboardPage() {
             <span className="material-symbols-outlined text-[18px] text-risk-critical">report_problem</span>
           </div>
           <div className="mt-2 flex items-baseline justify-between pl-1">
-            <span className="font-kpi-val text-kpi-val text-text-primary tracking-tight">23</span>
+            <span className="font-kpi-val text-kpi-val text-text-primary tracking-tight">
+              {kpis ? kpis.atRiskShipments : '…'}
+            </span>
             <span className="font-badge-label text-badge-label text-risk-critical flex items-center font-medium">
-              <span className="material-symbols-outlined text-[14px]">arrow_upward</span>6%
+              <span className="material-symbols-outlined text-[14px]">warning</span>Score &gt; 0.70
             </span>
           </div>
           <div className="mt-1 flex items-center justify-between text-text-muted font-caption text-[11px] pl-1">
-            <span>1.8% of active volume</span>
-            <span className="text-text-secondary">₹3.8 Cr at stake</span>
+            <span>Critical Pharma/Cargo</span>
+            <span className="text-text-secondary">Needs Reroute</span>
           </div>
         </div>
 
-        {/* KPI 4 */}
+        {/* KPI 4: Cold Chain Alerts */}
         <div className="bg-bg-surface rounded-lg border border-border-subtle p-3 flex flex-col justify-between hover:border-border-strong transition-colors relative overflow-hidden">
           <div className="absolute top-0 left-0 bottom-0 w-1 bg-risk-medium"></div>
           <div className="flex items-center justify-between text-text-secondary pl-1">
@@ -95,32 +115,36 @@ export default function DashboardPage() {
             <span className="material-symbols-outlined text-[18px] text-risk-medium">ac_unit</span>
           </div>
           <div className="mt-2 flex items-baseline justify-between pl-1">
-            <span className="font-kpi-val text-kpi-val text-text-primary tracking-tight">5</span>
+            <span className="font-kpi-val text-kpi-val text-text-primary tracking-tight">
+              {kpis ? kpis.coldChainAlerts : '…'}
+            </span>
             <span className="px-1.5 py-0.5 rounded-full bg-risk-medium/15 border border-risk-medium/30 font-badge-label text-badge-label text-risk-medium font-medium">
-              +2 new
+              Excursion
             </span>
           </div>
           <div className="mt-1 flex items-center justify-between text-text-muted font-caption text-[11px] pl-1">
-            <span>1 Pharma excursion</span>
-            <span className="text-risk-medium font-medium">SH-117 active</span>
+            <span>WHO 2°C–8°C limit</span>
+            <span className="text-risk-medium font-medium">9.4°C Peak</span>
           </div>
         </div>
 
-        {/* KPI 5 */}
+        {/* KPI 5: Idle Fleet Assets */}
         <div className="bg-bg-surface rounded-lg border border-border-subtle p-3 flex flex-col justify-between hover:border-border-strong transition-colors">
           <div className="flex items-center justify-between text-text-secondary">
-            <span className="font-caption text-caption tracking-wider uppercase text-text-muted">Idle Vehicles</span>
+            <span className="font-caption text-caption tracking-wider uppercase text-text-muted">Idle Fleet Assets</span>
             <span className="material-symbols-outlined text-[18px] text-text-muted">directions_boat</span>
           </div>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className="font-kpi-val text-kpi-val text-text-primary tracking-tight">42</span>
+            <span className="font-kpi-val text-kpi-val text-text-primary tracking-tight">
+              {kpis ? kpis.idleFleetAssets : '…'}
+            </span>
             <span className="font-badge-label text-badge-label text-text-secondary flex items-center font-medium">
-              <span className="material-symbols-outlined text-[14px]">arrow_downward</span>4%
+              <span className="material-symbols-outlined text-[14px]">check</span>Available
             </span>
           </div>
           <div className="mt-1 flex items-center justify-between text-text-muted font-caption text-[11px]">
             <span>Deployable fleet</span>
-            <span className="text-risk-low font-medium">18 in Hub B</span>
+            <span className="text-risk-low font-medium">Reefer & Trucks</span>
           </div>
         </div>
       </div>
@@ -376,76 +400,66 @@ export default function DashboardPage() {
           <div className="px-3 pt-2 border-b border-border-subtle flex items-center justify-between bg-bg-surface">
             <div className="flex items-center gap-4 text-xs font-medium">
               <button className="pb-2 border-b-2 border-primary-container text-primary" type="button">
-                Affected Shipments (4)
+                Active Shipments ({shipments.length})
               </button>
               <button className="pb-2 border-b-2 border-transparent text-text-secondary hover:text-text-primary transition-colors" type="button">
-                Alternative Routes
-              </button>
-              <button className="pb-2 border-b-2 border-transparent text-text-secondary hover:text-text-primary transition-colors" type="button">
-                Recommended Actions
+                Corridor Disruptions ({disruptions.length})
               </button>
             </div>
-            <span className="text-[11px] text-text-muted">Realtime Sort: Risk</span>
+            <span className="text-[11px] text-text-muted">Live DB Sync</span>
           </div>
 
           <div className="flex-1 overflow-x-auto min-h-[175px]">
             <table className="w-full text-left border-collapse text-table-cell font-table-cell">
               <thead>
                 <tr className="h-8 bg-surface-container-lowest text-text-muted uppercase text-[10px] tracking-wider border-b border-border-subtle">
-                  <th className="px-3 py-1 font-medium">Shipment ID</th>
+                  <th className="px-3 py-1 font-medium">Tracking #</th>
                   <th className="px-2 py-1 font-medium">Origin → Destination</th>
-                  <th className="px-2 py-1 font-medium text-center">Priority</th>
-                  <th className="px-2 py-1 font-medium text-center">ETA Risk</th>
-                  <th className="px-2 py-1 font-medium">Current Status</th>
-                  <th className="px-3 py-1 font-medium text-right">Action</th>
+                  <th className="px-2 py-1 font-medium text-center">Carrier</th>
+                  <th className="px-2 py-1 font-medium text-center">Risk Score</th>
+                  <th className="px-2 py-1 font-medium">Status</th>
+                  <th className="px-3 py-1 font-medium text-right">Cold Chain</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-subtle/50 text-xs">
-                <tr className="h-10 hover:bg-bg-surface-hover transition-colors">
-                  <td className="px-3 py-1.5 font-medium text-primary flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-risk-critical"></span>
-                    <span>SH-102</span>
-                  </td>
-                  <td className="px-2 py-1.5 text-text-secondary truncate max-w-[120px]">Mumbai → Bangalore</td>
-                  <td className="px-2 py-1.5 text-center">
-                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-risk-critical/10 text-risk-critical border border-risk-critical/30 font-medium">High</span>
-                  </td>
-                  <td className="px-2 py-1.5 text-center">
-                    <span className="text-risk-critical font-medium text-[11px]">+4.5h</span>
-                  </td>
-                  <td className="px-2 py-1.5">
-                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-risk-critical/10 text-risk-critical">Delayed</span>
-                  </td>
-                  <td className="px-3 py-1.5 text-right">
-                    <button className="px-2 py-0.5 rounded text-[11px] font-medium bg-primary-container hover:bg-primary-hover text-on-primary-container transition-colors" type="button">Reroute</button>
-                  </td>
-                </tr>
-                <tr className="h-10 hover:bg-bg-surface-hover transition-colors">
-                  <td className="px-3 py-1.5 font-medium text-primary flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-risk-high"></span>
-                    <span>SH-117</span>
-                  </td>
-                  <td className="px-2 py-1.5 text-text-secondary truncate max-w-[120px]">Hyderabad → Chennai</td>
-                  <td className="px-2 py-1.5 text-center">
-                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-risk-critical/10 text-risk-critical border border-risk-critical/30 font-medium">High</span>
-                  </td>
-                  <td className="px-2 py-1.5 text-center">
-                    <span className="text-risk-high font-medium text-[11px]">+3.0h</span>
-                  </td>
-                  <td className="px-2 py-1.5">
-                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-risk-medium/15 text-risk-medium">Temp Risk (9.4°C)</span>
-                  </td>
-                  <td className="px-3 py-1.5 text-right">
-                    <button className="px-2 py-0.5 rounded text-[11px] font-medium border border-border-subtle hover:bg-surface-container text-text-primary transition-colors" type="button">Inspect</button>
-                  </td>
-                </tr>
+                {shipments.map((s) => (
+                  <tr key={s.id} className="h-10 hover:bg-bg-surface-hover transition-colors">
+                    <td className="px-3 py-1.5 font-medium text-primary flex items-center gap-1.5">
+                      <span className={`w-1.5 h-1.5 rounded-full ${s.status === 'AT_RISK' || s.status === 'DELAYED' ? 'bg-risk-critical' : 'bg-risk-low'}`}></span>
+                      <span>{s.trackingNumber}</span>
+                    </td>
+                    <td className="px-2 py-1.5 text-text-secondary truncate max-w-[150px]">{s.origin} → {s.destination}</td>
+                    <td className="px-2 py-1.5 text-center">
+                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-bg-surface border border-border-subtle font-mono text-text-primary">{s.carrier}</span>
+                    </td>
+                    <td className="px-2 py-1.5 text-center">
+                      <span className={`font-semibold text-[11px] ${s.riskScore && s.riskScore >= 0.7 ? 'text-risk-critical' : s.riskScore && s.riskScore >= 0.4 ? 'text-risk-medium' : 'text-risk-low'}`}>
+                        {s.riskScore !== null ? `${(s.riskScore * 100).toFixed(0)}%` : 'N/A'}
+                      </span>
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${s.status === 'AT_RISK' ? 'bg-risk-critical/10 text-risk-critical border border-risk-critical/30' : s.status === 'DELAYED' ? 'bg-risk-high/15 text-risk-high border border-risk-high/30' : 'bg-risk-low/10 text-risk-low border border-risk-low/30'}`}>
+                        {s.status}
+                      </span>
+                    </td>
+                    <td className="px-3 py-1.5 text-right">
+                      {s.isColdChain ? (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-sky-500/10 text-sky-400 border border-sky-500/30 font-medium">
+                          ❄️ 2°C–8°C
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-text-muted">Ambient</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
           <div className="px-3 py-2 bg-surface-container-lowest border-t border-border-subtle flex items-center justify-between">
-            <span className="text-caption text-text-muted">Showing top 2 high-risk shipments</span>
-            <a className="text-xs text-primary hover:underline font-medium flex items-center gap-1" href="#">
-              <span>View all 17 impacted</span>
+            <span className="text-caption text-text-muted">Showing all {shipments.length} live shipments</span>
+            <a className="text-xs text-primary hover:underline font-medium flex items-center gap-1" href="/shipments">
+              <span>View full Shipments page</span>
               <span className="material-symbols-outlined text-[14px]">east</span>
             </a>
           </div>

@@ -70,28 +70,67 @@ public static class InfrastructureServiceRegistration
 
         var trimmed = rawConnectionString.Trim();
 
+        // If it's an unconfigured template placeholder, treat as null (use fallback)
+        if (trimmed.Contains("[YOUR_") || trimmed.Contains("[password]") || trimmed.Contains("your_password"))
+            return null;
+
         // If it starts with postgres:// or postgresql://, convert URI format to Npgsql connection string
         if (trimmed.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
             trimmed.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
         {
             try
             {
-                var uri = new Uri(trimmed);
-                var userInfo = uri.UserInfo.Split(':');
-                var username = userInfo.Length > 0 ? Uri.UnescapeDataString(userInfo[0]) : "";
-                var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
-                var host = uri.Host;
-                var port = uri.Port > 0 ? uri.Port : 5432;
-                var database = uri.AbsolutePath.TrimStart('/');
+                // Strip scheme
+                var schemeIndex = trimmed.IndexOf("://", StringComparison.Ordinal);
+                var withoutScheme = trimmed[(schemeIndex + 3)..];
+
+                // Split user info and host/database
+                var atIndex = withoutScheme.LastIndexOf('@');
+                if (atIndex <= 0) return null;
+
+                var userInfoPart = withoutScheme[..atIndex];
+                var hostDbPart = withoutScheme[(atIndex + 1)..];
+
+                var colonIndex = userInfoPart.IndexOf(':');
+                var username = colonIndex >= 0 ? userInfoPart[..colonIndex] : userInfoPart;
+                var password = colonIndex >= 0 ? userInfoPart[(colonIndex + 1)..] : "";
+
+                // Unescape URI entities, strip accidental surrounding brackets/quotes
+                username = Uri.UnescapeDataString(username).Trim('[', ']', '"', '\'');
+                password = Uri.UnescapeDataString(password).Trim('[', ']', '"', '\'');
+
+                // Split host:port/database
+                var slashIndex = hostDbPart.IndexOf('/');
+                var hostPort = slashIndex >= 0 ? hostDbPart[..slashIndex] : hostDbPart;
+                var database = slashIndex >= 0 ? hostDbPart[(slashIndex + 1)..] : "postgres";
+
+                // Strip query parameters if any (e.g. ?sslmode=require)
+                var queryIndex = database.IndexOf('?');
+                if (queryIndex >= 0) database = database[..queryIndex];
+
+                var host = hostPort;
+                var port = 5432;
+                var portColonIndex = hostPort.IndexOf(':');
+                if (portColonIndex >= 0)
+                {
+                    host = hostPort[..portColonIndex];
+                    if (int.TryParse(hostPort[(portColonIndex + 1)..], out var parsedPort))
+                    {
+                        port = parsedPort;
+                    }
+                }
 
                 var builder = new Npgsql.NpgsqlConnectionStringBuilder
                 {
                     Host = host,
                     Port = port,
-                    Database = string.IsNullOrEmpty(database) ? "postgres" : database,
+                    Database = string.IsNullOrWhiteSpace(database) ? "postgres" : database,
                     Username = username,
                     Password = password,
-                    SslMode = Npgsql.SslMode.Require
+                    SslMode = Npgsql.SslMode.Require,
+                    TrustServerCertificate = true,
+                    Timeout = 15,
+                    CommandTimeout = 30
                 };
 
                 return builder.ConnectionString;

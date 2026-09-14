@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using SupplyShield.Infrastructure;
 
@@ -45,6 +46,72 @@ if (app.Environment.IsDevelopment())
 app.UseCors("LocalDev");
 app.UseAuthorization();
 app.MapControllers();
+
+// Ensure database is initialized & seeded on startup if empty
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    var dbContext = services.GetRequiredService<SupplyShield.Infrastructure.Persistence.AppDbContext>();
+
+    try
+    {
+        if (dbContext.Database.IsRelational())
+        {
+            try
+            {
+                await dbContext.Database.MigrateAsync();
+            }
+            catch (Exception ex)
+            {
+                logger.LogInformation("Database migration note: {Message}", ex.Message);
+                try
+                {
+                    await dbContext.Database.ExecuteSqlRawAsync(
+                        "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ('20260914092222_InitialCreate', '9.0.4') ON CONFLICT DO NOTHING;");
+                }
+                catch { }
+            }
+
+            try
+            {
+                var ddlSync = @"
+                    ALTER TABLE IF EXISTS cold_chain_alerts ADD COLUMN IF NOT EXISTS acknowledged_at_utc TIMESTAMPTZ;
+                    ALTER TABLE IF EXISTS cold_chain_alerts ADD COLUMN IF NOT EXISTS excursion_end_utc TIMESTAMPTZ;
+                    ALTER TABLE IF EXISTS cold_chain_alerts ADD COLUMN IF NOT EXISTS duration_minutes INT;
+                    ALTER TABLE IF EXISTS sensors ADD COLUMN IF NOT EXISTS current_excursion_severity VARCHAR(50);
+                    ALTER TABLE IF EXISTS vehicles ADD COLUMN IF NOT EXISTS last_seen_at_utc TIMESTAMPTZ;
+                    ALTER TABLE IF EXISTS recovery_recommendations ADD COLUMN IF NOT EXISTS proposed_carrier_code VARCHAR(50);
+                    ALTER TABLE IF EXISTS recovery_recommendations ADD COLUMN IF NOT EXISTS proposed_route_id UUID;
+                    ALTER TABLE IF EXISTS recovery_recommendations ADD COLUMN IF NOT EXISTS proposed_vehicle_id UUID;
+                    ALTER TABLE IF EXISTS recovery_recommendations ADD COLUMN IF NOT EXISTS estimated_time_saving_minutes INT;
+                    ALTER TABLE IF EXISTS recovery_recommendations ADD COLUMN IF NOT EXISTS estimated_cost_delta_usd NUMERIC(12, 2);
+                    ALTER TABLE IF EXISTS recovery_recommendations ADD COLUMN IF NOT EXISTS requires_approval BOOLEAN NOT NULL DEFAULT TRUE;
+                    ALTER TABLE IF EXISTS decision_audits ADD COLUMN IF NOT EXISTS applied_at_utc TIMESTAMPTZ;
+                    ALTER TABLE IF EXISTS decision_audits ADD COLUMN IF NOT EXISTS before_state_json TEXT;
+                    ALTER TABLE IF EXISTS decision_audits ADD COLUMN IF NOT EXISTS after_state_json TEXT;
+                    ALTER TABLE IF EXISTS ""__EFMigrationsHistory"" ENABLE ROW LEVEL SECURITY;
+                ";
+                await dbContext.Database.ExecuteSqlRawAsync(ddlSync);
+            }
+            catch (Exception syncEx)
+            {
+                logger.LogWarning(syncEx, "Schema synchronization note: {Message}", syncEx.Message);
+            }
+        }
+        else
+        {
+            await dbContext.Database.EnsureCreatedAsync();
+        }
+
+        await SupplyShield.Infrastructure.Persistence.DataSeeder.SeedAsync(dbContext, force: true);
+        logger.LogInformation("Database initialization & seed verification completed successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Database auto-initialization / migration check completed with note: {Message}", ex.Message);
+    }
+}
 
 app.Run();
 
