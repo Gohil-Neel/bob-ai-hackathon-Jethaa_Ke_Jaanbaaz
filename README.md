@@ -10,8 +10,10 @@
 |---|---|
 | **Team Name** | Jetha Ke Jaanbaaz |
 | **Track** | AI |
-| **Team Lead** | Team Lead — teamlead@ibm.com |
-| **Members** | Member 1, Member 2, Member 3 |
+| **Team Lead** | Neel Gohil — 26msit026@charusat.edu.in |
+| **Members** | Jenish Jadav - 26msit036@charusat.edu.in |
+| **Members** | Vaibhav Chavada - 26msit013@charusat.edu.in |
+| **Members** | Jaimeen Gondaliya - 26msit030@charusat.edu.in |
 
 > ⚠️ Update team names and emails before final submission.
 
