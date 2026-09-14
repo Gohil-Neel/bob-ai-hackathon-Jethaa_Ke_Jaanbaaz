@@ -23,24 +23,30 @@ public sealed class SupabaseClientWrapper
         _logger = logger;
     }
 
+    public string? SupabaseUrl =>
+        _configuration["Supabase:Url"] ??
+        Environment.GetEnvironmentVariable("SUPABASE_URL");
+
+    private string? ServiceRoleKey =>
+        _configuration["Supabase:ServiceRoleKey"] ??
+        Environment.GetEnvironmentVariable("SUPABASE_SERVICE_ROLE_KEY");
+
     public bool IsConfigured =>
-        !string.IsNullOrWhiteSpace(_configuration["Supabase:Url"]) &&
-        !string.IsNullOrWhiteSpace(_configuration["Supabase:ServiceRoleKey"]);
+        !string.IsNullOrWhiteSpace(SupabaseUrl) &&
+        !string.IsNullOrWhiteSpace(ServiceRoleKey);
 
     /// <summary>
-    /// Phase 3+: Return initialised Supabase client.
-    /// Raises InvalidOperationException if not configured.
+    /// Safe metadata summary for diagnostics (never returns secret keys).
     /// </summary>
-    public object GetClient()
+    public SupabaseStatus GetStatus()
     {
-        if (!IsConfigured)
-            throw new InvalidOperationException(
-                "Supabase is not configured. Set Supabase:Url and Supabase:ServiceRoleKey. (Phase 3+)");
-
-        // Phase 3+:
-        // var client = new Supabase.Client(url, serviceRoleKey);
-        // await client.InitializeAsync();
-        // return client;
-        throw new NotImplementedException("Supabase client initialisation — Phase 3+");
+        return new SupabaseStatus(
+            IsConfigured: IsConfigured,
+            Url: SupabaseUrl ?? "Not Configured",
+            HasServiceRoleKey: !string.IsNullOrWhiteSpace(ServiceRoleKey)
+        );
     }
 }
+
+public record SupabaseStatus(bool IsConfigured, string Url, bool HasServiceRoleKey);
+

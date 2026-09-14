@@ -1,6 +1,9 @@
 using Scalar.AspNetCore;
 using SupplyShield.Infrastructure;
 
+// Load .env file from src directory or root if present
+LoadDotEnv();
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Services ─────────────────────────────────────────────────────────────────
@@ -46,4 +49,47 @@ app.MapControllers();
 app.Run();
 
 // Expose Program for integration testing (WebApplicationFactory)
-public partial class Program { }
+public partial class Program
+{
+    public static void LoadDotEnv()
+    {
+        var currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
+        for (var dir = currentDir; dir != null; dir = dir.Parent)
+        {
+            var envPath = Path.Combine(dir.FullName, ".env");
+            if (File.Exists(envPath))
+            {
+                ReadEnvFile(envPath);
+                return;
+            }
+
+            var srcEnvPath = Path.Combine(dir.FullName, "src", ".env");
+            if (File.Exists(srcEnvPath))
+            {
+                ReadEnvFile(srcEnvPath);
+                return;
+            }
+        }
+    }
+
+    private static void ReadEnvFile(string path)
+    {
+        foreach (var line in File.ReadAllLines(path))
+        {
+            var trimmed = line.Trim();
+            if (string.IsNullOrWhiteSpace(trimmed) || trimmed.StartsWith('#'))
+                continue;
+
+            var equalsIndex = trimmed.IndexOf('=');
+            if (equalsIndex > 0)
+            {
+                var key = trimmed[..equalsIndex].Trim();
+                var val = trimmed[(equalsIndex + 1)..].Trim();
+                if (Environment.GetEnvironmentVariable(key) == null)
+                {
+                    Environment.SetEnvironmentVariable(key, val);
+                }
+            }
+        }
+    }
+}

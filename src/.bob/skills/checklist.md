@@ -1,50 +1,50 @@
 # SupplyShield AI Development Checklist
 
 ## Architecture
-- [ ] React + TypeScript
-- [ ] ASP.NET Core Web API + C# is PRIMARY backend
-- [ ] Entity Framework Core
-- [ ] PostgreSQL/Supabase
-- [ ] Python/FastAPI is ONLY AI/ML service
+- [x] React + TypeScript
+- [x] ASP.NET Core Web API + C# is PRIMARY backend
+- [x] Entity Framework Core
+- [x] PostgreSQL/Supabase
+- [x] Python/FastAPI is ONLY AI/ML service
 - [ ] IBM watsonx.ai
 - [ ] SignalR where needed
 
 ## Phases
 ### 0–1 Foundation
-- [ ] Read requirements/resources
-- [ ] Official hackathon repository/template
-- [ ] Required files preserved
-- [ ] Architecture confirmed
+- [x] Read requirements/resources
+- [x] Official hackathon repository/template
+- [x] Required files preserved
+- [x] Architecture confirmed
 
 ### 2 Skeleton
-- [ ] React frontend
-- [ ] ASP.NET Core solution
-- [ ] Api/Application/Domain/Infrastructure
-- [ ] Python AI-service skeleton
-- [ ] Routing
-- [ ] API health
-- [ ] Environment config
-- [ ] Basic tests/builds
+- [x] React frontend
+- [x] ASP.NET Core solution
+- [x] Api/Application/Domain/Infrastructure
+- [x] Python AI-service skeleton
+- [x] Routing
+- [x] API health
+- [x] Environment config
+- [x] Basic tests/builds
 
 ### 3 Database
-- [ ] Supabase/PostgreSQL
-- [ ] Core schema
-- [ ] Relationships
-- [ ] Keys/constraints
-- [ ] Indexes
-- [ ] EF Core configuration
-- [ ] Reproducible migrations
-- [ ] Validation
-- [ ] No frontend service-role key
+- [x] Supabase/PostgreSQL
+- [x] Core schema
+- [x] Relationships
+- [x] Keys/constraints
+- [x] Indexes
+- [x] EF Core configuration
+- [x] Reproducible migrations
+- [x] Validation
+- [x] No frontend service-role key
 
 ### 4–5 Data
-- [ ] Synthetic dataset
-- [ ] Shipments/routes/disruptions
-- [ ] Vehicles/carriers
-- [ ] Sensors/readings
-- [ ] Cold-chain/recovery scenarios
-- [ ] Seed/import scripts
-- [ ] Validation and repeatability
+- [x] Synthetic dataset
+- [x] Shipments/routes/disruptions
+- [x] Vehicles/carriers
+- [x] Sensors/readings
+- [x] Cold-chain/recovery scenarios
+- [x] Seed/import scripts
+- [x] Validation and repeatability
 
 ### 6 Backend
 - [ ] Domain model

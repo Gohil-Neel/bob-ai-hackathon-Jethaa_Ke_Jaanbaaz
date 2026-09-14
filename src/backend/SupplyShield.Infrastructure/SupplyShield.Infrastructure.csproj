@@ -18,9 +18,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- EF Core — Phase 3+ will use real migrations. Included now so DbContext compiles. -->
+    <!-- EF Core PostgreSQL Provider & Tools -->
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.5" />
-    <!-- In-memory provider for Phase 2 (no PostgreSQL required) -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <!-- In-memory provider for local testing and fallback when no connection string is provided -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.5" />
     <!-- Microsoft.Extensions.* for DI registration -->
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />

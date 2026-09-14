@@ -1,0 +1,14 @@
+# Supabase CLI configuration file for SupplyShield AI
+project_id = "supplyshield"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
