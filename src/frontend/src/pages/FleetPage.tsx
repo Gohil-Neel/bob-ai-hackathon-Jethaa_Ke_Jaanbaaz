@@ -493,55 +493,50 @@ export default function FleetPage() {
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
                 <button
                   onClick={() => setActiveTab('all')}
-                  className={`px-2.5 py-1 rounded font-badge-label text-badge-label transition-colors ${
-                    activeTab === 'all'
+                  className={`px-2.5 py-1 rounded font-badge-label text-badge-label transition-colors ${activeTab === 'all'
                       ? 'bg-surface-container-high text-text-primary font-semibold shadow-sm'
                       : 'text-text-secondary hover:bg-surface-container'
-                  }`}
+                    }`}
                   type="button"
                 >
                   All ({fleetData.length})
                 </button>
                 <button
                   onClick={() => setActiveTab('idle')}
-                  className={`px-2.5 py-1 rounded font-badge-label text-badge-label transition-colors ${
-                    activeTab === 'idle'
+                  className={`px-2.5 py-1 rounded font-badge-label text-badge-label transition-colors ${activeTab === 'idle'
                       ? 'bg-surface-container-high text-text-primary font-semibold shadow-sm'
                       : 'text-text-secondary hover:bg-surface-container'
-                  }`}
+                    }`}
                   type="button"
                 >
                   Idle / Deployable (3)
                 </button>
                 <button
                   onClick={() => setActiveTab('in-transit')}
-                  className={`px-2.5 py-1 rounded font-badge-label text-badge-label transition-colors ${
-                    activeTab === 'in-transit'
+                  className={`px-2.5 py-1 rounded font-badge-label text-badge-label transition-colors ${activeTab === 'in-transit'
                       ? 'bg-surface-container-high text-text-primary font-semibold shadow-sm'
                       : 'text-text-secondary hover:bg-surface-container'
-                  }`}
+                    }`}
                   type="button"
                 >
                   In Transit (2)
                 </button>
                 <button
                   onClick={() => setActiveTab('reefer')}
-                  className={`px-2.5 py-1 rounded font-badge-label text-badge-label transition-colors ${
-                    activeTab === 'reefer'
+                  className={`px-2.5 py-1 rounded font-badge-label text-badge-label transition-colors ${activeTab === 'reefer'
                       ? 'bg-surface-container-high text-text-primary font-semibold shadow-sm'
                       : 'text-text-secondary hover:bg-surface-container'
-                  }`}
+                    }`}
                   type="button"
                 >
                   Reefer Units (3)
                 </button>
                 <button
                   onClick={() => setActiveTab('maintenance')}
-                  className={`px-2.5 py-1 rounded font-badge-label text-badge-label transition-colors ${
-                    activeTab === 'maintenance'
+                  className={`px-2.5 py-1 rounded font-badge-label text-badge-label transition-colors ${activeTab === 'maintenance'
                       ? 'bg-surface-container-high text-text-primary font-semibold shadow-sm'
                       : 'text-text-secondary hover:bg-surface-container'
-                  }`}
+                    }`}
                   type="button"
                 >
                   Maintenance (1)
@@ -584,16 +579,15 @@ export default function FleetPage() {
                       v.status === 'idle'
                         ? 'bg-risk-medium/10 text-risk-medium'
                         : v.status === 'in-transit'
-                        ? 'bg-risk-low/10 text-risk-low'
-                        : 'bg-surface-container-high text-text-secondary';
+                          ? 'bg-risk-low/10 text-risk-low'
+                          : 'bg-surface-container-high text-text-secondary';
 
                     return (
                       <tr
                         key={v.id}
                         onClick={() => setSelectedAssetId(v.id)}
-                        className={`h-12 transition-colors cursor-pointer ${
-                          isSelected ? 'bg-bg-surface-hover ring-1 ring-primary/40' : 'hover:bg-bg-surface-hover'
-                        }`}
+                        className={`h-12 transition-colors cursor-pointer ${isSelected ? 'bg-bg-surface-hover ring-1 ring-primary/40' : 'hover:bg-bg-surface-hover'
+                          }`}
                       >
                         <td className="px-3 py-2.5">
                           <div className="flex items-center gap-2">
@@ -770,11 +764,10 @@ export default function FleetPage() {
                 <div className="flex flex-col gap-2 mt-1">
                   <button
                     onClick={() => setVehicleSwapAuthorized(!vehicleSwapAuthorized)}
-                    className={`w-full py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 shadow-md transition-all ${
-                      vehicleSwapAuthorized
+                    className={`w-full py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 shadow-md transition-all ${vehicleSwapAuthorized
                         ? 'bg-risk-low text-on-primary'
                         : 'bg-primary-container hover:bg-primary-hover text-on-primary-container'
-                    }`}
+                      }`}
                     type="button"
                   >
                     <span className="material-symbols-outlined text-[18px]">

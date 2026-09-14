@@ -45,11 +45,10 @@ export default function DisruptionDetailPage() {
           </button>
           <button
             onClick={() => setApprovedAction(true)}
-            className={`flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium transition-colors shadow-sm ${
-              approvedAction
+            className={`flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium transition-colors shadow-sm ${approvedAction
                 ? 'bg-risk-low text-on-primary'
                 : 'bg-primary-container hover:bg-primary-hover text-on-primary-container'
-            }`}
+              }`}
             type="button"
           >
             <span className="material-symbols-outlined text-[16px]">
@@ -301,11 +300,10 @@ export default function DisruptionDetailPage() {
           <div className="pt-4 flex flex-col gap-2">
             <button
               onClick={() => setApprovedAction(true)}
-              className={`w-full py-2.5 px-4 rounded-lg font-body-default text-body-default font-semibold flex items-center justify-center gap-2 shadow-md transition-all ${
-                approvedAction
+              className={`w-full py-2.5 px-4 rounded-lg font-body-default text-body-default font-semibold flex items-center justify-center gap-2 shadow-md transition-all ${approvedAction
                   ? 'bg-risk-low text-on-primary'
                   : 'bg-primary-container hover:bg-primary-hover text-on-primary-container'
-              }`}
+                }`}
               type="button"
             >
               <span className="material-symbols-outlined text-[18px]">
@@ -322,22 +320,20 @@ export default function DisruptionDetailPage() {
         <div className="flex items-center gap-2 border-b border-border-subtle pb-3">
           <button
             onClick={() => setActiveTab('shipments')}
-            className={`px-3 py-1.5 rounded-lg font-caption text-caption font-medium transition-colors ${
-              activeTab === 'shipments'
+            className={`px-3 py-1.5 rounded-lg font-caption text-caption font-medium transition-colors ${activeTab === 'shipments'
                 ? 'bg-primary-container text-on-primary-container'
                 : 'text-text-secondary hover:text-text-primary hover:bg-surface-container'
-            }`}
+              }`}
             type="button"
           >
             Affected Shipments (17)
           </button>
           <button
             onClick={() => setActiveTab('telemetry')}
-            className={`px-3 py-1.5 rounded-lg font-caption text-caption font-medium transition-colors ${
-              activeTab === 'telemetry'
+            className={`px-3 py-1.5 rounded-lg font-caption text-caption font-medium transition-colors ${activeTab === 'telemetry'
                 ? 'bg-primary-container text-on-primary-container'
                 : 'text-text-secondary hover:text-text-primary hover:bg-surface-container'
-            }`}
+              }`}
             type="button"
           >
             Hydrology &amp; Sensor Telemetry

@@ -197,11 +197,10 @@ export default function SuppliersPage() {
               <div
                 key={sup.id}
                 onClick={() => setActiveId(sup.id)}
-                className={`p-4 rounded-xl cursor-pointer transition-all border ${
-                  isSelected
+                className={`p-4 rounded-xl cursor-pointer transition-all border ${isSelected
                     ? 'bg-surface-container-low border-primary shadow-md'
                     : 'bg-bg-surface border-border-subtle hover:border-border-strong hover:bg-surface-container-lowest'
-                }`}
+                  }`}
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div>

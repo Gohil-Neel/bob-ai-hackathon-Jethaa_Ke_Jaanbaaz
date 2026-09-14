@@ -120,12 +120,12 @@ export default function CompliancePage() {
       prev.map((c) =>
         c.id === id
           ? {
-              ...c,
-              status: 'COMPLIANT',
-              signedBy: 'Dr. Priya Nair (Lead QA Auditor - Digital E-Signature Validated)',
-              signedAt: 'Just now (Dec 14)',
-              qaOfficerNotes: 'MKT stability calculation validated under FDA 21 CFR Part 11. Final batch release authorized.',
-            }
+            ...c,
+            status: 'COMPLIANT',
+            signedBy: 'Dr. Priya Nair (Lead QA Auditor - Digital E-Signature Validated)',
+            signedAt: 'Just now (Dec 14)',
+            qaOfficerNotes: 'MKT stability calculation validated under FDA 21 CFR Part 11. Final batch release authorized.',
+          }
           : c
       )
     );
@@ -208,11 +208,10 @@ export default function CompliancePage() {
               <div
                 key={cert.id}
                 onClick={() => setActiveId(cert.id)}
-                className={`p-4 rounded-xl cursor-pointer transition-all border ${
-                  isSelected
+                className={`p-4 rounded-xl cursor-pointer transition-all border ${isSelected
                     ? 'bg-surface-container-low border-teal-500 shadow-md'
                     : 'bg-bg-surface border-border-subtle hover:border-border-strong hover:bg-surface-container-lowest'
-                }`}
+                  }`}
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div>
@@ -220,9 +219,8 @@ export default function CompliancePage() {
                       <span className="font-mono text-xs font-bold text-teal-400 px-1.5 py-0.5 rounded bg-teal-500/10">
                         {cert.certificateNumber}
                       </span>
-                      <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${
-                        isCompliant ? 'bg-risk-low/15 text-risk-low' : 'bg-risk-high/15 text-risk-high'
-                      }`}>
+                      <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${isCompliant ? 'bg-risk-low/15 text-risk-low' : 'bg-risk-high/15 text-risk-high'
+                        }`}>
                         {cert.status.replace(/_/g, ' ')}
                       </span>
                     </div>

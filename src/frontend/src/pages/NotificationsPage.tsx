@@ -143,18 +143,16 @@ export default function NotificationsPage() {
           return (
             <div
               key={rule.id}
-              className={`p-4 rounded-xl border transition-all ${
-                rule.active
+              className={`p-4 rounded-xl border transition-all ${rule.active
                   ? 'bg-bg-surface border-border-subtle hover:border-border-strong'
                   : 'bg-surface-container-lowest/50 border-border-subtle/50 opacity-60'
-              }`}
+                }`}
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${
-                      isCritical ? 'bg-risk-critical/15 text-risk-critical' : 'bg-risk-high/15 text-risk-high'
-                    }`}>
+                    <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${isCritical ? 'bg-risk-critical/15 text-risk-critical' : 'bg-risk-high/15 text-risk-high'
+                      }`}>
                       {rule.severity}
                     </span>
                     <h3 className="font-card-title text-card-title text-text-primary">{rule.name}</h3>
@@ -176,9 +174,8 @@ export default function NotificationsPage() {
                   <button
                     onClick={() => toggleRule(rule.id)}
                     type="button"
-                    className={`font-badge-label text-badge-label px-2.5 py-1 rounded-lg font-bold transition-all ${
-                      rule.active ? 'bg-risk-low/15 text-risk-low border border-risk-low/30' : 'bg-surface-container-high text-text-muted'
-                    }`}
+                    className={`font-badge-label text-badge-label px-2.5 py-1 rounded-lg font-bold transition-all ${rule.active ? 'bg-risk-low/15 text-risk-low border border-risk-low/30' : 'bg-surface-container-high text-text-muted'
+                      }`}
                   >
                     {rule.active ? 'ACTIVE' : 'PAUSED'}
                   </button>

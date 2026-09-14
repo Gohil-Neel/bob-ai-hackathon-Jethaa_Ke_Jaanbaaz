@@ -150,11 +150,10 @@ export default function DisruptionsPage() {
           </span>
           <button
             onClick={() => setSelectedCorridor('all')}
-            className={`px-2.5 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 shadow-sm transition-colors ${
-              selectedCorridor === 'all'
+            className={`px-2.5 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 shadow-sm transition-colors ${selectedCorridor === 'all'
                 ? 'bg-primary-container text-on-primary-container font-semibold'
                 : 'bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover border border-border-subtle'
-            }`}
+              }`}
             type="button"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
@@ -162,11 +161,10 @@ export default function DisruptionsPage() {
           </button>
           <button
             onClick={() => setSelectedCorridor('NH-48')}
-            className={`px-2.5 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors ${
-              selectedCorridor === 'NH-48'
+            className={`px-2.5 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors ${selectedCorridor === 'NH-48'
                 ? 'bg-risk-critical/20 text-risk-critical border border-risk-critical/40 font-semibold'
                 : 'bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover border border-border-subtle'
-            }`}
+              }`}
             type="button"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-risk-critical"></span>
@@ -174,11 +172,10 @@ export default function DisruptionsPage() {
           </button>
           <button
             onClick={() => setSelectedCorridor('NH-65')}
-            className={`px-2.5 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors ${
-              selectedCorridor === 'NH-65'
+            className={`px-2.5 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors ${selectedCorridor === 'NH-65'
                 ? 'bg-risk-high/20 text-risk-high border border-risk-high/40 font-semibold'
                 : 'bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover border border-border-subtle'
-            }`}
+              }`}
             type="button"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-risk-high"></span>
@@ -186,11 +183,10 @@ export default function DisruptionsPage() {
           </button>
           <button
             onClick={() => setSelectedCorridor('NH-16')}
-            className={`px-2.5 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors ${
-              selectedCorridor === 'NH-16'
+            className={`px-2.5 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors ${selectedCorridor === 'NH-16'
                 ? 'bg-risk-medium/20 text-risk-medium border border-risk-medium/40 font-semibold'
                 : 'bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover border border-border-subtle'
-            }`}
+              }`}
             type="button"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-risk-medium"></span>
@@ -352,33 +348,30 @@ export default function DisruptionsPage() {
                 <div className="flex items-center bg-bg-surface rounded-lg p-1 border border-border-subtle gap-1">
                   <button
                     onClick={() => setMapMode('vector')}
-                    className={`px-2.5 py-1 rounded-md font-caption text-caption leading-none transition-colors ${
-                      mapMode === 'vector'
+                    className={`px-2.5 py-1 rounded-md font-caption text-caption leading-none transition-colors ${mapMode === 'vector'
                         ? 'bg-primary-container text-text-primary font-medium shadow-sm'
                         : 'text-text-secondary hover:text-text-primary hover:bg-surface-container'
-                    }`}
+                      }`}
                     type="button"
                   >
                     Vector
                   </button>
                   <button
                     onClick={() => setMapMode('infrared')}
-                    className={`px-2.5 py-1 rounded-md font-caption text-caption leading-none transition-colors ${
-                      mapMode === 'infrared'
+                    className={`px-2.5 py-1 rounded-md font-caption text-caption leading-none transition-colors ${mapMode === 'infrared'
                         ? 'bg-primary-container text-text-primary font-medium shadow-sm'
                         : 'text-text-secondary hover:text-text-primary hover:bg-surface-container'
-                    }`}
+                      }`}
                     type="button"
                   >
                     Infrared
                   </button>
                   <button
                     onClick={() => setMapMode('hydrology')}
-                    className={`px-2.5 py-1 rounded-md font-caption text-caption leading-none transition-colors ${
-                      mapMode === 'hydrology'
+                    className={`px-2.5 py-1 rounded-md font-caption text-caption leading-none transition-colors ${mapMode === 'hydrology'
                         ? 'bg-primary-container text-text-primary font-medium shadow-sm'
                         : 'text-text-secondary hover:text-text-primary hover:bg-surface-container'
-                    }`}
+                      }`}
                     type="button"
                   >
                     Hydrology
@@ -689,22 +682,20 @@ export default function DisruptionsPage() {
               <div className="flex items-center flex-wrap gap-1.5">
                 <button
                   onClick={() => setSelectedCategory('all')}
-                  className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label font-medium transition-colors leading-none ${
-                    selectedCategory === 'all'
+                  className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label font-medium transition-colors leading-none ${selectedCategory === 'all'
                       ? 'bg-primary-container text-on-primary-container shadow-sm'
                       : 'bg-surface-container hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary border border-border-subtle'
-                  }`}
+                    }`}
                   type="button"
                 >
                   All Incidents ({incidentsData.length})
                 </button>
                 <button
                   onClick={() => setSelectedCategory('flood')}
-                  className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors border leading-none ${
-                    selectedCategory === 'flood'
+                  className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors border leading-none ${selectedCategory === 'flood'
                       ? 'bg-risk-critical/20 text-risk-critical border-risk-critical/40 font-semibold'
                       : 'bg-surface-container hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary border-border-subtle'
-                  }`}
+                    }`}
                   type="button"
                 >
                   <span className="w-2 h-2 rounded-full bg-risk-critical"></span>
@@ -712,11 +703,10 @@ export default function DisruptionsPage() {
                 </button>
                 <button
                   onClick={() => setSelectedCategory('congestion')}
-                  className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors border leading-none ${
-                    selectedCategory === 'congestion'
+                  className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors border leading-none ${selectedCategory === 'congestion'
                       ? 'bg-risk-high/20 text-risk-high border-risk-high/40 font-semibold'
                       : 'bg-surface-container hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary border-border-subtle'
-                  }`}
+                    }`}
                   type="button"
                 >
                   <span className="w-2 h-2 rounded-full bg-risk-high"></span>
@@ -724,11 +714,10 @@ export default function DisruptionsPage() {
                 </button>
                 <button
                   onClick={() => setSelectedCategory('cyclone')}
-                  className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors border leading-none ${
-                    selectedCategory === 'cyclone'
+                  className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors border leading-none ${selectedCategory === 'cyclone'
                       ? 'bg-risk-medium/20 text-risk-medium border-risk-medium/40 font-semibold'
                       : 'bg-surface-container hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary border-border-subtle'
-                  }`}
+                    }`}
                   type="button"
                 >
                   <span className="w-2 h-2 rounded-full bg-risk-medium"></span>
@@ -736,11 +725,10 @@ export default function DisruptionsPage() {
                 </button>
                 <button
                   onClick={() => setSelectedCategory('strike')}
-                  className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors border leading-none ${
-                    selectedCategory === 'strike'
+                  className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors border leading-none ${selectedCategory === 'strike'
                       ? 'bg-surface-variant text-text-primary border-border-strong font-semibold'
                       : 'bg-surface-container hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary border-border-subtle'
-                  }`}
+                    }`}
                   type="button"
                 >
                   <span className="w-2 h-2 rounded-full bg-text-disabled"></span>
@@ -771,29 +759,28 @@ export default function DisruptionsPage() {
                 incident.severity === 'CRITICAL'
                   ? 'bg-risk-critical'
                   : incident.severity === 'HIGH'
-                  ? 'bg-risk-high'
-                  : incident.severity === 'MEDIUM'
-                  ? 'bg-risk-medium'
-                  : 'bg-risk-low';
+                    ? 'bg-risk-high'
+                    : incident.severity === 'MEDIUM'
+                      ? 'bg-risk-medium'
+                      : 'bg-risk-low';
 
               const severityBadge =
                 incident.severity === 'CRITICAL'
                   ? 'bg-risk-critical/15 text-risk-critical border border-risk-critical/30'
                   : incident.severity === 'HIGH'
-                  ? 'bg-risk-high/15 text-risk-high border border-risk-high/30'
-                  : incident.severity === 'MEDIUM'
-                  ? 'bg-risk-medium/15 text-risk-medium border border-risk-medium/30'
-                  : 'bg-risk-low/15 text-risk-low border border-risk-low/30';
+                    ? 'bg-risk-high/15 text-risk-high border border-risk-high/30'
+                    : incident.severity === 'MEDIUM'
+                      ? 'bg-risk-medium/15 text-risk-medium border border-risk-medium/30'
+                      : 'bg-risk-low/15 text-risk-low border border-risk-low/30';
 
               return (
                 <div
                   key={incident.id}
                   onClick={() => setActiveIncidentId(incident.id)}
-                  className={`bg-bg-surface p-4 rounded-xl shadow-sm relative overflow-hidden transition-all cursor-pointer border ${
-                    isSelected
+                  className={`bg-bg-surface p-4 rounded-xl shadow-sm relative overflow-hidden transition-all cursor-pointer border ${isSelected
                       ? 'ring-1 ring-primary/50 border-primary-container/40 bg-bg-surface-hover'
                       : 'border-border-subtle hover:border-border-strong hover:bg-bg-surface-hover'
-                  }`}
+                    }`}
                 >
                   <div className={`absolute top-0 left-0 bottom-0 w-1.5 ${severityColor}`}></div>
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pl-2.5">
@@ -1030,11 +1017,10 @@ export default function DisruptionsPage() {
               <div className="flex flex-col gap-2">
                 <button
                   onClick={() => setAuthorized(!authorized)}
-                  className={`w-full py-2.5 px-4 rounded-lg font-body-default text-body-default font-semibold flex items-center justify-center gap-2 shadow-md transition-all ${
-                    authorized
+                  className={`w-full py-2.5 px-4 rounded-lg font-body-default text-body-default font-semibold flex items-center justify-center gap-2 shadow-md transition-all ${authorized
                       ? 'bg-risk-low text-on-primary'
                       : 'bg-primary-container hover:bg-primary-hover text-on-primary-container'
-                  }`}
+                    }`}
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[18px]">

@@ -583,44 +583,40 @@ export default function ColdChainPage() {
               <div className="flex items-center p-0.5 rounded-lg bg-surface-container-lowest text-xs font-medium border border-border-subtle">
                 <button
                   onClick={() => setActiveTab('all')}
-                  className={`px-2.5 py-1 rounded transition-colors ${
-                    activeTab === 'all'
+                  className={`px-2.5 py-1 rounded transition-colors ${activeTab === 'all'
                       ? 'bg-primary-container text-on-primary-container font-semibold'
                       : 'text-text-secondary hover:text-text-primary'
-                  }`}
+                    }`}
                   type="button"
                 >
                   All ({consignmentsData.length})
                 </button>
                 <button
                   onClick={() => setActiveTab('excursions')}
-                  className={`px-2.5 py-1 rounded transition-colors ${
-                    activeTab === 'excursions'
+                  className={`px-2.5 py-1 rounded transition-colors ${activeTab === 'excursions'
                       ? 'bg-risk-critical/20 text-risk-critical font-semibold'
                       : 'text-risk-critical hover:text-text-primary'
-                  }`}
+                    }`}
                   type="button"
                 >
                   Excursions (1)
                 </button>
                 <button
                   onClick={() => setActiveTab('approaching')}
-                  className={`px-2.5 py-1 rounded transition-colors ${
-                    activeTab === 'approaching'
+                  className={`px-2.5 py-1 rounded transition-colors ${activeTab === 'approaching'
                       ? 'bg-risk-medium/20 text-risk-medium font-semibold'
                       : 'text-risk-medium hover:text-text-primary'
-                  }`}
+                    }`}
                   type="button"
                 >
                   Approaching (2)
                 </button>
                 <button
                   onClick={() => setActiveTab('safe')}
-                  className={`px-2.5 py-1 rounded transition-colors ${
-                    activeTab === 'safe'
+                  className={`px-2.5 py-1 rounded transition-colors ${activeTab === 'safe'
                       ? 'bg-risk-low/20 text-risk-low font-semibold'
                       : 'text-risk-low hover:text-text-primary'
-                  }`}
+                    }`}
                   type="button"
                 >
                   Safe Stable (2)
@@ -648,27 +644,25 @@ export default function ColdChainPage() {
                       c.riskTier === 'Critical Hazard'
                         ? 'bg-risk-critical/15 text-risk-critical border border-risk-critical/30'
                         : c.riskTier === 'High Risk'
-                        ? 'bg-risk-medium/15 text-risk-medium border border-risk-medium/30'
-                        : 'bg-risk-low/15 text-risk-low border border-risk-low/30';
+                          ? 'bg-risk-medium/15 text-risk-medium border border-risk-medium/30'
+                          : 'bg-risk-low/15 text-risk-low border border-risk-low/30';
 
                     return (
                       <tr
                         key={c.id}
                         onClick={() => setSelectedShipmentId(c.id)}
-                        className={`transition-colors cursor-pointer ${
-                          isSelected ? 'bg-bg-surface-hover ring-1 ring-primary/40' : 'hover:bg-bg-surface-hover'
-                        }`}
+                        className={`transition-colors cursor-pointer ${isSelected ? 'bg-bg-surface-hover ring-1 ring-primary/40' : 'hover:bg-bg-surface-hover'
+                          }`}
                       >
                         <td className="px-3.5 py-2.5">
                           <div className="flex items-center gap-2.5">
                             <div
-                              className={`w-1.5 h-7 rounded-full flex-shrink-0 ${
-                                c.riskTier === 'Critical Hazard'
+                              className={`w-1.5 h-7 rounded-full flex-shrink-0 ${c.riskTier === 'Critical Hazard'
                                   ? 'bg-risk-critical'
                                   : c.riskTier === 'High Risk'
-                                  ? 'bg-risk-medium'
-                                  : 'bg-risk-low'
-                              }`}
+                                    ? 'bg-risk-medium'
+                                    : 'bg-risk-low'
+                                }`}
                             ></div>
                             <div className="min-w-0">
                               <span className="font-semibold text-text-primary block leading-tight">{c.id}</span>
@@ -686,8 +680,8 @@ export default function ColdChainPage() {
                               c.riskTier === 'Critical Hazard'
                                 ? 'text-risk-critical'
                                 : c.riskTier === 'High Risk'
-                                ? 'text-risk-medium'
-                                : 'text-risk-low'
+                                  ? 'text-risk-medium'
+                                  : 'text-risk-low'
                             }
                           >
                             {c.currentTemp > 0 ? `+${c.currentTemp.toFixed(1)}°C` : `${c.currentTemp.toFixed(1)}°C`}
@@ -849,11 +843,10 @@ export default function ColdChainPage() {
             <div className="flex flex-col gap-2 pt-1">
               <button
                 onClick={() => setTransferAuthorized(!transferAuthorized)}
-                className={`w-full py-2.5 px-4 rounded-lg font-card-title text-card-title font-semibold shadow-md flex items-center justify-center gap-2 transition-all ${
-                  transferAuthorized
+                className={`w-full py-2.5 px-4 rounded-lg font-card-title text-card-title font-semibold shadow-md flex items-center justify-center gap-2 transition-all ${transferAuthorized
                     ? 'bg-risk-low text-on-primary'
                     : 'bg-primary-container hover:bg-primary-hover text-on-primary-container'
-                }`}
+                  }`}
                 type="button"
               >
                 <span className="material-symbols-outlined text-[18px]">

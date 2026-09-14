@@ -375,11 +375,10 @@ export default function CarriersPage() {
               <div
                 key={carrier.id}
                 onClick={() => setActiveId(carrier.id)}
-                className={`p-4 rounded-xl cursor-pointer transition-all border ${
-                  isSelected
+                className={`p-4 rounded-xl cursor-pointer transition-all border ${isSelected
                     ? 'bg-surface-container-low border-primary shadow-md'
                     : 'bg-bg-surface border-border-subtle hover:border-border-strong hover:bg-surface-container-lowest'
-                }`}
+                  }`}
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div>
@@ -390,9 +389,8 @@ export default function CarriersPage() {
                       <h3 className="font-card-title text-card-title text-text-primary">{carrier.name}</h3>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
-                      <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${
-                        isTier1 ? 'bg-risk-low/15 text-risk-low' : isProbation ? 'bg-risk-critical/15 text-risk-critical' : 'bg-primary-soft text-primary'
-                      }`}>
+                      <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${isTier1 ? 'bg-risk-low/15 text-risk-low' : isProbation ? 'bg-risk-critical/15 text-risk-critical' : 'bg-primary-soft text-primary'
+                        }`}>
                         {isTier1 ? 'Tier 1 Strategic' : isProbation ? 'Probation Review' : 'Tier 2 Secondary'}
                       </span>
                       {carrier.modes.map((m) => (
@@ -432,9 +430,8 @@ export default function CarriersPage() {
             <div>
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="font-mono text-sm font-bold text-primary">{activeCarrier.code}</span>
-                <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${
-                  activeCarrier.tier === 'STRATEGIC_TIER_1' ? 'bg-risk-low/15 text-risk-low' : 'bg-risk-critical/15 text-risk-critical'
-                }`}>
+                <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${activeCarrier.tier === 'STRATEGIC_TIER_1' ? 'bg-risk-low/15 text-risk-low' : 'bg-risk-critical/15 text-risk-critical'
+                  }`}>
                   {activeCarrier.tier.replace(/_/g, ' ')}
                 </span>
                 <span className="font-caption text-caption text-text-muted">Status: {activeCarrier.status}</span>

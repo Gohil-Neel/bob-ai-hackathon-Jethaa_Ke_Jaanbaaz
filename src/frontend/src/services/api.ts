@@ -212,13 +212,13 @@ export async function getRoutes(): Promise<Route[]> {
     segmentsCount: item.segmentsCount ?? (item.segments ? item.segments.length : 0),
     segments: Array.isArray(item.segments)
       ? item.segments.map((s: any) => ({
-          id: s.id ?? s.Id,
-          sequenceOrder: Number(s.sequenceOrder ?? s.SequenceOrder ?? 1),
-          fromLocation: s.fromLocation ?? s.FromLocation,
-          toLocation: s.toLocation ?? s.ToLocation,
-          transportMode: s.transportMode ?? s.TransportMode,
-          estimatedHours: Number(s.estimatedHours ?? s.EstimatedHours ?? 0),
-        }))
+        id: s.id ?? s.Id,
+        sequenceOrder: Number(s.sequenceOrder ?? s.SequenceOrder ?? 1),
+        fromLocation: s.fromLocation ?? s.FromLocation,
+        toLocation: s.toLocation ?? s.ToLocation,
+        transportMode: s.transportMode ?? s.TransportMode,
+        estimatedHours: Number(s.estimatedHours ?? s.EstimatedHours ?? 0),
+      }))
       : [],
     createdAt: item.createdAtUtc ?? item.createdAt,
   }))
@@ -239,13 +239,13 @@ export async function getRouteById(id: string): Promise<Route | null> {
     segmentsCount: item.segmentsCount ?? (item.segments ? item.segments.length : 0),
     segments: Array.isArray(item.segments)
       ? item.segments.map((s: any) => ({
-          id: s.id ?? s.Id,
-          sequenceOrder: Number(s.sequenceOrder ?? s.SequenceOrder ?? 1),
-          fromLocation: s.fromLocation ?? s.FromLocation,
-          toLocation: s.toLocation ?? s.ToLocation,
-          transportMode: s.transportMode ?? s.TransportMode,
-          estimatedHours: Number(s.estimatedHours ?? s.EstimatedHours ?? 0),
-        }))
+        id: s.id ?? s.Id,
+        sequenceOrder: Number(s.sequenceOrder ?? s.SequenceOrder ?? 1),
+        fromLocation: s.fromLocation ?? s.FromLocation,
+        toLocation: s.toLocation ?? s.ToLocation,
+        transportMode: s.transportMode ?? s.TransportMode,
+        estimatedHours: Number(s.estimatedHours ?? s.EstimatedHours ?? 0),
+      }))
       : [],
     createdAt: item.createdAtUtc ?? item.createdAt,
   }

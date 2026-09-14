@@ -46,7 +46,7 @@ const mockAuditTrail: AuditLedgerEntry[] = [
 
 export default function SettingsPage() {
   const [activeNavTab, setActiveNavTab] = useState<'general' | 'thresholds' | 'coldchain' | 'dispatch' | 'integrations' | 'audit'>('thresholds')
-  
+
   // Interactive Threshold Settings
   const [inundationDepth, setInundationDepth] = useState(0.80)
   const [demurrageRate, setDemurrageRate] = useState('4,500')
@@ -204,22 +204,20 @@ export default function SettingsPage() {
         <nav className="flex items-center gap-1">
           <button
             onClick={() => setActiveNavTab('general')}
-            className={`flex items-center gap-2 px-3.5 py-2.5 border-b-2 text-body-default font-body-default transition-colors cursor-pointer ${
-              activeNavTab === 'general'
+            className={`flex items-center gap-2 px-3.5 py-2.5 border-b-2 text-body-default font-body-default transition-colors cursor-pointer ${activeNavTab === 'general'
                 ? 'border-primary-container text-primary font-medium'
                 : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border-strong'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-[17px]">tune</span>
             <span>General & Operations Profile</span>
           </button>
           <button
             onClick={() => setActiveNavTab('thresholds')}
-            className={`flex items-center gap-2 px-3.5 py-2.5 border-b-2 text-body-default font-body-default transition-colors cursor-pointer ${
-              activeNavTab === 'thresholds'
+            className={`flex items-center gap-2 px-3.5 py-2.5 border-b-2 text-body-default font-body-default transition-colors cursor-pointer ${activeNavTab === 'thresholds'
                 ? 'border-primary-container text-primary font-medium'
                 : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border-strong'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-[17px]">crisis_alert</span>
             <span>Risk & Anomaly Thresholds</span>
@@ -227,44 +225,40 @@ export default function SettingsPage() {
           </button>
           <button
             onClick={() => setActiveNavTab('coldchain')}
-            className={`flex items-center gap-2 px-3.5 py-2.5 border-b-2 text-body-default font-body-default transition-colors cursor-pointer ${
-              activeNavTab === 'coldchain'
+            className={`flex items-center gap-2 px-3.5 py-2.5 border-b-2 text-body-default font-body-default transition-colors cursor-pointer ${activeNavTab === 'coldchain'
                 ? 'border-primary-container text-primary font-medium'
                 : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border-strong'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-[17px]">ac_unit</span>
             <span>Cold Chain & MKT Rules</span>
           </button>
           <button
             onClick={() => setActiveNavTab('dispatch')}
-            className={`flex items-center gap-2 px-3.5 py-2.5 border-b-2 text-body-default font-body-default transition-colors cursor-pointer ${
-              activeNavTab === 'dispatch'
+            className={`flex items-center gap-2 px-3.5 py-2.5 border-b-2 text-body-default font-body-default transition-colors cursor-pointer ${activeNavTab === 'dispatch'
                 ? 'border-primary-container text-primary font-medium'
                 : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border-strong'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-[17px]">smart_toy</span>
             <span>Autonomous Dispatch & Guardrails</span>
           </button>
           <button
             onClick={() => setActiveNavTab('integrations')}
-            className={`flex items-center gap-2 px-3.5 py-2.5 border-b-2 text-body-default font-body-default transition-colors cursor-pointer ${
-              activeNavTab === 'integrations'
+            className={`flex items-center gap-2 px-3.5 py-2.5 border-b-2 text-body-default font-body-default transition-colors cursor-pointer ${activeNavTab === 'integrations'
                 ? 'border-primary-container text-primary font-medium'
                 : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border-strong'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-[17px]">hub</span>
             <span>Integrations & IoT Telemetry</span>
           </button>
           <button
             onClick={() => setActiveNavTab('audit')}
-            className={`flex items-center gap-2 px-3.5 py-2.5 border-b-2 text-body-default font-body-default transition-colors cursor-pointer ${
-              activeNavTab === 'audit'
+            className={`flex items-center gap-2 px-3.5 py-2.5 border-b-2 text-body-default font-body-default transition-colors cursor-pointer ${activeNavTab === 'audit'
                 ? 'border-primary-container text-primary font-medium'
                 : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border-strong'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-[17px]">history_edu</span>
             <span>Role-Based Access & Audit Ledger</span>

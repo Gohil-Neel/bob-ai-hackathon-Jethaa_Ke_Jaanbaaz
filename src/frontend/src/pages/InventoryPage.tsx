@@ -136,14 +136,14 @@ export default function InventoryPage() {
       prev.map((i) =>
         i.id === id && i.recommendedTransferUnits
           ? {
-              ...i,
-              onHandUnits: i.onHandUnits + i.recommendedTransferUnits,
-              daysOfSupplyRemaining: +(
-                (i.onHandUnits + i.recommendedTransferUnits) /
-                i.dailyBurnRateUnits
-              ).toFixed(1),
-              status: 'HEALTHY',
-            }
+            ...i,
+            onHandUnits: i.onHandUnits + i.recommendedTransferUnits,
+            daysOfSupplyRemaining: +(
+              (i.onHandUnits + i.recommendedTransferUnits) /
+              i.dailyBurnRateUnits
+            ).toFixed(1),
+            status: 'HEALTHY',
+          }
           : i
       )
     );
@@ -230,11 +230,10 @@ export default function InventoryPage() {
               <div
                 key={item.id}
                 onClick={() => setActiveId(item.id)}
-                className={`p-4 rounded-xl cursor-pointer transition-all border ${
-                  isSelected
+                className={`p-4 rounded-xl cursor-pointer transition-all border ${isSelected
                     ? 'bg-surface-container-low border-primary shadow-md'
                     : 'bg-bg-surface border-border-subtle hover:border-border-strong hover:bg-surface-container-lowest'
-                }`}
+                  }`}
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div>
@@ -242,9 +241,8 @@ export default function InventoryPage() {
                       <span className="font-mono text-xs font-bold text-text-primary px-1.5 py-0.5 rounded bg-surface-container-high">
                         {item.sku}
                       </span>
-                      <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${
-                        isCritical ? 'bg-risk-critical/15 text-risk-critical' : 'bg-risk-low/15 text-risk-low'
-                      }`}>
+                      <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${isCritical ? 'bg-risk-critical/15 text-risk-critical' : 'bg-risk-low/15 text-risk-low'
+                        }`}>
                         {item.daysOfSupplyRemaining} DOS
                       </span>
                     </div>
@@ -310,9 +308,8 @@ export default function InventoryPage() {
 
           {/* Inbound Shipment Linkage */}
           {activeItem.inboundShipmentCode && (
-            <div className={`p-4 rounded-lg border space-y-1.5 ${
-              activeItem.inboundDelayHours > 0 ? 'bg-risk-critical/5 border-risk-critical/20' : 'bg-risk-low/5 border-risk-low/20'
-            }`}>
+            <div className={`p-4 rounded-lg border space-y-1.5 ${activeItem.inboundDelayHours > 0 ? 'bg-risk-critical/5 border-risk-critical/20' : 'bg-risk-low/5 border-risk-low/20'
+              }`}>
               <div className="flex items-center gap-2 font-caption text-caption uppercase tracking-wider font-bold" style={{ color: activeItem.inboundDelayHours > 0 ? 'var(--risk-critical)' : 'var(--risk-low)' }}>
                 <span className="material-symbols-outlined text-[16px]">local_shipping</span>
                 Inbound Shipment Pipeline Linkage

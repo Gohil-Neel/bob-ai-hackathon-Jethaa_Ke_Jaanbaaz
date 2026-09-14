@@ -111,12 +111,12 @@ export default function ReportsPage() {
   }
 
   const filteredAuditLogs = mockAuditLogs.filter(log => {
-    const matchesSearch = 
+    const matchesSearch =
       log.id.toLowerCase().includes(auditSearchTerm.toLowerCase()) ||
       log.corridor.toLowerCase().includes(auditSearchTerm.toLowerCase()) ||
       log.disruptionClass.toLowerCase().includes(auditSearchTerm.toLowerCase()) ||
       log.approver.toLowerCase().includes(auditSearchTerm.toLowerCase())
-    
+
     const matchesSeverity = selectedSeverity === 'all' || log.disruptionType === selectedSeverity
     return matchesSearch && matchesSeverity
   })
@@ -257,11 +257,10 @@ export default function ReportsPage() {
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mt-1">
           <button
             onClick={() => setActiveTab('exec')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm whitespace-nowrap cursor-pointer ${
-              activeTab === 'exec'
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm whitespace-nowrap cursor-pointer ${activeTab === 'exec'
                 ? 'bg-primary-container text-text-primary font-semibold'
                 : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-            }`}
+              }`}
             type="button"
           >
             <span className="material-symbols-outlined text-[16px]">summarize</span>
@@ -269,11 +268,10 @@ export default function ReportsPage() {
           </button>
           <button
             onClick={() => setActiveTab('disruption')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm whitespace-nowrap cursor-pointer ${
-              activeTab === 'disruption'
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm whitespace-nowrap cursor-pointer ${activeTab === 'disruption'
                 ? 'bg-primary-container text-text-primary font-semibold'
                 : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-            }`}
+              }`}
             type="button"
           >
             <span className="material-symbols-outlined text-[16px]">shield</span>
@@ -281,11 +279,10 @@ export default function ReportsPage() {
           </button>
           <button
             onClick={() => setActiveTab('coldchain')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm whitespace-nowrap cursor-pointer ${
-              activeTab === 'coldchain'
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm whitespace-nowrap cursor-pointer ${activeTab === 'coldchain'
                 ? 'bg-primary-container text-text-primary font-semibold'
                 : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-            }`}
+              }`}
             type="button"
           >
             <span className="material-symbols-outlined text-[16px]">ac_unit</span>
@@ -293,11 +290,10 @@ export default function ReportsPage() {
           </button>
           <button
             onClick={() => setActiveTab('carrier')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm whitespace-nowrap cursor-pointer ${
-              activeTab === 'carrier'
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm whitespace-nowrap cursor-pointer ${activeTab === 'carrier'
                 ? 'bg-primary-container text-text-primary font-semibold'
                 : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-            }`}
+              }`}
             type="button"
           >
             <span className="material-symbols-outlined text-[16px]">local_shipping</span>
@@ -305,11 +301,10 @@ export default function ReportsPage() {
           </button>
           <button
             onClick={() => setActiveTab('driver')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm whitespace-nowrap cursor-pointer ${
-              activeTab === 'driver'
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm whitespace-nowrap cursor-pointer ${activeTab === 'driver'
                 ? 'bg-primary-container text-text-primary font-semibold'
                 : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-            }`}
+              }`}
             type="button"
           >
             <span className="material-symbols-outlined text-[16px]">badge</span>
@@ -946,9 +941,8 @@ export default function ReportsPage() {
               {filteredAuditLogs.map((log, index) => (
                 <tr
                   key={log.id}
-                  className={`h-11 hover:bg-bg-surface-hover transition-colors ${
-                    index % 2 === 1 ? 'bg-surface-container-low/40' : ''
-                  }`}
+                  className={`h-11 hover:bg-bg-surface-hover transition-colors ${index % 2 === 1 ? 'bg-surface-container-low/40' : ''
+                    }`}
                 >
                   <td className="px-3 py-2 font-mono text-text-primary">
                     <div className="font-semibold text-primary">{log.id}</div>
@@ -959,20 +953,18 @@ export default function ReportsPage() {
                     <span className="font-caption text-caption text-text-muted">{log.corridorSub}</span>
                   </td>
                   <td className="px-3">
-                    <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full flex items-center gap-1 w-max ${
-                      log.disruptionType === 'critical'
+                    <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full flex items-center gap-1 w-max ${log.disruptionType === 'critical'
                         ? 'bg-risk-critical/10 text-risk-critical'
                         : log.disruptionType === 'high'
-                        ? 'bg-risk-high/10 text-risk-high'
-                        : 'bg-risk-medium/10 text-risk-medium'
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${
-                        log.disruptionType === 'critical'
+                          ? 'bg-risk-high/10 text-risk-high'
+                          : 'bg-risk-medium/10 text-risk-medium'
+                      }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${log.disruptionType === 'critical'
                           ? 'bg-risk-critical'
                           : log.disruptionType === 'high'
-                          ? 'bg-risk-high'
-                          : 'bg-risk-medium'
-                      }`}></span>
+                            ? 'bg-risk-high'
+                            : 'bg-risk-medium'
+                        }`}></span>
                       {log.disruptionClass}
                     </span>
                   </td>

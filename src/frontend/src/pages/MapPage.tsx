@@ -173,11 +173,10 @@ export default function MapPage() {
           <button
             onClick={() => setLayerWeather(!layerWeather)}
             type="button"
-            className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors ${
-              layerWeather
+            className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors ${layerWeather
                 ? 'bg-primary-container text-on-primary-container font-semibold'
                 : 'bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover border border-border-subtle'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-[16px]">cyclone</span>
             Storm Radar {layerWeather ? '✓' : ''}
@@ -185,11 +184,10 @@ export default function MapPage() {
           <button
             onClick={() => setLayerColdChain(!layerColdChain)}
             type="button"
-            className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors ${
-              layerColdChain
+            className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors ${layerColdChain
                 ? 'bg-teal-500/20 text-teal-400 border border-teal-500/40 font-semibold'
                 : 'bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover border border-border-subtle'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-[16px]">ac_unit</span>
             Cold-Chain Loggers {layerColdChain ? '✓' : ''}
@@ -197,11 +195,10 @@ export default function MapPage() {
           <button
             onClick={() => setLayerFleet(!layerFleet)}
             type="button"
-            className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors ${
-              layerFleet
+            className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors ${layerFleet
                 ? 'bg-purple-500/20 text-purple-400 border border-purple-500/40 font-semibold'
                 : 'bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover border border-border-subtle'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-[16px]">directions_boat</span>
             Fleet Assets {layerFleet ? '✓' : ''}
@@ -258,19 +255,17 @@ export default function MapPage() {
               style={{ top: `${pin.lat}%`, left: `${pin.lng}%` }}
             >
               <div
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg shadow-xl transition-all border ${
-                  isSelected
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg shadow-xl transition-all border ${isSelected
                     ? 'bg-surface-container-lowest border-primary ring-2 ring-primary/40'
                     : isCritical
-                    ? 'bg-surface-container-lowest border-risk-critical'
-                    : isWarning
-                    ? 'bg-surface-container-lowest border-risk-high'
-                    : 'bg-surface-container-lowest border-border-subtle'
-                }`}
+                      ? 'bg-surface-container-lowest border-risk-critical'
+                      : isWarning
+                        ? 'bg-surface-container-lowest border-risk-high'
+                        : 'bg-surface-container-lowest border-border-subtle'
+                  }`}
               >
-                <span className={`material-symbols-outlined text-[16px] ${
-                  isCritical ? 'text-risk-critical' : isWarning ? 'text-risk-high' : 'text-primary'
-                }`}>
+                <span className={`material-symbols-outlined text-[16px] ${isCritical ? 'text-risk-critical' : isWarning ? 'text-risk-high' : 'text-primary'
+                  }`}>
                   {icon}
                 </span>
                 <span className="font-mono text-xs font-bold text-text-primary">{pin.code}</span>
@@ -291,9 +286,8 @@ export default function MapPage() {
                   <span className="font-mono text-xs font-bold text-primary px-1.5 py-0.5 rounded bg-surface-container-high">
                     {selectedPin.code}
                   </span>
-                  <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${
-                    selectedPin.status === 'CRITICAL' ? 'bg-risk-critical/15 text-risk-critical' : 'bg-risk-low/15 text-risk-low'
-                  }`}>
+                  <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${selectedPin.status === 'CRITICAL' ? 'bg-risk-critical/15 text-risk-critical' : 'bg-risk-low/15 text-risk-low'
+                    }`}>
                     {selectedPin.status}
                   </span>
                 </div>

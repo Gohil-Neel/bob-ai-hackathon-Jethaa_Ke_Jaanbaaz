@@ -64,11 +64,10 @@ export default function ShipmentDetailPage() {
           </button>
           <button
             onClick={() => setDetourAuthorized(!detourAuthorized)}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg shadow-sm transition-all font-body-default text-body-default font-semibold ${
-              detourAuthorized
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg shadow-sm transition-all font-body-default text-body-default font-semibold ${detourAuthorized
                 ? 'bg-risk-low text-on-primary'
                 : 'bg-primary-container text-on-primary-container hover:bg-primary-hover'
-            }`}
+              }`}
             type="button"
           >
             <span className="material-symbols-outlined text-[17px]">
@@ -195,44 +194,40 @@ export default function ShipmentDetailPage() {
           <div className="flex items-center gap-1 bg-surface-container-lowest p-0.5 rounded-lg border border-border-subtle font-caption text-caption">
             <button
               onClick={() => setActiveSensor('all')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                activeSensor === 'all'
+              className={`px-2.5 py-1 rounded-md font-medium transition-colors ${activeSensor === 'all'
                   ? 'bg-bg-surface-raised text-primary border border-border-subtle shadow-sm'
                   : 'text-text-secondary hover:text-text-primary'
-              }`}
+                }`}
               type="button"
             >
               All Sensors
             </button>
             <button
               onClick={() => setActiveSensor('core')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                activeSensor === 'core'
+              className={`px-2.5 py-1 rounded-md font-medium transition-colors ${activeSensor === 'core'
                   ? 'bg-bg-surface-raised text-primary border border-border-subtle shadow-sm'
                   : 'text-text-secondary hover:text-text-primary'
-              }`}
+                }`}
               type="button"
             >
               Core A
             </button>
             <button
               onClick={() => setActiveSensor('aft')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                activeSensor === 'aft'
+              className={`px-2.5 py-1 rounded-md font-medium transition-colors ${activeSensor === 'aft'
                   ? 'bg-bg-surface-raised text-primary border border-border-subtle shadow-sm'
                   : 'text-text-secondary hover:text-text-primary'
-              }`}
+                }`}
               type="button"
             >
               Aft B
             </button>
             <button
               onClick={() => setActiveSensor('door')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                activeSensor === 'door'
+              className={`px-2.5 py-1 rounded-md font-medium transition-colors ${activeSensor === 'door'
                   ? 'bg-bg-surface-raised text-primary border border-border-subtle shadow-sm'
                   : 'text-text-secondary hover:text-text-primary'
-              }`}
+                }`}
               type="button"
             >
               Door C
