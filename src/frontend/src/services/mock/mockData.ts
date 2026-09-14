@@ -20,7 +20,7 @@ import type {
   Alert,
   ColdChainSensor,
   DashboardKpis,
-} from '../types/domain'
+} from '../../types/domain'
 
 // ─── Shipments ────────────────────────────────────────────────────────────────
 
