@@ -225,8 +225,37 @@ export const AuditPage: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Recommendations List */}
+      {activeTab === 'RECOMMENDATIONS' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredRecommendations.map((r) => (
+            <div key={r.id} className="p-4 rounded-xl bg-bg-surface border border-border-subtle shadow-sm flex flex-col justify-between gap-3">
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs font-bold text-primary px-1.5 py-0.5 rounded bg-surface-container-high">
+                    {r.recommendationType}
+                  </span>
+                  <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${
+                    r.severity === 'CRITICAL' ? 'bg-risk-critical/15 text-risk-critical' : 'bg-risk-high/15 text-risk-high'
+                  }`}>
+                    {r.severity}
+                  </span>
+                </div>
+                <h4 className="font-subtitle text-subtitle text-text-primary font-bold">{r.title}</h4>
+                <p className="font-caption text-caption text-text-secondary">{r.rationale}</p>
+              </div>
+              <div className="pt-2 border-t border-border-subtle flex items-center justify-between text-caption text-text-muted">
+                <span>Shipment: {r.shipmentTrackingNumber || 'In Network'}</span>
+                <span className="font-mono font-bold text-risk-low">{r.confidence ? `${(r.confidence * 100).toFixed(0)}% Conf.` : ''}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
 
 export default AuditPage;
+

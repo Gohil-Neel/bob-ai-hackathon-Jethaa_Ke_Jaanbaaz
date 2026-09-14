@@ -388,6 +388,18 @@ export default function AlertsPage() {
             <option value="RESOLVED">Resolved</option>
           </select>
 
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value as IncidentCategory | 'all')}
+            className="px-2.5 py-1.5 rounded-lg bg-bg-surface border border-border-subtle text-text-secondary text-caption font-caption outline-none focus:border-primary"
+          >
+            <option value="all">All Categories</option>
+            <option value="COLD_CHAIN_EXCURSION">Cold Chain Excursions</option>
+            <option value="ROUTE_DISRUPTION">Route Disruptions</option>
+            <option value="CARRIER_SLA_BREACH">Carrier SLA</option>
+            <option value="CUSTOMS_HOLD">Customs Holds</option>
+          </select>
+
           <span className="font-caption text-caption text-text-disabled ml-1">
             {filteredIncidents.length} of {incidents.length}
           </span>
