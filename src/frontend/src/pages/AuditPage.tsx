@@ -1,47 +1,44 @@
-import { useEffect, useState } from 'react'
-import {
-  ShieldAlert,
-  Clock,
-  User,
-  Activity,
-  Search,
-  RefreshCw,
-  Sparkles,
-  FileCode
-} from 'lucide-react'
-import { getDecisionAudits, getAllRecommendations } from '../services/api'
-import type { DecisionAudit, Recommendation } from '../types/domain'
+/**
+ * SupplyShield AI — Decision Audit & Interventions Ledger
+ *
+ * Immutable governance trail of operator overrides, automated rerouting,
+ * and AI-driven recovery recommendations matching Stitch Design System.
+ */
+
+import { useEffect, useState } from 'react';
+import { getDecisionAudits, getAllRecommendations } from '../services/api';
+import type { DecisionAudit, Recommendation } from '../types/domain';
 
 export const AuditPage: React.FC = () => {
-  const [audits, setAudits] = useState<DecisionAudit[]>([])
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([])
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'AUDITS' | 'RECOMMENDATIONS'>('AUDITS')
-  const [search, setSearch] = useState('')
-  const [selectedAudit, setSelectedAudit] = useState<DecisionAudit | null>(null)
+  const [audits, setAudits] = useState<DecisionAudit[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'AUDITS' | 'RECOMMENDATIONS'>('AUDITS');
+  const [search, setSearch] = useState('');
+  const [selectedAudit, setSelectedAudit] = useState<DecisionAudit | null>(null);
 
   const fetchData = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       const [auditData, recData] = await Promise.all([
         getDecisionAudits(),
         getAllRecommendations(),
-      ])
-      setAudits(auditData)
-      setRecommendations(recData)
+      ]);
+      setAudits(auditData);
+      setRecommendations(recData);
       if (auditData.length > 0 && !selectedAudit) {
-        setSelectedAudit(auditData[0])
+        setSelectedAudit(auditData[0]);
       }
     } catch (err) {
-      console.error('Failed to load audit and recommendation data:', err)
+      console.error('Failed to load audit and recommendation data:', err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const filteredAudits = audits.filter((a) => {
     return (
@@ -49,8 +46,8 @@ export const AuditPage: React.FC = () => {
       a.actionType.toLowerCase().includes(search.toLowerCase()) ||
       a.targetEntityType.toLowerCase().includes(search.toLowerCase()) ||
       a.description.toLowerCase().includes(search.toLowerCase())
-    )
-  })
+    );
+  });
 
   const filteredRecommendations = recommendations.filter((r) => {
     return (
@@ -58,359 +55,178 @@ export const AuditPage: React.FC = () => {
       r.recommendationType.toLowerCase().includes(search.toLowerCase()) ||
       r.rationale.toLowerCase().includes(search.toLowerCase()) ||
       (r.shipmentTrackingNumber && r.shipmentTrackingNumber.toLowerCase().includes(search.toLowerCase()))
-    )
-  })
+    );
+  });
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="flex flex-col w-full gap-5 pb-12">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-800 pb-5">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-              <ShieldAlert className="w-6 h-6" />
-            </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">
-              Decision Audits & System Recommendations
-            </h1>
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-md border border-border-subtle">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-primary-soft flex items-center justify-center text-primary border border-primary/20">
+            <span className="material-symbols-outlined text-[24px]">gavel</span>
           </div>
-          <p className="text-slate-400 text-sm mt-1">
-            Immutable governance trail of operator overrides, automated rerouting, and AI-driven recovery recommendations.
-          </p>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-section-title text-section-title text-text-primary">
+                Decision Audits &amp; System Recommendations
+              </span>
+              <span className="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-primary-soft text-primary font-semibold">
+                100% TRACEABLE
+              </span>
+            </div>
+            <span className="font-caption text-caption text-text-secondary">
+              Immutable governance trail of operator overrides, automated rerouting &amp; AI recovery actions
+            </span>
+          </div>
         </div>
 
         <button
           onClick={fetchData}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium border border-slate-700 transition-colors self-start md:self-auto"
+          type="button"
+          className="px-3.5 py-2 rounded-lg bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover border border-border-subtle font-badge-label text-badge-label flex items-center gap-1.5 transition-colors self-start xl:self-auto"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          <span className={`material-symbols-outlined text-[16px] ${loading ? 'animate-spin' : ''}`}>refresh</span>
           Refresh Records
         </button>
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Audited Events</p>
-          <p className="text-2xl font-bold text-white mt-1.5">{audits.length}</p>
-          <span className="text-xs text-indigo-400 mt-2 block font-medium">100% Traceable compliance</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle">
+          <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">Total Audited Events</span>
+          <span className="font-kpi-val text-kpi-val text-text-primary mt-1">{audits.length}</span>
+          <span className="font-caption text-caption text-primary font-medium mt-1">100% Traceable compliance</span>
         </div>
 
-        <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Applied Interventions</p>
-          <p className="text-2xl font-bold text-emerald-400 mt-1.5">
+        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle">
+          <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">Applied Interventions</span>
+          <span className="font-kpi-val text-kpi-val text-risk-low mt-1">
             {audits.filter((a) => a.status === 'APPLIED' || a.status === 'APPROVED').length}
-          </p>
-          <span className="text-xs text-emerald-400/80 mt-2 block font-medium">Verified state changes</span>
+          </span>
+          <span className="font-caption text-caption text-risk-low font-medium mt-1">Verified state changes</span>
         </div>
 
-        <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Recommendations</p>
-          <p className="text-2xl font-bold text-amber-400 mt-1.5">{recommendations.length}</p>
-          <span className="text-xs text-amber-400/80 mt-2 block font-medium">Algorithmic suggestions</span>
+        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle">
+          <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">Active Recommendations</span>
+          <span className="font-kpi-val text-kpi-val text-risk-high mt-1">{recommendations.length}</span>
+          <span className="font-caption text-caption text-risk-high font-medium mt-1">Algorithmic suggestions</span>
         </div>
 
-        <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Est. Net Time Saved</p>
-          <p className="text-2xl font-bold text-cyan-400 mt-1.5">
+        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle">
+          <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">Est. Net Time Saved</span>
+          <span className="font-kpi-val text-kpi-val text-primary mt-1">
             {Math.round(recommendations.reduce((acc, r) => acc + (r.estimatedTimeSavingMinutes || 0), 0) / 60)}{' '}
-            <span className="text-sm font-normal text-slate-400">hrs</span>
-          </p>
-          <span className="text-xs text-cyan-400/80 mt-2 block font-medium">Optimization impact</span>
+            <span className="text-xs font-normal text-text-muted">hrs</span>
+          </span>
+          <span className="font-caption text-caption text-primary font-medium mt-1">Optimization impact</span>
         </div>
       </div>
 
       {/* Tabs & Search */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-slate-900/40 border border-slate-800">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-surface-container-lowest p-3 rounded-xl border border-border-subtle shadow-sm">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveTab('AUDITS')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-1.5 rounded-lg text-caption font-badge-label font-medium transition-all flex items-center gap-1.5 ${
               activeTab === 'AUDITS'
-                ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
-                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700'
+                ? 'bg-primary text-white shadow-sm'
+                : 'bg-bg-surface text-text-secondary hover:text-text-primary'
             }`}
           >
-            <Activity className="w-4 h-4" />
+            <span className="material-symbols-outlined text-[16px]">history_edu</span>
             Decision Audit Trail ({audits.length})
           </button>
           <button
             onClick={() => setActiveTab('RECOMMENDATIONS')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-1.5 rounded-lg text-caption font-badge-label font-medium transition-all flex items-center gap-1.5 ${
               activeTab === 'RECOMMENDATIONS'
-                ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
-                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700'
+                ? 'bg-primary text-white shadow-sm'
+                : 'bg-bg-surface text-text-secondary hover:text-text-primary'
             }`}
           >
-            <Sparkles className="w-4 h-4" />
+            <span className="material-symbols-outlined text-[16px]">psychology</span>
             AI Recommendations ({recommendations.length})
           </button>
         </div>
 
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+        <div className="relative w-full md:w-80">
+          <span className="material-symbols-outlined absolute left-3 top-2 text-text-muted text-[18px]">search</span>
           <input
             type="text"
-            placeholder={
-              activeTab === 'AUDITS'
-                ? 'Filter audits by operator, action...'
-                : 'Filter recommendations by title, tracking...'
-            }
+            placeholder={activeTab === 'AUDITS' ? 'Filter audits...' : 'Filter recommendations...'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+            className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-bg-surface border border-border-subtle text-text-primary placeholder:text-text-disabled text-caption font-caption outline-none focus:border-primary"
           />
         </div>
       </div>
 
-      {/* Tab 1: Decision Audits Master-Detail */}
+      {/* Audit List Master-Detail */}
       {activeTab === 'AUDITS' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-6 space-y-3">
-            <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider px-1">
-              Audit Event Records ({filteredAudits.length})
-            </h2>
-
-            {loading ? (
-              <div className="p-8 text-center text-slate-400 bg-slate-900/30 rounded-xl border border-slate-800">
-                <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-400" />
-                Loading audit logs...
-              </div>
-            ) : filteredAudits.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 bg-slate-900/30 rounded-xl border border-slate-800">
-                No audit logs found.
-              </div>
-            ) : (
-              <div className="space-y-3 max-h-[640px] overflow-y-auto pr-1">
-                {filteredAudits.map((item) => {
-                  const isSelected = selectedAudit?.id === item.id
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => setSelectedAudit(item)}
-                      className={`p-4 rounded-xl cursor-pointer transition-all border ${
-                        isSelected
-                          ? 'bg-slate-800/90 border-indigo-500 shadow-md shadow-indigo-500/10 ring-1 ring-indigo-500/50'
-                          : 'bg-slate-900/50 border-slate-800 hover:bg-slate-800/50 hover:border-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-bold text-indigo-300 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/40">
-                              {item.actionType}
-                            </span>
-                            <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                              {item.status}
-                            </span>
-                          </div>
-                          <p className="text-sm font-medium text-slate-200 mt-2 line-clamp-2">
-                            {item.description}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
-                        <span className="flex items-center gap-1">
-                          <User className="w-3.5 h-3.5 text-slate-500" />
-                          {item.operatorId}
-                        </span>
-                        <span className="flex items-center gap-1 font-mono">
-                          <Clock className="w-3.5 h-3.5 text-slate-500" />
-                          {new Date(item.approvedAt).toLocaleString([], {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Audit Event Detail Inspector */}
-          <div className="lg:col-span-6">
-            {selectedAudit ? (
-              <div className="p-6 rounded-xl bg-slate-900/60 border border-slate-800 space-y-6 backdrop-blur-sm">
-                <div className="border-b border-slate-800 pb-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono text-slate-400">Audit ID: {selectedAudit.id}</span>
-                    <span className="px-2.5 py-1 rounded text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      Status: {selectedAudit.status}
-                    </span>
-                  </div>
-                  <h3 className="text-lg font-bold text-white mt-1">{selectedAudit.description}</h3>
-                </div>
-
-                {/* Metadata Grid */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
-                    <p className="text-xs text-slate-400 font-semibold uppercase">Action Type</p>
-                    <p className="text-sm font-bold text-indigo-300 font-mono mt-0.5">
-                      {selectedAudit.actionType}
-                    </p>
-                  </div>
-                  <div className="p-3.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
-                    <p className="text-xs text-slate-400 font-semibold uppercase">Operator / System</p>
-                    <p className="text-sm font-bold text-slate-200 mt-0.5">{selectedAudit.operatorId}</p>
-                  </div>
-                  <div className="p-3.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
-                    <p className="text-xs text-slate-400 font-semibold uppercase">Target Entity</p>
-                    <p className="text-sm font-bold text-slate-200 mt-0.5">
-                      {selectedAudit.targetEntityType}
-                    </p>
-                    <span className="text-[11px] font-mono text-slate-500 block truncate">
-                      {selectedAudit.targetEntityId}
-                    </span>
-                  </div>
-                  <div className="p-3.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
-                    <p className="text-xs text-slate-400 font-semibold uppercase">Timestamp</p>
-                    <p className="text-xs font-bold text-slate-200 mt-1">
-                      Approved: {new Date(selectedAudit.approvedAt).toLocaleString()}
-                    </p>
-                    {selectedAudit.appliedAt && (
-                      <p className="text-xs text-emerald-400 mt-0.5">
-                        Applied: {new Date(selectedAudit.appliedAt).toLocaleString()}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* State Diffs / Payload Inspection */}
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <FileCode className="w-3.5 h-3.5 text-indigo-400" />
-                      State Snapshot (Before / After Transition)
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
-                        <span className="text-[11px] font-semibold text-rose-400 uppercase tracking-wider block mb-1">
-                          Previous State
-                        </span>
-                        <pre className="text-[11px] text-slate-400 font-mono overflow-x-auto p-2 bg-slate-900/60 rounded max-h-40">
-                          {selectedAudit.beforeStateJson
-                            ? JSON.stringify(JSON.parse(selectedAudit.beforeStateJson), null, 2)
-                            : '// Initial state (no prior delta)'}
-                        </pre>
-                      </div>
-                      <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
-                        <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider block mb-1">
-                          Applied State
-                        </span>
-                        <pre className="text-[11px] text-emerald-300/90 font-mono overflow-x-auto p-2 bg-slate-900/60 rounded max-h-40">
-                          {selectedAudit.afterStateJson
-                            ? JSON.stringify(JSON.parse(selectedAudit.afterStateJson), null, 2)
-                            : '// Final state active'}
-                        </pre>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="p-12 text-center text-slate-500 bg-slate-900/40 rounded-xl border border-slate-800">
-                Select an audit record to inspect the state transition.
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Tab 2: Recovery Recommendations */}
-      {activeTab === 'RECOMMENDATIONS' && (
-        <div className="space-y-4">
-          <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider px-1">
-            Active Algorithmic Interventions ({filteredRecommendations.length})
-          </h2>
-
-          {loading ? (
-            <div className="p-8 text-center text-slate-400 bg-slate-900/30 rounded-xl border border-slate-800">
-              <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-400" />
-              Loading recommendations...
-            </div>
-          ) : filteredRecommendations.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 bg-slate-900/30 rounded-xl border border-slate-800">
-              No recommendations generated at this time.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {filteredRecommendations.map((rec) => (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <div className="lg:col-span-5 flex flex-col gap-2.5">
+            {filteredAudits.map((item) => {
+              const isSelected = selectedAudit?.id === item.id;
+              return (
                 <div
-                  key={rec.id}
-                  className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-4 hover:border-slate-700 transition-colors"
+                  key={item.id}
+                  onClick={() => setSelectedAudit(item)}
+                  className={`p-4 rounded-xl cursor-pointer transition-all border ${
+                    isSelected
+                      ? 'bg-surface-container-low border-primary shadow-md'
+                      : 'bg-bg-surface border-border-subtle hover:border-border-strong hover:bg-surface-container-lowest'
+                  }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded text-xs font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-mono">
-                          {rec.recommendationType}
-                        </span>
-                        {rec.requiresApproval ? (
-                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                            Requires Sign-off
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            Pre-approved
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="text-base font-bold text-white mt-2">{rec.title}</h3>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-xs font-mono text-slate-400">
-                        Confidence:{' '}
-                        <strong className="text-indigo-300">
-                          {rec.confidence ? `${Math.round(rec.confidence * 100)}%` : '92%'}
-                        </strong>
+                  <div className="flex items-start justify-between gap-3 mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-primary px-1.5 py-0.5 rounded bg-surface-container-high">
+                        {item.actionType}
+                      </span>
+                      <span className="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-low/15 text-risk-low font-semibold">
+                        {item.status}
                       </span>
                     </div>
                   </div>
-
-                  <p className="text-sm text-slate-300 leading-relaxed bg-slate-950/60 p-3 rounded-lg border border-slate-800/80">
-                    {rec.rationale}
+                  <p className="font-card-title text-card-title text-text-primary leading-tight line-clamp-2">
+                    {item.description}
                   </p>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
-                    <div className="p-2.5 rounded bg-slate-950 border border-slate-800">
-                      <span className="text-slate-400 block">Target Shipment</span>
-                      <strong className="text-white font-mono mt-0.5 block truncate">
-                        {rec.shipmentTrackingNumber || rec.shipmentId}
-                      </strong>
-                    </div>
-                    <div className="p-2.5 rounded bg-slate-950 border border-slate-800">
-                      <span className="text-slate-400 block">Est. Time Saved</span>
-                      <strong className="text-emerald-400 font-semibold mt-0.5 block">
-                        +{rec.estimatedTimeSavingMinutes || 0} mins
-                      </strong>
-                    </div>
-                    <div className="p-2.5 rounded bg-slate-950 border border-slate-800">
-                      <span className="text-slate-400 block">Cost Delta</span>
-                      <strong className="text-cyan-400 font-semibold mt-0.5 block">
-                        ${rec.estimatedCostDeltaUsd ?? 0}
-                      </strong>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-800/60 text-xs text-slate-400">
-                    <span>Proposed Carrier: {rec.proposedCarrier || 'Auto-Optimized'}</span>
-                    <span className="font-mono">
-                      Generated: {new Date(rec.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                  <div className="flex items-center justify-between text-caption font-caption text-text-muted mt-2 pt-2 border-t border-border-subtle">
+                    <span>👤 {item.operatorId}</span>
+                    <span className="font-mono">{new Date(item.approvedAt).toLocaleDateString()}</span>
                   </div>
                 </div>
-              ))}
+              );
+            })}
+          </div>
+
+          {selectedAudit && (
+            <div className="lg:col-span-7 bg-surface-container-lowest p-6 rounded-xl border border-border-subtle shadow-md space-y-5 sticky top-20">
+              <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
+                <span className="font-mono text-xs text-text-muted">Audit ID: {selectedAudit.id}</span>
+                <span className="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-low/15 text-risk-low font-bold">
+                  {selectedAudit.status}
+                </span>
+              </div>
+              <h3 className="font-section-title text-section-title text-text-primary">{selectedAudit.description}</h3>
+
+              <div className="grid grid-cols-2 gap-3 font-caption text-caption">
+                <div className="p-3 rounded-lg bg-bg-surface border border-border-subtle">
+                  <div className="text-text-muted">Operator:</div>
+                  <div className="font-bold text-text-primary">{selectedAudit.operatorId}</div>
+                </div>
+                <div className="p-3 rounded-lg bg-bg-surface border border-border-subtle">
+                  <div className="text-text-muted">Target Entity:</div>
+                  <div className="font-bold text-text-primary">{selectedAudit.targetEntityType} ({selectedAudit.targetEntityId})</div>
+                </div>
+              </div>
             </div>
           )}
         </div>
       )}
     </div>
-  )
-}
+  );
+};
+
+export default AuditPage;
