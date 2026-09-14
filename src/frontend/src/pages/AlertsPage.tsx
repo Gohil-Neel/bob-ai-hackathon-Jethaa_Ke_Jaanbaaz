@@ -1,788 +1,284 @@
-/**
- * SupplyShield AI — Alerts & Incident Triage Command Center
- *
- * Real-time operational incident triage matching Stitch Design System:
- * - Severity bands (CRITICAL, HIGH, MEDIUM, LOW)
- * - Incident detail workbench with root-cause analysis (RCA) & timeline
- * - Direct operator action buttons (ACK, Escalate to Crisis Bridge, Authorize Detour, Resolve)
- * - Cryptographic SHA-256 audit ledger
- * - Uses standard Stitch tokens: bg-bg-surface, text-text-primary, material-symbols-outlined
- */
-
-import { useState, useMemo } from 'react';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export type SeverityLevel = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
-export type IncidentCategory = 'COLD_CHAIN' | 'DISRUPTION' | 'CUSTOMS' | 'CARRIER_SLA' | 'DATA_GAP' | 'FLEET';
-export type IncidentStatus = 'NEW' | 'ACKNOWLEDGED' | 'IN_TRIAGE' | 'ESCALATED' | 'RESOLVED';
-
-export interface TriageIncident {
-  id: string;
-  incidentCode: string;
-  title: string;
-  description: string;
-  severity: SeverityLevel;
-  category: IncidentCategory;
-  corridor: string;
-  shipmentCode: string | null;
-  cargoDescription: string;
-  cargoValue: string;
-  status: IncidentStatus;
-  isAcknowledged: boolean;
-  acknowledgedBy: string | null;
-  acknowledgedAt: string | null;
-  createdAt: string;
-  slaDeadline: string;
-  slaBreached: boolean;
-  rootCause: string;
-  recommendedActions: string[];
-  timeline: {
-    time: string;
-    actor: string;
-    action: string;
-    note: string;
-    icon: string;
-  }[];
-  escalationTier: string[];
-  sha256Hash: string;
-}
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_INCIDENTS: TriageIncident[] = [
-  {
-    id: 'inc-001',
-    incidentCode: 'INC-2024-891',
-    title: 'NH-48 Cold Chain Excursion — Insulin Batch SS-2024-0001',
-    description: 'Sensor SENSOR-A1 recorded sustained temperature of 10.4°C (permitted GDP window: 2.0°C – 8.0°C). Cumulative excursion time 87 min. Cargo at immediate quality risk.',
-    severity: 'CRITICAL',
-    category: 'COLD_CHAIN',
-    corridor: 'NH-48 Western Corridor (Kolhapur - Pune)',
-    shipmentCode: 'SS-2024-0001',
-    cargoDescription: 'Recombinant Insulin 100IU/ml (Cold Chain 2-8°C)',
-    cargoValue: '₹2.40 Cr',
-    status: 'IN_TRIAGE',
-    isAcknowledged: true,
-    acknowledgedBy: 'Arjun Mehta (Lead)',
-    acknowledgedAt: '10:15 UTC',
-    createdAt: '10:00 UTC (Today)',
-    slaDeadline: '11:00 UTC (T-15m)',
-    slaBreached: false,
-    rootCause: 'Primary reefer unit compressor intermittent power cut. Secondary backup alternator failed to ignite due to sensor gateway v2.1 firmware sync deadlock.',
-    recommendedActions: [
-      'Dispatch nearest active backup fleet TRUCK-009 (12 km away on NH-48)',
-      'Direct carrier Maersk/Fleet ops to execute emergency thermal re-icing',
-      'Initiate GDP stability review — calculate MKT delta for QA release hold',
-      'Notify consignee Chicago/JNPT Central Pharma Depot of potential quarantine',
-    ],
-    timeline: [
-      { time: '10:00 UTC', actor: 'IoT Telemetry Gateway', action: 'Threshold Breach Detected', note: '10.4°C recorded (Upper Limit: 8.0°C)', icon: 'sensors' },
-      { time: '10:03 UTC', actor: 'PagerDuty Engine', action: 'Paging On-Call Team', note: 'SMS & App broadcast sent to Arjun Mehta & Dr. Priya Nair', icon: 'campaign' },
-      { time: '10:15 UTC', actor: 'Arjun Mehta', action: 'Incident Acknowledged', note: 'Reviewing reefer telemetry stream & vehicle position', icon: 'check_circle' },
-      { time: '10:28 UTC', actor: 'Arjun Mehta', action: 'Carrier Dispatch Bridge Opened', note: 'Contacted carrier operations — backup van en route', icon: 'support_agent' },
-    ],
-    escalationTier: ['Arjun Mehta (L1 Control Tower)', 'Dr. Priya Nair (L2 GDP Lead)', 'Vikram Rao (L3 VP Logistics)'],
-    sha256Hash: '9a3f28c11e74a10d9841f3e82b79a12c8b0e77d2fa9081e812d45c1103f6789b',
-  },
-  {
-    id: 'inc-002',
-    incidentCode: 'INC-2024-884',
-    title: 'Category 4 Cyclone Feeder Disruption — 14 Ocean Shipments Blocked',
-    description: 'Severe weather vortex over North Atlantic / Bay of Bengal sea lane. Port authority closed navigational channels for 48 hours. ETA revisions pending.',
-    severity: 'CRITICAL',
-    category: 'DISRUPTION',
-    corridor: 'North Atlantic / JNPT Sea Route',
-    shipmentCode: null,
-    cargoDescription: '14 Multi-Carrier Pharmaceutical & Medical Shipments',
-    cargoValue: '₹5.84 Cr',
-    status: 'IN_TRIAGE',
-    isAcknowledged: true,
-    acknowledgedBy: 'Riya Sharma',
-    acknowledgedAt: '06:30 UTC',
-    createdAt: '06:00 UTC (Dec 12)',
-    slaDeadline: '09:00 UTC (Passed)',
-    slaBreached: true,
-    rootCause: 'Rapid cyclogenesis exceeding 72h predictive barometric threshold. Gale force winds > 65 kts and wave heights > 9.2m.',
-    recommendedActions: [
-      'Authorize southern Azores bypass corridor (+18h, cost delta +$1,450/TEU)',
-      'Activate carrier force majeure delay clauses with Maersk and MSC',
-      'Notify consignees of revised delivery milestones',
-      'Engage marine cargo insurance broker for delay claims',
-    ],
-    timeline: [
-      { time: '06:00 UTC', actor: 'ECMWF Weather AI', action: 'Disruption Detected', note: '94% probability of 48h sea channel closure', icon: 'cyclone' },
-      { time: '06:30 UTC', actor: 'Riya Sharma', action: 'War-Room Bridge Opened', note: 'Crisis call initiated with 6 carrier fleet managers', icon: 'forum' },
-      { time: '07:45 UTC', actor: 'Arjun Mehta', action: 'Bypass Reroute Approved', note: 'Shipments SS-2024-0001, 0002 diverted via southern track', icon: 'alt_route' },
-    ],
-    escalationTier: ['Riya Sharma (L1)', 'Arjun Mehta (L2 Operations Lead)', 'Executive Committee'],
-    sha256Hash: '4e7b8a1c920f31e78411b0e9821a7c3d4e5f60718293a4b5c6d7e8f901234567',
-  },
-  {
-    id: 'inc-003',
-    incidentCode: 'INC-2024-879',
-    title: 'JNPT Port Crane Failure Congestion — +36h Berth Delay',
-    description: 'GTI Container Terminal berth 3 crane mechanical breakdown causing 9km drayage queue. Shipment SS-2024-0003 delayed by 36 hours.',
-    severity: 'HIGH',
-    category: 'CUSTOMS',
-    corridor: 'JNPT Navi Mumbai Terminal (NH-48)',
-    shipmentCode: 'SS-2024-0003',
-    cargoDescription: 'mRNA Vaccine Batches (-20°C Deep Freeze)',
-    cargoValue: '₹1.85 Cr',
-    status: 'ACKNOWLEDGED',
-    isAcknowledged: true,
-    acknowledgedBy: 'Meera Pillai',
-    acknowledgedAt: '09:00 UTC',
-    createdAt: '07:00 UTC (Dec 13)',
-    slaDeadline: '13:00 UTC',
-    slaBreached: false,
-    rootCause: 'Hydraulic lift cable fracture on ship-to-shore gantry crane #4. Turnaround buffer exhausted.',
-    recommendedActions: [
-      'Activate direct air freight charter contingency via Mumbai (BOM) to Tokyo (NRT)',
-      'Expedite inland green channel customs pass',
-      'Request emergency dry-ice re-topping from local JNPT cryogenic vendor',
-    ],
-    timeline: [
-      { time: '07:00 UTC', actor: 'Port Terminal API', action: 'Berth Congestion Fired', note: 'Crane breakdown flagged by port authority', icon: 'anchor' },
-      { time: '09:00 UTC', actor: 'Meera Pillai', action: 'Acknowledged', note: 'Evaluating BOM air charter vs vessel delay cost', icon: 'check_circle' },
-    ],
-    escalationTier: ['Meera Pillai (L1)', 'Arjun Mehta (L2)'],
-    sha256Hash: 'b91c3d2e5f60718293a4b5c6d7e8f90123456789abcdef0123456789abcdef01',
-  },
-  {
-    id: 'inc-004',
-    incidentCode: 'INC-2024-872',
-    title: 'IoT Telemetry Loss — SENSOR-B3 Offline for 127 Minutes',
-    description: 'No temperature, shock, or GPS telemetry packet received from SENSOR-B3 on shipment SS-2024-0001. Possible LTE gateway power exhaustion.',
-    severity: 'MEDIUM',
-    category: 'DATA_GAP',
-    corridor: 'Mid-Atlantic Transit',
-    shipmentCode: 'SS-2024-0001',
-    cargoDescription: 'Pharma Active Intermediates',
-    cargoValue: '₹95 Lakh',
-    status: 'NEW',
-    isAcknowledged: false,
-    acknowledgedBy: null,
-    acknowledgedAt: null,
-    createdAt: '09:00 UTC (Today)',
-    slaDeadline: '11:00 UTC',
-    slaBreached: false,
-    rootCause: 'Antenna shielding or satellite transponder battery discharge.',
-    recommendedActions: [
-      'Send emergency satellite ping on L-band fallback channel',
-      'Request vessel mate to perform physical verification of logger LED',
-    ],
-    timeline: [
-      { time: '09:00 UTC', actor: 'IoT Ingestion Worker', action: 'Heartbeat Timeout', note: 'No packet received in 120s sync window', icon: 'signal_disconnected' },
-    ],
-    escalationTier: ['IoT Ops Engineer', 'Riya Sharma'],
-    sha256Hash: 'c2f8a31092e4b5c6d7e8f90123456789abcdef0123456789abcdef0123456789',
-  },
-  {
-    id: 'inc-005',
-    incidentCode: 'INC-2024-865',
-    title: 'Carrier Monthly SLA Breach — CMA CGM OTD Dropped to 81.3%',
-    description: 'Rolling 30-day on-time performance dropped 3.7% below mandatory 85% SLA benchmark. Contractual penalty review clause triggered.',
-    severity: 'HIGH',
-    category: 'CARRIER_SLA',
-    corridor: 'Global Carrier Network',
-    shipmentCode: null,
-    cargoDescription: 'Multiple Enterprise Bookings',
-    cargoValue: '₹3.20 Cr',
-    status: 'ESCALATED',
-    isAcknowledged: true,
-    acknowledgedBy: 'Vikram Rao (VP)',
-    acknowledgedAt: 'Dec 10, 14:00 UTC',
-    createdAt: 'Dec 10, 13:00 UTC',
-    slaDeadline: 'Dec 12, 13:00 UTC',
-    slaBreached: true,
-    rootCause: 'Systematic vessel overbooking across Asia-Europe trade lanes.',
-    recommendedActions: [
-      'Formally issue SLA breach notice demanding corrective action plan within 5 business days',
-      'Shift upcoming 4 load allocations to Maersk and Hapag-Lloyd',
-    ],
-    timeline: [
-      { time: '13:00 UTC', actor: 'Analytics Engine', action: 'SLA Breach Computed', note: 'OTD score: 81.3% vs >=85% contract floor', icon: 'analytics' },
-      { time: '14:00 UTC', actor: 'Vikram Rao', action: 'Escalated to Legal & Procurement', note: 'Penalty assessment initiated', icon: 'gavel' },
-    ],
-    escalationTier: ['Vikram Rao (VP)', 'Legal & Procurement'],
-    sha256Hash: 'e5c6f4820123456789abcdef0123456789abcdef0123456789abcdef01234567',
-  },
-  {
-    id: 'inc-006',
-    incidentCode: 'INC-2024-850',
-    title: 'Customs Regulatory Clearance Hold — Dubai Freezone',
-    description: 'Customs authority held shipment SS-2024-0004 for UAE Form-17B validation. Documentation submitted and verified.',
-    severity: 'MEDIUM',
-    category: 'CUSTOMS',
-    corridor: 'Dubai Freezone (DXB-02)',
-    shipmentCode: 'SS-2024-0004',
-    cargoDescription: 'Diagnostics Kits (15-25°C)',
-    cargoValue: '₹62 Lakh',
-    status: 'RESOLVED',
-    isAcknowledged: true,
-    acknowledgedBy: 'Sanjay Gupta',
-    acknowledgedAt: 'Dec 11, 09:00 UTC',
-    createdAt: 'Dec 11, 08:00 UTC',
-    slaDeadline: 'Dec 11, 20:00 UTC',
-    slaBreached: false,
-    rootCause: 'Regulatory format revision effective Dec 1 missed in automatic filing pipeline.',
-    recommendedActions: ['Documentation approved. Gate-out clearance granted.'],
-    timeline: [
-      { time: '08:00 UTC', actor: 'Customs Webhook', action: 'Hold Issued', note: 'Form-17B required', icon: 'description' },
-      { time: '09:00 UTC', actor: 'Sanjay Gupta', action: 'Certificate Uploaded', note: 'Form-17B filed via customs broker', icon: 'upload_file' },
-      { time: '20:00 UTC', actor: 'Customs Authority', action: 'Clearance Approved', note: 'Shipment released without cargo damage', icon: 'verified' },
-    ],
-    escalationTier: ['Sanjay Gupta'],
-    sha256Hash: '9d2a7b560123456789abcdef0123456789abcdef0123456789abcdef01234567',
-  },
-];
-
-// ─── Component ────────────────────────────────────────────────────────────────
+import { useEffect, useState } from 'react'
+import {
+  Bell,
+  AlertTriangle,
+  CheckCircle2,
+  Thermometer,
+  RefreshCw,
+  Search,
+  Filter,
+  ShieldAlert,
+  Check
+} from 'lucide-react'
+import { getAlerts, acknowledgeAlert } from '../services/api'
+import type { Alert } from '../types/domain'
 
 export default function AlertsPage() {
-  const [incidents, setIncidents] = useState<TriageIncident[]>(MOCK_INCIDENTS);
-  const [activeId, setActiveId] = useState<string>(MOCK_INCIDENTS[0].id);
-  const [severityFilter, setSeverityFilter] = useState<SeverityLevel | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState<IncidentStatus | 'all'>('all');
-  const [categoryFilter, setCategoryFilter] = useState<IncidentCategory | 'all'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showAuditLedger, setShowAuditLedger] = useState(false);
+  const [alerts, setAlerts] = useState<Alert[]>([])
+  const [loading, setLoading] = useState(true)
+  const [activeFilter, setActiveFilter] = useState<'ALL' | 'UNACKNOWLEDGED' | 'ACKNOWLEDGED'>('ALL')
+  const [search, setSearch] = useState('')
+  const [acknowledgingId, setAcknowledgingId] = useState<string | null>(null)
 
-  const activeIncident = incidents.find((i) => i.id === activeId) || incidents[0];
+  const load = async () => {
+    setLoading(true)
+    try {
+      const data = await getAlerts()
+      setAlerts(data)
+    } catch (err) {
+      console.error('Failed to load alerts:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const filteredIncidents = useMemo(() => {
-    return incidents.filter((i) => {
-      if (severityFilter !== 'all' && i.severity !== severityFilter) return false;
-      if (statusFilter !== 'all' && i.status !== statusFilter) return false;
-      if (categoryFilter !== 'all' && i.category !== categoryFilter) return false;
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        return (
-          i.title.toLowerCase().includes(q) ||
-          i.incidentCode.toLowerCase().includes(q) ||
-          i.description.toLowerCase().includes(q) ||
-          (i.shipmentCode && i.shipmentCode.toLowerCase().includes(q)) ||
-          i.corridor.toLowerCase().includes(q)
-        );
+  useEffect(() => {
+    load()
+  }, [])
+
+  const handleAcknowledge = async (id: string) => {
+    setAcknowledgingId(id)
+    try {
+      const success = await acknowledgeAlert(id)
+      if (success) {
+        setAlerts((prev) =>
+          prev.map((a) =>
+            a.id === id
+              ? { ...a, isAcknowledged: true, acknowledgedAt: new Date().toISOString() }
+              : a
+          )
+        )
       }
-      return true;
-    });
-  }, [incidents, severityFilter, statusFilter, categoryFilter, searchQuery]);
+    } catch (err) {
+      console.error('Acknowledge error:', err)
+    } finally {
+      setAcknowledgingId(null)
+    }
+  }
 
-  // Actions
-  const handleAcknowledge = (id: string) => {
-    setIncidents((prev) =>
-      prev.map((i) =>
-        i.id === id
-          ? {
-              ...i,
-              isAcknowledged: true,
-              acknowledgedBy: 'Arjun Mehta (Lead)',
-              acknowledgedAt: 'Just now',
-              status: i.status === 'NEW' ? 'ACKNOWLEDGED' : i.status,
-            }
-          : i
-      )
-    );
-  };
+  const filtered = alerts.filter((a) => {
+    const matchSearch =
+      a.title.toLowerCase().includes(search.toLowerCase()) ||
+      a.description.toLowerCase().includes(search.toLowerCase()) ||
+      (a.sensorCode && a.sensorCode.toLowerCase().includes(search.toLowerCase())) ||
+      (a.shipmentId && a.shipmentId.toLowerCase().includes(search.toLowerCase()))
+    const matchStatus =
+      activeFilter === 'ALL' ||
+      (activeFilter === 'UNACKNOWLEDGED' && !a.isAcknowledged) ||
+      (activeFilter === 'ACKNOWLEDGED' && a.isAcknowledged)
+    return matchSearch && matchStatus
+  })
 
-  const handleEscalate = (id: string) => {
-    setIncidents((prev) =>
-      prev.map((i) =>
-        i.id === id
-          ? { ...i, status: 'ESCALATED' }
-          : i
-      )
-    );
-    alert('Incident escalated to Tier-2 Crisis War-Room. SMS & PagerDuty broadcasts triggered.');
-  };
-
-  const handleResolve = (id: string) => {
-    setIncidents((prev) =>
-      prev.map((i) =>
-        i.id === id
-          ? { ...i, status: 'RESOLVED' }
-          : i
-      )
-    );
-  };
-
-  const handleAckAll = () => {
-    setIncidents((prev) =>
-      prev.map((i) =>
-        !i.isAcknowledged
-          ? {
-              ...i,
-              isAcknowledged: true,
-              acknowledgedBy: 'Arjun Mehta (Lead)',
-              acknowledgedAt: 'Just now',
-              status: 'ACKNOWLEDGED',
-            }
-          : i
-      )
-    );
-  };
-
-  // KPIs
-  const criticalCount = incidents.filter((i) => i.severity === 'CRITICAL' && i.status !== 'RESOLVED').length;
-  const unackCount = incidents.filter((i) => !i.isAcknowledged).length;
-  const slaBreachedCount = incidents.filter((i) => i.slaBreached && i.status !== 'RESOLVED').length;
-  const resolvedCount = incidents.filter((i) => i.status === 'RESOLVED').length;
+  const unacknowledgedCount = alerts.filter((a) => !a.isAcknowledged).length
 
   return (
-    <div className="flex flex-col w-full gap-5 pb-12">
-      {/* ── Top Operational Header Bar ── */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-md border border-border-subtle">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-risk-critical/15 flex items-center justify-center text-risk-critical border border-risk-critical/20">
-            <span className="material-symbols-outlined text-[24px]">crisis_alert</span>
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-section-title text-section-title text-text-primary">
-                Alerts & Incident Triage Command Center
-              </span>
-              {unackCount > 0 ? (
-                <span className="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-critical/15 text-risk-critical border border-risk-critical/30 font-semibold animate-pulse">
-                  {unackCount} UNACKNOWLEDGED
-                </span>
-              ) : (
-                <span className="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-low/15 text-risk-low border border-risk-low/30 font-semibold">
-                  ALL ACKNOWLEDGED
-                </span>
-              )}
-              <span className="font-caption text-caption text-text-muted flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-ping" />
-                Live Incident Triage Sync Active
-              </span>
+    <div className="space-y-8 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-800 pb-5">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">
+              <Bell className="w-6 h-6" />
             </div>
-            <span className="font-caption text-caption text-text-secondary">
-              Real-time multi-corridor breach triage • Automated escalation paths &amp; immutable SHA-256 audit ledger
-            </span>
+            <h1 className="text-2xl font-bold text-white tracking-tight">
+              Cold Chain & Disruption Alerts
+            </h1>
           </div>
+          <p className="text-slate-400 text-sm mt-1">
+            Real-time threshold breaches, kinetic temperature excursions, and incident escalations.
+          </p>
         </div>
 
-        {/* Quick Actions */}
-        <div className="flex items-center flex-wrap gap-2">
-          {unackCount > 0 && (
+        <button
+          onClick={load}
+          disabled={loading}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium border border-slate-700 transition-colors self-start md:self-auto"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh Alerts
+        </button>
+      </div>
+
+      {/* KPI Overview */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Alerts</p>
+          <p className="text-2xl font-bold text-white mt-1.5">{alerts.length}</p>
+          <span className="text-xs text-indigo-400 mt-2 block font-medium">Logged in PostgreSQL</span>
+        </div>
+
+        <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Action Required</p>
+          <p className="text-2xl font-bold text-rose-400 mt-1.5">{unacknowledgedCount}</p>
+          <span className="text-xs text-rose-400/80 mt-2 block font-medium">Unacknowledged breaches</span>
+        </div>
+
+        <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Critical Thermal Events</p>
+          <p className="text-2xl font-bold text-amber-400 mt-1.5">
+            {alerts.filter((a) => a.severity === 'CRITICAL' || a.severity === 'HIGH').length}
+          </p>
+          <span className="text-xs text-amber-400/80 mt-2 block font-medium">Tier-1 Cold Chain</span>
+        </div>
+
+        <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Acknowledged</p>
+          <p className="text-2xl font-bold text-emerald-400 mt-1.5">
+            {alerts.filter((a) => a.isAcknowledged).length}
+          </p>
+          <span className="text-xs text-emerald-400/80 mt-2 block font-medium">Sign-off completed</span>
+        </div>
+      </div>
+
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-slate-900/40 border border-slate-800">
+        <div className="relative w-full sm:w-80">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search alerts by sensor, shipment, details..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <Filter className="w-4 h-4 text-slate-400" />
+          <span className="text-xs text-slate-400 uppercase font-semibold">Filter:</span>
+          {(['ALL', 'UNACKNOWLEDGED', 'ACKNOWLEDGED'] as const).map((filter) => (
             <button
-              onClick={handleAckAll}
-              type="button"
-              className="px-3 py-1.5 rounded-lg bg-primary text-white font-badge-label text-badge-label font-semibold shadow-sm hover:brightness-110 flex items-center gap-1.5 transition-all"
+              key={filter}
+              onClick={() => setActiveFilter(filter)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                activeFilter === filter
+                  ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
+                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700'
+              }`}
             >
-              <span className="material-symbols-outlined text-[16px]">done_all</span>
-              Acknowledge All ({unackCount})
+              {filter === 'ALL'
+                ? 'All'
+                : filter === 'UNACKNOWLEDGED'
+                ? `Pending (${unacknowledgedCount})`
+                : 'Resolved'}
             </button>
-          )}
-          <button
-            onClick={() => setShowAuditLedger(!showAuditLedger)}
-            type="button"
-            className="px-3 py-1.5 rounded-lg bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover border border-border-subtle font-badge-label text-badge-label flex items-center gap-1.5 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[16px]">fingerprint</span>
-            {showAuditLedger ? 'Hide Audit Trail' : 'Audit Trail (SHA-256)'}
-          </button>
+          ))}
         </div>
       </div>
 
-      {/* ── KPI Metrics Bar ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        {/* KPI 1 */}
-        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">
-              Critical Incidents
-            </span>
-            <span className="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-critical/15 text-risk-critical font-semibold">
-              Immediate
-            </span>
-          </div>
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="font-kpi-val text-kpi-val text-text-primary">{criticalCount}</span>
-            <span className="text-risk-critical font-caption text-caption font-medium flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-[14px]">priority_high</span>
-              2 Cold Chain
-            </span>
-          </div>
-          <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-            <div className="bg-risk-critical h-full" style={{ width: `${(criticalCount / incidents.length) * 100}%` }} />
-          </div>
+      {/* Clean Uncongested Alerts Table & Cards */}
+      <div className="bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden backdrop-blur-sm">
+        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+            Alert Activity Stream ({filtered.length})
+          </h2>
         </div>
 
-        {/* KPI 2 */}
-        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">
-              Unacknowledged
-            </span>
-            <span className="material-symbols-outlined text-text-muted text-[18px]">notifications_active</span>
+        {loading ? (
+          <div className="p-12 text-center text-slate-400">
+            <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-400" />
+            Loading real-time alerts...
           </div>
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="font-kpi-val text-kpi-val text-text-primary">{unackCount}</span>
-            <span className="font-caption text-caption text-risk-high font-medium bg-risk-high/10 px-1.5 py-0.5 rounded border border-risk-high/20">
-              Pending Action
-            </span>
+        ) : filtered.length === 0 ? (
+          <div className="p-12 text-center text-slate-400">
+            <ShieldAlert className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+            No alerts found matching current filter.
           </div>
-          <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-            <div className="bg-risk-high h-full" style={{ width: `${(unackCount / incidents.length) * 100}%` }} />
-          </div>
-        </div>
+        ) : (
+          <div className="divide-y divide-slate-800">
+            {filtered.map((alert) => (
+              <div
+                key={alert.id}
+                className="p-5 hover:bg-slate-800/40 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 shrink-0">
+                    <Thermometer className="w-5 h-5" />
+                  </div>
 
-        {/* KPI 3 */}
-        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">
-              SLA Breaches
-            </span>
-            <span className="material-symbols-outlined text-text-muted text-[18px]">schedule</span>
-          </div>
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="font-kpi-val text-kpi-val text-text-primary">{slaBreachedCount}</span>
-            <span className="font-caption text-caption text-risk-medium font-medium bg-risk-medium/10 px-1.5 py-0.5 rounded border border-risk-medium/20">
-              &gt; SLA Limit
-            </span>
-          </div>
-          <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-            <div className="bg-risk-medium h-full" style={{ width: `${(slaBreachedCount / incidents.length) * 100}%` }} />
-          </div>
-        </div>
-
-        {/* KPI 4 */}
-        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">
-              Resolved Today
-            </span>
-            <span className="material-symbols-outlined text-risk-low text-[18px]">check_circle</span>
-          </div>
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="font-kpi-val text-kpi-val text-text-primary">{resolvedCount}</span>
-            <span className="font-caption text-caption text-risk-low font-medium">100% GxP Audit</span>
-          </div>
-          <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-            <div className="bg-risk-low h-full" style={{ width: `${(resolvedCount / incidents.length) * 100}%` }} />
-          </div>
-        </div>
-
-        {/* KPI 5 */}
-        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">
-              Average MTTR
-            </span>
-            <span className="material-symbols-outlined text-primary text-[18px]">timer</span>
-          </div>
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="font-kpi-val text-kpi-val text-text-primary">42m</span>
-            <span className="font-caption text-caption text-risk-low font-medium">-18m vs Target</span>
-          </div>
-          <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-            <div className="bg-primary h-full w-[72%]" />
-          </div>
-        </div>
-      </div>
-
-      {/* ── Optional Cryptographic Audit Ledger ── */}
-      {showAuditLedger && (
-        <div className="bg-surface-container-lowest p-5 rounded-xl border border-border-subtle shadow-md space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-[20px]">enhanced_encryption</span>
-              <span className="font-card-title text-card-title text-text-primary">
-                Immutable 21 CFR Part 11 &amp; ISO 27001 Cryptographic Triage Ledger
-              </span>
-            </div>
-            <span className="font-badge-label text-badge-label px-2.5 py-1 rounded bg-primary-soft text-primary font-mono font-semibold">
-              SHA-256 Hash Anchor
-            </span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left font-caption text-caption">
-              <thead>
-                <tr className="border-b border-border-subtle text-text-muted">
-                  <th className="py-2 px-3">Timestamp</th>
-                  <th className="py-2 px-3">Incident Code</th>
-                  <th className="py-2 px-3">Severity</th>
-                  <th className="py-2 px-3">Acknowledged By</th>
-                  <th className="py-2 px-3">Cryptographic SHA-256 Digest</th>
-                </tr>
-              </thead>
-              <tbody>
-                {incidents.map((inc) => (
-                  <tr key={inc.id} className="border-b border-border-subtle/50 hover:bg-surface-container-low/50">
-                    <td className="py-2.5 px-3 font-mono text-text-muted">{inc.createdAt}</td>
-                    <td className="py-2.5 px-3 font-bold text-text-primary">{inc.incidentCode}</td>
-                    <td className="py-2.5 px-3">
-                      <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${
-                        inc.severity === 'CRITICAL' ? 'bg-risk-critical/15 text-risk-critical' : inc.severity === 'HIGH' ? 'bg-risk-high/15 text-risk-high' : 'bg-risk-medium/15 text-risk-medium'
-                      }`}>
-                        {inc.severity}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 text-text-secondary">{inc.acknowledgedBy || 'Pending ACK'}</td>
-                    <td className="py-2.5 px-3 font-mono text-[11px] text-primary truncate max-w-xs">{inc.sha256Hash}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* ── Filters & Search Bar ── */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-surface-container-lowest p-3 rounded-xl border border-border-subtle shadow-sm">
-        <div className="flex items-center gap-2 flex-1">
-          <div className="relative flex-1 max-w-md">
-            <span className="material-symbols-outlined absolute left-3 top-2.5 text-text-muted text-[18px]">search</span>
-            <input
-              type="text"
-              placeholder="Search by incident code, cargo, shipment or corridor..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-bg-surface border border-border-subtle text-text-primary placeholder:text-text-disabled text-caption font-caption outline-none focus:border-primary"
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center flex-wrap gap-2">
-          {/* Severity filter */}
-          <select
-            value={severityFilter}
-            onChange={(e) => setSeverityFilter(e.target.value as SeverityLevel | 'all')}
-            className="px-2.5 py-1.5 rounded-lg bg-bg-surface border border-border-subtle text-text-secondary text-caption font-caption outline-none focus:border-primary"
-          >
-            <option value="all">All Severities</option>
-            <option value="CRITICAL">Critical</option>
-            <option value="HIGH">High</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="LOW">Low</option>
-          </select>
-
-          {/* Status filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as IncidentStatus | 'all')}
-            className="px-2.5 py-1.5 rounded-lg bg-bg-surface border border-border-subtle text-text-secondary text-caption font-caption outline-none focus:border-primary"
-          >
-            <option value="all">All Statuses</option>
-            <option value="NEW">New (Unack)</option>
-            <option value="ACKNOWLEDGED">Acknowledged</option>
-            <option value="IN_TRIAGE">In Triage</option>
-            <option value="ESCALATED">Escalated</option>
-            <option value="RESOLVED">Resolved</option>
-          </select>
-
-          {/* Category filter */}
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value as IncidentCategory | 'all')}
-            className="px-2.5 py-1.5 rounded-lg bg-bg-surface border border-border-subtle text-text-secondary text-caption font-caption outline-none focus:border-primary"
-          >
-            <option value="all">All Categories</option>
-            <option value="COLD_CHAIN">Cold Chain</option>
-            <option value="DISRUPTION">Disruption</option>
-            <option value="CUSTOMS">Customs</option>
-            <option value="CARRIER_SLA">Carrier SLA</option>
-            <option value="DATA_GAP">Data Gap</option>
-          </select>
-
-          <span className="font-caption text-caption text-text-disabled ml-1">
-            {filteredIncidents.length} of {incidents.length}
-          </span>
-        </div>
-      </div>
-
-      {/* ── Split Workbench: List & Detail ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left Column: Incident List */}
-        <div className="lg:col-span-5 flex flex-col gap-2.5">
-          {filteredIncidents.length === 0 ? (
-            <div className="bg-bg-surface p-10 rounded-xl border border-border-subtle text-center flex flex-col items-center justify-center">
-              <span className="material-symbols-outlined text-[48px] text-risk-low mb-2">task_alt</span>
-              <span className="font-card-title text-card-title text-text-primary">No Incidents Found</span>
-              <span className="font-caption text-caption text-text-muted mt-1">All filtered incident triage queues are clear.</span>
-            </div>
-          ) : (
-            filteredIncidents.map((inc) => {
-              const isSelected = activeIncident.id === inc.id;
-              const isCritical = inc.severity === 'CRITICAL';
-              const isHigh = inc.severity === 'HIGH';
-
-              return (
-                <div
-                  key={inc.id}
-                  onClick={() => setActiveId(inc.id)}
-                  className={`p-4 rounded-xl cursor-pointer transition-all border ${
-                    isSelected
-                      ? 'bg-surface-container-low border-primary shadow-md'
-                      : 'bg-bg-surface border-border-subtle hover:border-border-strong hover:bg-surface-container-lowest'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3 mb-1.5">
+                  <div className="space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-xs font-bold text-text-primary">{inc.incidentCode}</span>
-                      <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${
-                        isCritical ? 'bg-risk-critical/15 text-risk-critical border border-risk-critical/30' : isHigh ? 'bg-risk-high/15 text-risk-high border border-risk-high/30' : 'bg-risk-medium/15 text-risk-medium border border-risk-medium/30'
-                      }`}>
-                        {inc.severity}
+                      <span className="font-bold text-white text-base">{alert.title}</span>
+                      <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-950/60 text-rose-400 border border-rose-800/40 font-mono">
+                        {alert.severity}
                       </span>
-                      <span className="font-badge-label text-badge-label px-2 py-0.5 rounded bg-surface-container-high text-text-secondary font-medium">
-                        {inc.category.replace('_', ' ')}
-                      </span>
+                      {alert.isAcknowledged ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <CheckCircle2 className="w-3 h-3" /> Acknowledged
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                          <AlertTriangle className="w-3 h-3" /> Action Required
+                        </span>
+                      )}
                     </div>
 
-                    {!inc.isAcknowledged && (
-                      <span className="w-2.5 h-2.5 rounded-full bg-risk-critical animate-ping" />
-                    )}
+                    <p className="text-sm text-slate-300 leading-relaxed max-w-3xl">
+                      {alert.description}
+                    </p>
+
+                    <div className="flex items-center gap-4 text-xs text-slate-400 flex-wrap pt-1">
+                      {alert.sensorCode && (
+                        <span>
+                          Sensor: <strong className="text-slate-200 font-mono">{alert.sensorCode}</strong>
+                        </span>
+                      )}
+                      {alert.excursionPeakCelsius !== undefined && (
+                        <span>
+                          Peak Temp:{' '}
+                          <strong className="text-rose-400 font-semibold">
+                            +{alert.excursionPeakCelsius}°C
+                          </strong>
+                        </span>
+                      )}
+                      {alert.durationMinutes && (
+                        <span>
+                          Breach Duration:{' '}
+                          <strong className="text-amber-400 font-semibold">
+                            {alert.durationMinutes} mins
+                          </strong>
+                        </span>
+                      )}
+                      <span className="font-mono">
+                        Triggered:{' '}
+                        {new Date(alert.createdAt).toLocaleString([], {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
                   </div>
+                </div>
 
-                  <h3 className="font-card-title text-card-title text-text-primary leading-snug mb-1">
-                    {inc.title}
-                  </h3>
-                  <p className="font-caption text-caption text-text-secondary line-clamp-2 leading-relaxed mb-3">
-                    {inc.description}
-                  </p>
-
-                  <div className="flex items-center justify-between text-[11px] font-caption pt-2 border-t border-border-subtle text-text-muted">
-                    <span className="truncate max-w-[180px]">📍 {inc.corridor.split('(')[0]}</span>
-                    <span className="font-semibold text-text-primary">{inc.cargoValue}</span>
-                    <span className={inc.slaBreached ? 'text-risk-critical font-semibold' : 'text-text-muted'}>
-                      {inc.createdAt}
+                <div className="flex items-center gap-2 md:self-center shrink-0">
+                  {!alert.isAcknowledged ? (
+                    <button
+                      onClick={() => handleAcknowledge(alert.id)}
+                      disabled={acknowledgingId === alert.id}
+                      className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-md shadow-indigo-600/30 transition-colors flex items-center gap-1.5"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      {acknowledgingId === alert.id ? 'Acknowledging...' : 'Acknowledge Alert'}
+                    </button>
+                  ) : (
+                    <span className="text-xs text-slate-400 font-mono">
+                      Signed off:{' '}
+                      {alert.acknowledgedAt
+                        ? new Date(alert.acknowledgedAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })
+                        : 'Recorded'}
                     </span>
-                  </div>
+                  )}
                 </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* Right Column: Active Incident Workbench */}
-        <div className="lg:col-span-7 bg-surface-container-lowest p-6 rounded-xl border border-border-subtle shadow-md space-y-6 sticky top-20">
-          {/* Header */}
-          <div className="flex items-start justify-between gap-4 pb-4 border-b border-border-subtle">
-            <div>
-              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                <span className="font-mono text-sm font-bold text-primary">{activeIncident.incidentCode}</span>
-                <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${
-                  activeIncident.severity === 'CRITICAL' ? 'bg-risk-critical/15 text-risk-critical border border-risk-critical/30' : 'bg-risk-high/15 text-risk-high border border-risk-high/30'
-                }`}>
-                  {activeIncident.severity} PRIORITY
-                </span>
-                <span className="font-badge-label text-badge-label px-2 py-0.5 rounded bg-surface-container-high text-text-secondary">
-                  {activeIncident.category}
-                </span>
-                <span className="font-caption text-caption text-text-muted">
-                  Created: {activeIncident.createdAt}
-                </span>
               </div>
-              <h2 className="font-section-title text-section-title text-text-primary leading-tight">
-                {activeIncident.title}
-              </h2>
-            </div>
-
-            {/* SLA Badge */}
-            <div className="text-right flex-shrink-0">
-              <div className="font-caption text-caption text-text-muted mb-0.5">SLA Deadline</div>
-              <div className={`font-mono text-xs font-bold px-2 py-1 rounded ${
-                activeIncident.slaBreached ? 'bg-risk-critical/15 text-risk-critical border border-risk-critical/30' : 'bg-risk-low/15 text-risk-low border border-risk-low/30'
-              }`}>
-                {activeIncident.slaDeadline}
-              </div>
-            </div>
+            ))}
           </div>
-
-          {/* Context Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3 rounded-lg bg-bg-surface border border-border-subtle">
-              <div className="font-caption text-caption text-text-muted">Corridor</div>
-              <div className="font-card-title text-card-title text-text-primary truncate">{activeIncident.corridor.split('(')[0]}</div>
-            </div>
-            <div className="p-3 rounded-lg bg-bg-surface border border-border-subtle">
-              <div className="font-caption text-caption text-text-muted">Shipment Code</div>
-              <div className="font-mono text-card-title text-primary font-bold">{activeIncident.shipmentCode || 'Multi-Load'}</div>
-            </div>
-            <div className="p-3 rounded-lg bg-bg-surface border border-border-subtle">
-              <div className="font-caption text-caption text-text-muted">Cargo Value</div>
-              <div className="font-card-title text-card-title text-text-primary">{activeIncident.cargoValue}</div>
-            </div>
-            <div className="p-3 rounded-lg bg-bg-surface border border-border-subtle">
-              <div className="font-caption text-caption text-text-muted">Status</div>
-              <div className="font-card-title text-card-title text-text-primary">{activeIncident.status}</div>
-            </div>
-          </div>
-
-          {/* Root Cause Analysis (RCA) Box */}
-          <div className="p-4 rounded-lg bg-risk-critical/5 border border-risk-critical/20 space-y-1.5">
-            <div className="flex items-center gap-2 font-caption text-caption uppercase tracking-wider text-risk-critical font-bold">
-              <span className="material-symbols-outlined text-[16px]">biotech</span>
-              AI Root Cause Analysis (RCA)
-            </div>
-            <p className="font-caption text-caption text-text-secondary leading-relaxed">
-              {activeIncident.rootCause}
-            </p>
-          </div>
-
-          {/* Recommended Actions */}
-          <div className="space-y-2">
-            <div className="font-caption text-caption uppercase tracking-wider text-text-muted font-bold flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px] text-primary">psychology</span>
-              Prescriptive Decision Directives
-            </div>
-            <div className="space-y-1.5">
-              {activeIncident.recommendedActions.map((act, idx) => (
-                <div key={idx} className="p-2.5 rounded-lg bg-bg-surface border border-border-subtle flex items-start gap-2.5 text-caption font-caption text-text-secondary">
-                  <span className="w-5 h-5 rounded-full bg-primary-soft text-primary font-bold flex items-center justify-center flex-shrink-0 text-xs mt-0.5">
-                    {idx + 1}
-                  </span>
-                  <span>{act}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Action Decision Row */}
-          <div className="flex flex-wrap gap-2.5 pt-2 border-t border-border-subtle">
-            {!activeIncident.isAcknowledged ? (
-              <button
-                onClick={() => handleAcknowledge(activeIncident.id)}
-                className="px-4 py-2 rounded-lg bg-primary text-white font-badge-label text-badge-label font-semibold shadow-sm hover:brightness-110 flex items-center gap-1.5 transition-all"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[18px]">check</span>
-                Acknowledge Incident
-              </button>
-            ) : (
-              <div className="px-3 py-2 rounded-lg bg-risk-low/10 text-risk-low border border-risk-low/20 font-caption text-caption flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[18px]">verified</span>
-                Acknowledged by {activeIncident.acknowledgedBy} ({activeIncident.acknowledgedAt})
-              </div>
-            )}
-
-            {activeIncident.status !== 'ESCALATED' && activeIncident.status !== 'RESOLVED' && (
-              <button
-                onClick={() => handleEscalate(activeIncident.id)}
-                className="px-4 py-2 rounded-lg bg-risk-high/15 text-risk-high hover:bg-risk-high/25 border border-risk-high/30 font-badge-label text-badge-label font-semibold flex items-center gap-1.5 transition-colors"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[18px]">forward_to_inbox</span>
-                Escalate to War-Room
-              </button>
-            )}
-
-            {activeIncident.status !== 'RESOLVED' && (
-              <button
-                onClick={() => handleResolve(activeIncident.id)}
-                className="px-4 py-2 rounded-lg bg-risk-low/15 text-risk-low hover:bg-risk-low/25 border border-risk-low/30 font-badge-label text-badge-label font-semibold flex items-center gap-1.5 transition-colors ml-auto"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[18px]">done</span>
-                Mark Resolved
-              </button>
-            )}
-          </div>
-        </div>
+        )}
       </div>
     </div>
-  );
+  )
 }

@@ -1,12 +1,7 @@
 /**
  * SupplyShield AI — Domain TypeScript Types
  *
- * These types define the application's core domain model.
- * They mirror the backend Pydantic schemas and the planned database schema.
- * All entities use string UUIDs as IDs consistently.
- *
- * Phase 2: Types defined and used by mock data and component props.
- * Phase 3+: Connected to real API responses from FastAPI backend.
+ * Full TypeScript representations matching Supabase PostgreSQL tables and ASP.NET Core API DTOs.
  */
 
 // ─── Enumerations ────────────────────────────────────────────────────────────
@@ -75,20 +70,52 @@ export interface Disruption {
   createdAt: string
 }
 
-// ─── Route ────────────────────────────────────────────────────────────────────
+// ─── Route & RouteSegment ───────────────────────────────────────────────────
+
+export interface RouteSegment {
+  id: string
+  sequenceOrder: number
+  fromLocation: string
+  toLocation: string
+  transportMode: string
+  estimatedHours: number
+}
 
 export interface Route {
   id: string
   name: string
   origin: string
   destination: string
-  waypoints: string[]
+  carrierCode: string | null
   estimatedHours: number
-  carrier: string
   isActive: boolean
+  segmentsCount?: number
+  segments?: RouteSegment[]
+  createdAt?: string
 }
 
-// ─── Fleet Asset ──────────────────────────────────────────────────────────────
+// ─── Carrier ──────────────────────────────────────────────────────────────────
+
+export interface Carrier {
+  id: string
+  code: string
+  name: string
+  contactEmail: string | null
+  isActive: boolean
+  createdAt: string
+}
+
+// ─── Fleet Asset & Vehicle Assignment ─────────────────────────────────────────
+
+export interface VehicleAssignment {
+  id: string
+  vehicleId: string
+  shipmentId: string
+  shipmentTrackingNumber?: string
+  assignedAt: string
+  releasedAt: string | null
+  notes: string | null
+}
 
 export interface FleetAsset {
   id: string
@@ -97,8 +124,11 @@ export interface FleetAsset {
   status: FleetAssetStatus
   capacityKg: number
   currentLocation: string
+  carrierId?: string | null
+  carrierName?: string | null
   lastSeenAt: string | null
   createdAt: string
+  assignments?: VehicleAssignment[]
 }
 
 // ─── Cold Chain ───────────────────────────────────────────────────────────────
@@ -107,6 +137,7 @@ export interface ColdChainSensor {
   id: string
   sensorCode: string
   shipmentId: string
+  shipmentTrackingNumber?: string
   minTempCelsius: number
   maxTempCelsius: number
   lastReadingCelsius: number | null
@@ -133,14 +164,22 @@ export interface Alert {
   title: string
   description: string
   shipmentId: string | null
+  shipmentTrackingNumber?: string | null
   sensorId: string | null
+  sensorCode?: string | null
+  excursionPeakCelsius?: number
+  allowedMinCelsius?: number
+  allowedMaxCelsius?: number
+  excursionStart?: string | null
+  excursionEnd?: string | null
+  durationMinutes?: number | null
   disruptionId: string | null
   isAcknowledged: boolean
   acknowledgedAt: string | null
   createdAt: string
 }
 
-// ─── AI Insight ───────────────────────────────────────────────────────────────
+// ─── AI Insight & Recommendation ──────────────────────────────────────────────
 
 export interface AIInsight {
   id: string
@@ -154,12 +193,13 @@ export interface AIInsight {
   createdAt: string
 }
 
-// ─── Recommendation ───────────────────────────────────────────────────────────
-
 export interface Recommendation {
   id: string
   shipmentId: string
-  recommendationType: 'REROUTE' | 'CARRIER_CHANGE' | 'FLEET_REDEPLOY' | 'HOLD'
+  shipmentTrackingNumber?: string
+  shipmentOrigin?: string
+  shipmentDestination?: string
+  recommendationType: string
   title: string
   rationale: string
   severity: SeverityLevel
@@ -171,6 +211,22 @@ export interface Recommendation {
   estimatedCostDeltaUsd: number | null
   requiresApproval: boolean
   createdAt: string
+}
+
+// ─── Decision Audit Log ───────────────────────────────────────────────────────
+
+export interface DecisionAudit {
+  id: string
+  operatorId: string
+  actionType: string
+  targetEntityType: string
+  targetEntityId: string
+  description: string
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'APPLIED' | 'CANCELLED'
+  approvedAt: string
+  appliedAt: string | null
+  beforeStateJson: string | null
+  afterStateJson: string | null
 }
 
 // ─── Simulation ───────────────────────────────────────────────────────────────
@@ -191,20 +247,6 @@ export interface Simulation {
   riskDelta: string | null
   recommendation: string
   createdAt: string
-}
-
-// ─── Operator Action ─────────────────────────────────────────────────────────
-
-export interface OperatorAction {
-  id: string
-  operatorId: string
-  actionType: string
-  targetEntityType: string
-  targetEntityId: string
-  description: string
-  approvedAt: string
-  appliedAt: string | null
-  isApplied: boolean
 }
 
 // ─── Dashboard KPIs ───────────────────────────────────────────────────────────

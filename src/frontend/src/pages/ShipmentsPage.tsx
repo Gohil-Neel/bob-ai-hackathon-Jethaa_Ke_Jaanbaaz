@@ -299,11 +299,10 @@ export default function ShipmentsPage() {
       <div className="flex items-center gap-1.5 overflow-x-auto pb-3 -mx-1 px-1 scrollbar-none">
         <button
           onClick={() => setActiveTab('all')}
-          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap shadow-sm transition-colors ${
-            activeTab === 'all'
+          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap shadow-sm transition-colors ${activeTab === 'all'
               ? 'bg-primary-soft text-primary border border-primary-container/30 font-medium'
               : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-          }`}
+            }`}
           type="button"
         >
           <span>All Shipments</span>
@@ -313,11 +312,10 @@ export default function ShipmentsPage() {
         </button>
         <button
           onClick={() => setActiveTab('at-risk')}
-          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${
-            activeTab === 'at-risk'
+          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${activeTab === 'at-risk'
               ? 'bg-error-container/30 text-error border border-error/30 font-medium'
               : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-          }`}
+            }`}
           type="button"
         >
           <span className="w-2 h-2 rounded-full bg-risk-critical"></span>
@@ -326,11 +324,10 @@ export default function ShipmentsPage() {
         </button>
         <button
           onClick={() => setActiveTab('delayed')}
-          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${
-            activeTab === 'delayed'
+          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${activeTab === 'delayed'
               ? 'bg-risk-medium/20 text-risk-medium border border-risk-medium/40 font-medium'
               : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-          }`}
+            }`}
           type="button"
         >
           <span className="w-2 h-2 rounded-full bg-risk-medium"></span>
@@ -339,11 +336,10 @@ export default function ShipmentsPage() {
         </button>
         <button
           onClick={() => setActiveTab('cold-chain')}
-          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${
-            activeTab === 'cold-chain'
+          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${activeTab === 'cold-chain'
               ? 'bg-status-info/20 text-status-info border border-status-info/40 font-medium'
               : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-          }`}
+            }`}
           type="button"
         >
           <span className="material-symbols-outlined text-[14px] text-status-info">ac_unit</span>
@@ -354,11 +350,10 @@ export default function ShipmentsPage() {
         </button>
         <button
           onClick={() => setActiveTab('in-transit')}
-          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${
-            activeTab === 'in-transit'
+          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${activeTab === 'in-transit'
               ? 'bg-primary-soft text-primary font-medium'
               : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-          }`}
+            }`}
           type="button"
         >
           <span>In Transit</span>
@@ -368,11 +363,10 @@ export default function ShipmentsPage() {
         </button>
         <button
           onClick={() => setActiveTab('delivered')}
-          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${
-            activeTab === 'delivered'
+          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${activeTab === 'delivered'
               ? 'bg-risk-low/20 text-risk-low font-medium'
               : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-          }`}
+            }`}
           type="button"
         >
           <span>Delivered Today</span>
@@ -649,29 +643,28 @@ export default function ShipmentsPage() {
                       s.priority === 'P1 Critical'
                         ? 'bg-error-container/30 text-error border border-error/30'
                         : s.priority === 'P2 High'
-                        ? 'bg-risk-high/20 text-risk-high border border-risk-high/30'
-                        : s.priority === 'P3 Medium'
-                        ? 'bg-risk-medium/20 text-risk-medium border border-risk-medium/30'
-                        : 'bg-surface-container-high text-text-secondary';
+                          ? 'bg-risk-high/20 text-risk-high border border-risk-high/30'
+                          : s.priority === 'P3 Medium'
+                            ? 'bg-risk-medium/20 text-risk-medium border border-risk-medium/30'
+                            : 'bg-surface-container-high text-text-secondary';
 
                     const telemetryClass =
                       s.telemetryType === 'temp'
                         ? 'bg-error-container/20 text-error border border-error/30'
                         : s.telemetryType === 'flood'
-                        ? 'bg-risk-high/20 text-risk-high border border-risk-high/30'
-                        : s.telemetryType === 'mechanical'
-                        ? 'bg-risk-medium/20 text-risk-medium border border-risk-medium/30'
-                        : s.telemetryType === 'halt'
-                        ? 'bg-risk-high/20 text-risk-high border border-risk-high/30'
-                        : 'bg-risk-low/20 text-risk-low border border-risk-low/30';
+                          ? 'bg-risk-high/20 text-risk-high border border-risk-high/30'
+                          : s.telemetryType === 'mechanical'
+                            ? 'bg-risk-medium/20 text-risk-medium border border-risk-medium/30'
+                            : s.telemetryType === 'halt'
+                              ? 'bg-risk-high/20 text-risk-high border border-risk-high/30'
+                              : 'bg-risk-low/20 text-risk-low border border-risk-low/30';
 
                     return (
                       <tr
                         key={s.id}
                         onClick={() => setSelectedShipmentId(s.id)}
-                        className={`h-14 transition-colors cursor-pointer relative group ${
-                          isSelected ? 'bg-bg-surface-hover ring-1 ring-primary/40' : 'hover:bg-bg-surface-hover'
-                        }`}
+                        className={`h-14 transition-colors cursor-pointer relative group ${isSelected ? 'bg-bg-surface-hover ring-1 ring-primary/40' : 'hover:bg-bg-surface-hover'
+                          }`}
                       >
                         <td className="w-8 px-3 text-center relative py-2">
                           {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>}
@@ -706,9 +699,8 @@ export default function ShipmentsPage() {
                         </td>
                         <td className="px-2 py-2 min-w-[120px]">
                           <div
-                            className={`font-medium leading-snug ${
-                              s.delayEst.includes('Delay') ? 'text-risk-high' : 'text-risk-low'
-                            }`}
+                            className={`font-medium leading-snug ${s.delayEst.includes('Delay') ? 'text-risk-high' : 'text-risk-low'
+                              }`}
                           >
                             {s.delayEst}
                           </div>
@@ -981,11 +973,10 @@ export default function ShipmentsPage() {
               <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
                 <button
                   onClick={() => setEmergencyActionAuthorized(!emergencyActionAuthorized)}
-                  className={`w-full sm:flex-1 h-8 px-3 rounded-lg font-card-title text-card-title text-[12px] flex items-center justify-center gap-1.5 shadow-sm transition-all duration-150 active:scale-[0.98] whitespace-nowrap ${
-                    emergencyActionAuthorized
+                  className={`w-full sm:flex-1 h-8 px-3 rounded-lg font-card-title text-card-title text-[12px] flex items-center justify-center gap-1.5 shadow-sm transition-all duration-150 active:scale-[0.98] whitespace-nowrap ${emergencyActionAuthorized
                       ? 'bg-risk-low text-on-primary font-semibold'
                       : 'bg-primary-container text-on-primary-container hover:bg-primary-hover font-semibold'
-                  }`}
+                    }`}
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[15px]">
