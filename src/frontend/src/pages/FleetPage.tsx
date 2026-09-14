@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getFleetAssets } from '../services/api';
 
 interface FleetAssetRow {
   id: string;
@@ -120,15 +121,48 @@ const fleetData: FleetAssetRow[] = [
 ];
 
 export default function FleetPage() {
+  const [fleet, setFleet] = useState<FleetAssetRow[]>(fleetData);
   const [activeTab, setActiveTab] = useState<'all' | 'idle' | 'in-transit' | 'reefer' | 'maintenance'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedAssetId, setSelectedAssetId] = useState<string>('TRK-203');
   const [vehicleSwapAuthorized, setVehicleSwapAuthorized] = useState<boolean>(false);
   const [driverNotified, setDriverNotified] = useState<boolean>(false);
 
-  const selectedAsset = fleetData.find((a) => a.id === selectedAssetId) || fleetData[0];
+  useEffect(() => {
+    getFleetAssets().then((liveVehicles) => {
+      if (liveVehicles && liveVehicles.length > 0) {
+        const mapped: FleetAssetRow[] = liveVehicles.map((v) => {
+          const isReefer = v.assetType.toLowerCase().includes('reefer') || v.assetType.toLowerCase().includes('refrigerated') || v.assetType.toLowerCase().includes('temp');
+          const status = (v.status.toLowerCase() === 'in_use' ? 'in-transit' : v.status.toLowerCase()) as 'idle' | 'in-transit' | 'maintenance' | 'reefer';
 
-  const filteredFleet = fleetData.filter((a) => {
+          return {
+            id: v.assetCode,
+            type: v.assetType,
+            fuelType: isReefer ? 'Temp Range -20°C to +8°C' : 'Dual-Fuel Diesel/CNG',
+            location: v.currentLocation || 'Distribution Center Hub',
+            depotBay: 'Staging Bay Active',
+            hub: v.currentLocation ? v.currentLocation.split(',')[0] : 'Central Hub',
+            fuelOrTemp: isReefer ? '+4.0°C Stable' : '85% Fuel',
+            telemetryStatus: 'Active Telemetry Link',
+            status: isReefer && status === 'idle' ? 'reefer' : status,
+            statusLabel: status === 'idle' ? 'Idle - Available Now' : (status === 'in-transit' ? 'In Transit' : 'Maintenance'),
+            capacity: `${((v.capacityKg || 18000) / 1000).toFixed(1)} T Capacity`,
+            capacityFree: status === 'idle' ? '100% Free Volume' : 'Assigned Route',
+            driver: 'Assigned Driver',
+            isReefer,
+          };
+        });
+        setFleet(mapped);
+        if (mapped.length > 0) {
+          setSelectedAssetId(mapped[0].id);
+        }
+      }
+    }).catch(() => {});
+  }, []);
+
+  const selectedAsset = fleet.find((a) => a.id === selectedAssetId) || fleet[0] || fleetData[0];
+
+  const filteredFleet = fleet.filter((a) => {
     if (activeTab === 'idle' && a.status !== 'idle') return false;
     if (activeTab === 'in-transit' && a.status !== 'in-transit') return false;
     if (activeTab === 'reefer' && !a.isReefer) return false;

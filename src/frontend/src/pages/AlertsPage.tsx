@@ -9,7 +9,8 @@
  * - Uses standard Stitch tokens: bg-bg-surface, text-text-primary, material-symbols-outlined
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { getAlerts, acknowledgeAlert } from '../services/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -162,7 +163,52 @@ export default function AlertsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAuditLedger, setShowAuditLedger] = useState(false);
 
-  const activeIncident = incidents.find((i) => i.id === activeId) || incidents[0];
+  useEffect(() => {
+    getAlerts().then((liveAlerts) => {
+      if (liveAlerts && liveAlerts.length > 0) {
+        const mapped: TriageIncident[] = liveAlerts.map((a, idx) => {
+          const isAck = a.isAcknowledged;
+          return {
+            id: a.id,
+            incidentCode: `INC-2024-${890 + idx}`,
+            title: a.title,
+            description: a.description,
+            severity: a.severity as SeverityLevel,
+            category: 'COLD_CHAIN',
+            corridor: 'NH-48 Western Corridor / Global Multi-Modal',
+            shipmentCode: a.shipmentTrackingNumber || (a.shipmentId ? `SHP-${a.shipmentId.slice(0, 6)}` : 'SS-2024-0001'),
+            cargoDescription: 'Vaccines & Cold-Chain Biopharma (2°C – 8°C)',
+            cargoValue: '₹2.40 Cr',
+            status: isAck ? 'ACKNOWLEDGED' : 'NEW',
+            isAcknowledged: isAck,
+            acknowledgedBy: isAck ? 'Control Tower Lead' : null,
+            acknowledgedAt: a.acknowledgedAt ? new Date(a.acknowledgedAt).toLocaleTimeString() : null,
+            createdAt: new Date(a.createdAt).toLocaleTimeString(),
+            slaDeadline: 'T-15m',
+            slaBreached: false,
+            rootCause: 'Primary cold-chain refrigeration anomaly. Temperature threshold variance detected.',
+            recommendedActions: [
+              'Dispatch nearest active backup fleet',
+              'Direct carrier ops to execute emergency thermal re-icing',
+              'Initiate GDP stability review'
+            ],
+            timeline: [
+              { time: 'T-00', actor: 'IoT Telemetry Gateway', action: 'Threshold Breach Detected', note: `${a.excursionPeakCelsius ?? 9.8}°C recorded`, icon: 'sensors' },
+              { time: 'T-05', actor: 'PagerDuty Engine', action: 'Paging Control Tower Team', note: 'Alert dispatched to operations bridge', icon: 'campaign' }
+            ],
+            escalationTier: ['L1 Control Tower', 'L2 GDP Lead', 'L3 VP Logistics'],
+            sha256Hash: '9a3f28c11e74a10d9841f3e82b79a12c8b0e77d2fa9081e812d45c1103f6789b',
+          };
+        });
+        setIncidents(mapped);
+        if (mapped.length > 0) {
+          setActiveId(mapped[0].id);
+        }
+      }
+    }).catch(() => {});
+  }, []);
+
+  const activeIncident = incidents.find((i) => i.id === activeId) || incidents[0] || MOCK_INCIDENTS[0];
 
   const filteredIncidents = useMemo(() => {
     return incidents.filter((i) => {
@@ -184,13 +230,14 @@ export default function AlertsPage() {
   }, [incidents, severityFilter, statusFilter, categoryFilter, searchQuery]);
 
   const handleAcknowledge = (id: string) => {
+    acknowledgeAlert(id).catch(() => {});
     setIncidents((prev) =>
       prev.map((i) =>
         i.id === id
           ? {
               ...i,
               isAcknowledged: true,
-              acknowledgedBy: 'Arjun Mehta (Lead)',
+              acknowledgedBy: 'Control Tower Operator',
               acknowledgedAt: 'Just now',
               status: i.status === 'NEW' ? 'ACKNOWLEDGED' : i.status,
             }

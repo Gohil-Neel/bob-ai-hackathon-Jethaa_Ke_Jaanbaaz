@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getShipments } from '../services/api';
 
 interface ShipmentRow {
   id: string;
@@ -170,6 +171,7 @@ const shipmentsData: ShipmentRow[] = [
 
 export default function ShipmentsPage() {
   const navigate = useNavigate();
+  const [shipments, setShipments] = useState<ShipmentRow[]>(shipmentsData);
   const [activeTab, setActiveTab] = useState<'all' | 'at-risk' | 'delayed' | 'cold-chain' | 'in-transit' | 'delivered'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [corridorFilter, setCorridorFilter] = useState<string>('all');
@@ -182,9 +184,56 @@ export default function ShipmentsPage() {
   const [emergencyActionAuthorized, setEmergencyActionAuthorized] = useState<boolean>(false);
   const [isIngestModalOpen, setIsIngestModalOpen] = useState<boolean>(false);
 
-  const selectedShipment = shipmentsData.find((s) => s.id === selectedShipmentId) || shipmentsData[0];
+  useEffect(() => {
+    getShipments().then((liveData) => {
+      if (liveData && liveData.length > 0) {
+        const mapped: ShipmentRow[] = liveData.map((s, idx) => {
+          const isAtRisk = s.status === 'AT_RISK' || (s.riskScore !== null && s.riskScore >= 0.7);
+          const isDelayed = s.status === 'DELAYED';
+          const isDelivered = s.status === 'DELIVERED';
+          const uiStatus: 'at-risk' | 'delayed' | 'in-transit' | 'delivered' =
+            isAtRisk ? 'at-risk' : isDelayed ? 'delayed' : isDelivered ? 'delivered' : 'in-transit';
 
-  const filteredShipments = shipmentsData.filter((s) => {
+          const priorityMap: Record<string, 'P1 Critical' | 'P2 High' | 'P3 Medium' | 'P4 Low'> = {
+            CRITICAL: 'P1 Critical',
+            HIGH: 'P2 High',
+            MEDIUM: 'P3 Medium',
+            LOW: 'P4 Low',
+          };
+
+          return {
+            id: s.trackingNumber || s.id,
+            route: `${s.origin} → ${s.destination}`,
+            cargo: s.isColdChain ? 'Cold-Chain Biopharma / Vaccines' : 'Industrial Freight Cargo',
+            cargoValue: s.riskScore && s.riskScore > 0.8 ? '₹1.85 Cr' : '₹75 Lakhs',
+            valueNumeric: s.riskScore && s.riskScore > 0.8 ? 18500000 : 7500000,
+            carrier: s.carrier || 'Global Logistics',
+            carrierKey: (s.carrier || 'carrier').toLowerCase().replace(/[^a-z0-9]/g, ''),
+            unit: `UNIT-${(idx + 101).toString()}`,
+            driver: 'Assigned Driver',
+            priority: priorityMap[s.priority] || 'P2 High',
+            eta: s.estimatedArrival ? new Date(s.estimatedArrival).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Pending',
+            delayEst: isAtRisk ? '+3.5h Delay' : isDelayed ? '+2.0h Delay' : 'On Track',
+            telemetryType: s.isColdChain ? 'temp' : isAtRisk ? 'flood' : 'nominal',
+            telemetryBadge: s.isColdChain ? 'Temp Monitored' : isAtRisk ? 'Risk Excursion' : 'Nominal Stream',
+            isColdChain: s.isColdChain,
+            isDisrupted: isAtRisk || isDelayed,
+            currentTemp: s.isColdChain ? (isAtRisk ? '9.8°C' : '4.2°C') : undefined,
+            corridor: s.origin.toLowerCase().includes('shanghai') ? 'asia-eu' : 'transpacific',
+            status: uiStatus,
+          };
+        });
+        setShipments(mapped);
+        if (mapped.length > 0) {
+          setSelectedShipmentId(mapped[0].id);
+        }
+      }
+    }).catch(() => {});
+  }, []);
+
+  const selectedShipment = shipments.find((s) => s.id === selectedShipmentId) || shipments[0] || shipmentsData[0];
+
+  const filteredShipments = shipments.filter((s) => {
     if (activeTab === 'at-risk' && s.status !== 'at-risk') return false;
     if (activeTab === 'delayed' && s.status !== 'delayed') return false;
     if (activeTab === 'cold-chain' && !s.isColdChain) return false;

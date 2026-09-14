@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getColdChainSensors } from '../services/api';
 
 interface ColdConsignment {
   id: string;
@@ -85,6 +86,7 @@ const consignmentsData: ColdConsignment[] = [
 
 export default function ColdChainPage() {
   const navigate = useNavigate();
+  const [consignments, setConsignments] = useState<ColdConsignment[]>(consignmentsData);
   const [activeTab, setActiveTab] = useState<'all' | 'excursions' | 'approaching' | 'safe'>('all');
   const [selectedShipmentId, setSelectedShipmentId] = useState<string>('SHP-0117');
   const [transferAuthorized, setTransferAuthorized] = useState<boolean>(false);
@@ -98,6 +100,37 @@ export default function ColdChainPage() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    getColdChainSensors().then((liveSensors) => {
+      if (liveSensors && liveSensors.length > 0) {
+        const mapped: ColdConsignment[] = liveSensors.map((s, idx) => {
+          const isExcursion = s.status === 'EXCURSION' || (s.lastReadingCelsius !== null && (s.lastReadingCelsius > s.maxTempCelsius || s.lastReadingCelsius < s.minTempCelsius));
+          const currentTemp = s.lastReadingCelsius !== null ? s.lastReadingCelsius : 4.5;
+          const riskTier: 'Critical Hazard' | 'High Risk' | 'Normal' =
+            isExcursion ? 'Critical Hazard' : (currentTemp > 7.5 ? 'High Risk' : 'Normal');
+
+          return {
+            id: s.shipmentTrackingNumber || s.sensorCode || `SHP-${100 + idx}`,
+            payload: idx === 0 ? 'HPV Vaccines (Biopharma)' : idx === 1 ? 'Insulin Glargine (Solostar)' : 'Biologics / Cold Payload',
+            pod: `${s.sensorCode} (Pod ${String.fromCharCode(65 + (idx % 4))})`,
+            targetRange: `+${s.minTempCelsius.toFixed(1)}°C to +${s.maxTempCelsius.toFixed(1)}°C`,
+            currentTemp,
+            tempTrend: isExcursion ? 'up' : 'stable',
+            excursionState: isExcursion ? '1h 48m Breach' : 'Within GDP Window',
+            riskTier,
+            isExcursion,
+            value: idx === 0 ? '₹1.85 Crore' : '₹95 Lakhs',
+            consignee: 'Central Pharmaceutical Logistics Depot',
+          };
+        });
+        setConsignments(mapped);
+        if (mapped.length > 0) {
+          setSelectedShipmentId(mapped[0].id);
+        }
+      }
+    }).catch(() => {});
+  }, []);
+
   const formatTimer = (totalSeconds: number) => {
     const hrs = Math.floor(totalSeconds / 3600);
     const mins = Math.floor((totalSeconds % 3600) / 60);
@@ -106,9 +139,9 @@ export default function ColdChainPage() {
   };
 
   const selectedConsignment =
-    consignmentsData.find((c) => c.id === selectedShipmentId) || consignmentsData[0];
+    consignments.find((c) => c.id === selectedShipmentId) || consignments[0] || consignmentsData[0];
 
-  const filteredConsignments = consignmentsData.filter((c) => {
+  const filteredConsignments = consignments.filter((c) => {
     if (activeTab === 'excursions') return c.riskTier === 'Critical Hazard';
     if (activeTab === 'approaching') return c.riskTier === 'High Risk';
     if (activeTab === 'safe') return c.riskTier === 'Normal';
