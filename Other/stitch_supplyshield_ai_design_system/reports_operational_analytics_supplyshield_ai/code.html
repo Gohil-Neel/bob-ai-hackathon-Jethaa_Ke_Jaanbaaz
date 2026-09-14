@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-variant":"#30353d","bg-surface-raised":"#141d29","risk-low":"#22c55e","surface-container-lowest":"#090e16","risk-medium":"#f59e0b","on-secondary-fixed":"#131c28","on-surface-variant":"#c3c6d7","on-tertiary-container":"#ffffff","surface-container-highest":"#30353d","surface-tint":"#b3c5ff","secondary-container":"#3e4755","tertiary-container":"#6a778b","primary":"#b3c5ff","border-subtle":"#243142","secondary":"#bec7d7","on-surface":"#dee2ed","text-secondary":"#a8b3c2","on-error-container":"#ffdad6","surface-container-low":"#171c23","bg-surface":"#101722","on-primary":"#002a76","on-background":"#dee2ed","on-secondary":"#28313e","surface-dim":"#0f141b","primary-fixed-dim":"#b3c5ff","tertiary":"#bac7dd","background":"#0f141b","outline-variant":"#424655","inverse-surface":"#dee2ed","on-primary-fixed":"#00174a","primary-hover":"#4a7ff7","error-container":"#93000a","surface":"#0f141b","bg-surface-hover":"#192333","risk-high":"#f97316","bg-sidebar":"#0b111a","primary-soft":"rgba(47, 109, 246, 0.16)","inverse-on-surface":"#2c3139","on-tertiary":"#243142","primary-fixed":"#dbe1ff","text-muted":"#6f7d8f","on-tertiary-fixed":"#0f1c2c","on-tertiary-fixed-variant":"#3b485a","primary-container":"#2f6df6","on-secondary-container":"#adb6c6","bg-app":"#080d14","tertiary-fixed":"#d6e3fa","tertiary-fixed-dim":"#bac7dd","secondary-fixed-dim":"#bec7d7","surface-container-high":"#252a32","text-disabled":"#4b5868","on-secondary-fixed-variant":"#3e4755","inverse-primary":"#0054d8","risk-critical":"#ef4444","on-primary-fixed-variant":"#003ea6","on-error":"#690005","border-strong":"#334155","secondary-fixed":"#dae3f4","status-info":"#38bdf8","surface-bright":"#343942","text-primary":"#f3f6fa","on-primary-container":"#ffffff","error":"#ffb4ab","surface-container":"#1b2027","outline":"#8d90a0"},borderRadius:{DEFAULT:"0.125rem",lg:"0.25rem",xl:"0.5rem",full:"0.75rem"},spacing:{"space-lg":"1rem",gutter:"0.75rem","space-md":"0.75rem","space-xs":"0.25rem","space-xl":"1.5rem",margin:"1.25rem","space-sm":"0.5rem"},fontFamily:{"page-title":["Inter"],"table-cell":["Inter"],"section-title":["Inter"],"card-title":["Inter"],caption:["Inter"],"body-default":["Inter"],"kpi-val":["Inter"],"badge-label":["Inter"]},fontSize:{"page-title":["22px",{lineHeight:"28px",letterSpacing:"-0.015em",fontWeight:"600"}],"table-cell":["12px",{lineHeight:"16px",fontWeight:"400"}],"section-title":["16px",{lineHeight:"22px",letterSpacing:"-0.01em",fontWeight:"600"}],"card-title":["14px",{lineHeight:"20px",fontWeight:"600"}],caption:["11px",{lineHeight:"14px",fontWeight:"400"}],"body-default":["13px",{lineHeight:"18px",fontWeight:"400"}],"kpi-val":["26px",{lineHeight:"32px",letterSpacing:"-0.02em",fontWeight:"600"}],"badge-label":["11px",{lineHeight:"14px",letterSpacing:"0.02em",fontWeight:"500"}]}}}};</script></head><body class="bg-bg-app font-body-default text-body-default text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-[230px] bg-bg-sidebar border-r border-border-subtle z-50 flex flex-col justify-between select-none"><div class="flex flex-col"><div class="h-14 px-4 flex items-center gap-3 border-b border-border-subtle bg-bg-sidebar"><img alt="SupplyShield AI Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvEGrDxLyZoNTS3I0NP9GfmGWdnTT9-HFwaJj1Yt9ViiQzf988VfL2sa4aqjhnxhdipltHpHbs38XhipMwS9B_p4Tw39oSFP2JQPzxGc1UYYBVtlh5Q2kH7Mk_jx4o3QAMbCWe_E37kGKSLnla9-NRawEZHA-wuyyEQmP-nSc9W3uWJB8dRIqI6qvtPPWjt8Ry2luS-qa6LOgdMTAFCkIA4X7jeVXQG1A6Jaj4SiJ2WqIksL_GYMeyIA"/><div class="flex flex-col min-w-0"><span class="text-xs font-semibold tracking-wider text-text-primary uppercase truncate font-page-title">SupplyShield AI</span><span class="font-caption text-caption text-text-muted tracking-tight truncate">Control Tower</span></div></div><div class="px-3 pt-3 pb-1"><span class="font-caption text-caption uppercase tracking-wider text-text-disabled font-medium px-2">Navigation</span></div><nav class="flex flex-col gap-0.5 px-2" data-active-classes="bg-primary-soft text-primary border-l-2 border-primary-container font-medium"><a aria-current="page" class="flex items-center gap-3 px-2.5 py-2 rounded-lg transition-colors bg-primary-soft text-primary border-l-2 border-primary-container font-medium" data-path="command-center" href="#"><span class="material-symbols-outlined text-[18px]">grid_view</span><span class="truncate">Command Center</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="shipments" href="#"><span class="material-symbols-outlined text-[18px]">local_shipping</span><span class="truncate">Shipments</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="fleet" href="#"><span class="material-symbols-outlined text-[18px]">directions_boat</span><span class="truncate">Fleet</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="disruptions" href="#"><span class="material-symbols-outlined text-[18px]">warning</span><span class="truncate">Disruptions</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="cold-chain" href="#"><span class="material-symbols-outlined text-[18px]">ac_unit</span><span class="truncate">Cold Chain</span></a><a class="flex items-center justify-between px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="alerts" href="#"><div class="flex items-center gap-3 min-w-0"><span class="material-symbols-outlined text-[18px]">notifications</span><span class="truncate">Alerts</span></div><span class="font-caption text-caption px-1.5 py-0.5 rounded-full bg-error-container/40 text-error border border-error/30 font-medium leading-none">5</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="ai-insights" href="#"><span class="material-symbols-outlined text-[18px]">neurology</span><span class="truncate">AI Insights</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="what-if-simulation" href="#"><span class="material-symbols-outlined text-[18px]">alt_route</span><span class="truncate">What-If Simulation</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="reports" href="#"><span class="material-symbols-outlined text-[18px]">monitoring</span><span class="truncate">Reports</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="settings" href="#"><span class="material-symbols-outlined text-[18px]">tune</span><span class="truncate">Settings</span></a></nav></div><div class="p-3 border-t border-border-subtle bg-surface-container-lowest"><div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low border border-border-subtle hover:border-border-strong transition-colors"><div class="flex items-center gap-2.5 min-w-0"><div class="relative flex-shrink-0"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-border-subtle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLPOMCOxF6SyH-u8HYYxWSeFF2z1RVaK_dJAC4httBxASNGbFlQeRGjUuzEc8ohUNHXWqRvSo7cLeoZa_G4Lo-NJiddvX2oFJZuJLm6yt7jCBy7JaZPz0JEeFSpJpZZk0am0cApuer18G7iI9Xbnq4O8iLenbLb5asC9C7pM1qmNxRx805kGBdLbSM051NSgTbspXCWKcQh4odniSh20FOtIEmEP7VD5lWqNTdUBsQ_BRcv-PcM53JJw"/><span class="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-risk-low ring-2 ring-surface-container-low"></span></div><div class="flex flex-col min-w-0"><span class="font-card-title text-card-title text-text-primary truncate">Operator</span><span class="font-caption text-caption text-text-muted truncate">Control Tower Lead</span></div></div><button aria-label="Sign out" class="text-text-muted hover:text-text-primary p-1 rounded transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">more_vert</span></button></div></div></aside><div class="pl-[230px] flex flex-col min-h-screen"><header class="fixed top-0 left-[230px] right-0 h-14 bg-bg-app border-b border-border-subtle z-40 px-6 flex items-center justify-between"><div class="flex items-center gap-3"><img alt="SupplyShield AI Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvEGrDxLyZoNTS3I0NP9GfmGWdnTT9-HFwaJj1Yt9ViiQzf988VfL2sa4aqjhnxhdipltHpHbs38XhipMwS9B_p4Tw39oSFP2JQPzxGc1UYYBVtlh5Q2kH7Mk_jx4o3QAMbCWe_E37kGKSLnla9-NRawEZHA-wuyyEQmP-nSc9W3uWJB8dRIqI6qvtPPWjt8Ry2luS-qa6LOgdMTAFCkIA4X7jeVXQG1A6Jaj4SiJ2WqIksL_GYMeyIA"/><div class="flex flex-col"><span class="font-card-title text-card-title text-text-primary leading-tight font-semibold">SupplyShield AI</span><span class="font-caption text-caption text-text-muted leading-tight">Global Operations Intelligence Engine</span></div></div><div class="flex items-center gap-4"><div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-risk-low/10 border border-risk-low/30 font-badge-label text-badge-label text-risk-low"><span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span><span>Live</span></div><button class="flex items-center gap-2 h-8 px-3 rounded-lg bg-surface-container-lowest border border-border-subtle hover:border-border-strong hover:bg-bg-surface text-text-muted hover:text-text-primary transition-colors text-xs" type="button"><span class="material-symbols-outlined text-[16px]">search</span><span>Quick search</span><kbd class="font-caption text-caption text-text-disabled border border-border-subtle px-1 py-0.5 rounded bg-bg-surface">⌘K</kbd></button><button aria-label="Notifications" class="relative p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-bg-surface transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-risk-high"></span></button><button aria-label="Settings" class="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-bg-surface transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">settings</span></button><div class="pl-2 border-l border-border-subtle"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLPOMCOxF6SyH-u8HYYxWSeFF2z1RVaK_dJAC4httBxASNGbFlQeRGjUuzEc8ohUNHXWqRvSo7cLeoZa_G4Lo-NJiddvX2oFJZuJLm6yt7jCBy7JaZPz0JEeFSpJpZZk0am0cApuer18G7iI9Xbnq4O8iLenbLb5asC9C7pM1qmNxRx805kGBdLbSM051NSgTbspXCWKcQh4odniSh20FOtIEmEP7VD5lWqNTdUBsQ_BRcv-PcM53JJw"/></div></div></header><main class="w-full pt-14 bg-bg-app px-6 py-6 min-h-screen"><div class="flex flex-col w-full">
+<!-- Interactive Script to Ensure Sidebar Active State & Client-Side Tab Interactivity -->
+<script>
+    (function () {
+      // Highlight "Reports" tab in the static shell's navigation
+      const navLinks = document.querySelectorAll('aside nav a[data-path]');
+      navLinks.forEach(link => {
+        if (link.getAttribute('data-path') === 'reports') {
+          link.classList.add('bg-primary-soft', 'text-primary', 'font-medium');
+          link.classList.remove('text-text-secondary');
+          const borderIndicator = document.createElement('span');
+          borderIndicator.className = 'w-1 h-4 rounded-full bg-primary-container mr-[-6px]';
+          link.prepend(borderIndicator);
+        } else {
+          link.classList.remove('bg-primary-soft', 'text-primary', 'font-medium');
+          link.classList.add('text-text-secondary');
+        }
+      });
+    })();
+
+    function switchReportTab(btn, tabId) {
+      document.querySelectorAll('.report-tab-btn').forEach(b => {
+        b.classList.remove('bg-primary-container', 'text-text-primary');
+        b.classList.add('bg-surface-container-low', 'text-text-secondary');
+      });
+      btn.classList.add('bg-primary-container', 'text-text-primary');
+      btn.classList.remove('bg-surface-container-low', 'text-text-secondary');
+      
+      const badge = document.getElementById('active-view-badge');
+      if(badge) {
+        badge.innerText = btn.innerText.trim();
+      }
+    }
+
+    function triggerExport(type) {
+      const toast = document.getElementById('export-notification');
+      const toastText = document.getElementById('export-notification-text');
+      if (toast && toastText) {
+        toastText.innerText = `Packaging verified audit cryptographic bundle [${type}]... Ready for download.`;
+        toast.classList.remove('opacity-0', 'pointer-events-none');
+        toast.classList.add('opacity-100');
+        setTimeout(() => {
+          toast.classList.add('opacity-0', 'pointer-events-none');
+          toast.classList.remove('opacity-100');
+        }, 3200);
+      }
+    }
+  </script>
+<!-- Notification Toast for Audit & Export Actions -->
+<div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-2.5 rounded-lg bg-surface-container-high text-text-primary shadow-xl opacity-0 pointer-events-none transition-all duration-300" id="export-notification">
+<span class="material-symbols-outlined text-risk-low text-[20px]">verified_user</span>
+<span class="font-body-default text-body-default font-medium" id="export-notification-text">Exporting Report...</span>
+<button class="text-text-muted hover:text-text-primary ml-2" onclick="document.getElementById('export-notification').classList.add('opacity-0')">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+<!-- Top Breadcrumbs, Header & Controls -->
+<div class="flex flex-col gap-3 pb-5">
+<div class="flex flex-wrap items-center justify-between gap-3">
+<div class="flex items-center gap-2 font-caption text-caption text-text-muted">
+<span class="material-symbols-outlined text-[14px]">analytics</span>
+<span>Control Tower</span>
+<span>/</span>
+<span class="text-text-secondary">Operational Analytics</span>
+<span>/</span>
+<span class="text-primary font-medium">Multi-Corridor Performance Audit &amp; SLA Compliance</span>
+</div>
+<!-- Right Utility Actions -->
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg text-text-secondary text-xs">
+<span class="material-symbols-outlined text-risk-low text-[16px]">verified</span>
+<span class="font-caption text-caption text-text-muted">Audit Hash:</span>
+<span class="font-caption text-caption text-primary font-mono font-medium">0x8F92...D41A</span>
+</div>
+<div class="flex items-center bg-surface-container-low rounded-lg p-0.5">
+<button class="flex items-center gap-1.5 px-2.5 py-1 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover rounded transition-colors" onclick="triggerExport('PDF')" title="Export Certified PDF">
+<span class="material-symbols-outlined text-[15px] text-error">picture_as_pdf</span>
+<span>PDF</span>
+</button>
+<button class="flex items-center gap-1.5 px-2.5 py-1 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover rounded transition-colors" onclick="triggerExport('CSV')" title="Export Granular CSV">
+<span class="material-symbols-outlined text-[15px] text-risk-low">table_view</span>
+<span>CSV</span>
+</button>
+<button class="flex items-center gap-1.5 px-2.5 py-1 text-xs text-text-primary bg-bg-surface-hover rounded transition-colors font-medium" onclick="triggerExport('SHA256 Bundle')" title="Complete Telemetry &amp; Cryptographic Log">
+<span class="material-symbols-outlined text-[15px] text-status-info">folder_zip</span>
+<span>Audit Bundle</span>
+</button>
+</div>
+</div>
+</div>
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+<div>
+<div class="flex items-center gap-3">
+<h1 class="font-page-title text-page-title text-text-primary tracking-tight">Reports &amp; Operational Performance Analytics</h1>
+<span class="font-badge-label text-badge-label px-2.5 py-0.5 rounded-full bg-primary-soft text-primary" id="active-view-badge">Executive Summary</span>
+<span class="font-caption text-caption px-2 py-0.5 rounded-full bg-risk-low/10 text-risk-low flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-low"></span>
+            GDP/ISO 17025 Certified
+          </span>
+</div>
+<p class="font-body-default text-body-default text-text-secondary mt-1 max-w-4xl">
+          Comprehensive post-incident telemetry analysis, disruption salvage metrics, carrier SLA adherence, and cold-chain thermal excursion compliance auditing across all multi-modal freight corridors.
+        </p>
+</div>
+<!-- Date Range Selector -->
+<div class="flex items-center gap-2.5 bg-bg-surface-raised p-1.5 rounded-lg shadow-sm">
+<div class="flex items-center gap-2 px-2.5 py-1 rounded bg-surface-container-low text-xs text-text-secondary">
+<span class="material-symbols-outlined text-[16px] text-text-muted">calendar_today</span>
+<span class="text-text-primary font-medium">May 15 – Jun 14, 2026</span>
+<span class="text-text-muted font-caption text-caption">(30 Days)</span>
+</div>
+<button class="p-1 text-text-muted hover:text-text-primary hover:bg-bg-surface-hover rounded transition-colors" title="Refresh Telemetry">
+<span class="material-symbols-outlined text-[18px]">sync</span>
+</button>
+<button class="flex items-center gap-1 px-2.5 py-1 text-xs bg-surface-container-low text-text-secondary hover:text-text-primary rounded transition-colors">
+<span class="material-symbols-outlined text-[16px]">filter_alt</span>
+<span>Corridors (All)</span>
+</button>
+</div>
+</div>
+<!-- Report Type Switcher Buttons -->
+<div class="flex items-center gap-1.5 overflow-x-auto pb-1 mt-1">
+<button class="report-tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium bg-primary-container text-text-primary transition-colors shadow-sm whitespace-nowrap" onclick="switchReportTab(this, 'exec')">
+<span class="material-symbols-outlined text-[16px]">summarize</span>
+<span>Executive Summary</span>
+</button>
+<button class="report-tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover transition-colors whitespace-nowrap" onclick="switchReportTab(this, 'disruption')">
+<span class="material-symbols-outlined text-[16px]">shield</span>
+<span>Disruption &amp; Salvage ROI</span>
+</button>
+<button class="report-tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover transition-colors whitespace-nowrap" onclick="switchReportTab(this, 'coldchain')">
+<span class="material-symbols-outlined text-[16px]">ac_unit</span>
+<span>Cold Chain Compliance</span>
+</button>
+<button class="report-tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover transition-colors whitespace-nowrap" onclick="switchReportTab(this, 'carrier')">
+<span class="material-symbols-outlined text-[16px]">local_shipping</span>
+<span>Carrier Reliability</span>
+</button>
+<button class="report-tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover transition-colors whitespace-nowrap" onclick="switchReportTab(this, 'driver')">
+<span class="material-symbols-outlined text-[16px]">badge</span>
+<span>Driver &amp; Asset Utilization</span>
+</button>
+</div>
+</div>
+<!-- Key Performance Indicators (Top 5 KPI Cards) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+<!-- KPI 1: Overall On-Time Delivery -->
+<div class="bg-bg-surface p-3.5 rounded-xl flex flex-col justify-between shadow-sm relative overflow-hidden group hover:bg-bg-surface-hover transition-all">
+<div class="flex items-center justify-between">
+<span class="font-caption text-caption text-text-secondary uppercase tracking-wider">Overall OTD (SLA)</span>
+<span class="material-symbols-outlined text-[18px] text-risk-low">verified</span>
+</div>
+<div class="my-2">
+<div class="flex items-baseline gap-2">
+<span class="font-kpi-val text-kpi-val text-text-primary tracking-tight">94.8%</span>
+<span class="font-caption text-caption text-risk-low flex items-center font-medium">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+            +3.2%
+          </span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5 rounded-full mt-2 overflow-hidden">
+<div class="bg-risk-low h-full rounded-full" style="width: 94.8%;"></div>
+</div>
+</div>
+<div class="flex items-center justify-between font-caption text-caption text-text-muted">
+<span>Target: 92.0%</span>
+<span class="text-text-secondary">4,812 Trips Audited</span>
+</div>
+</div>
+<!-- KPI 2: Total Disruption Salvage Value -->
+<div class="bg-bg-surface p-3.5 rounded-xl flex flex-col justify-between shadow-sm relative overflow-hidden group hover:bg-bg-surface-hover transition-all">
+<div class="flex items-center justify-between">
+<span class="font-caption text-caption text-text-secondary uppercase tracking-wider">Salvage Value</span>
+<span class="material-symbols-outlined text-[18px] text-primary">security_update_good</span>
+</div>
+<div class="my-2">
+<div class="flex items-baseline gap-2">
+<span class="font-kpi-val text-kpi-val text-primary tracking-tight">₹3.42 Cr</span>
+<span class="font-caption text-caption text-risk-low flex items-center font-medium">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+            Protected
+          </span>
+</div>
+<p class="font-caption text-caption text-text-secondary mt-1">
+          48 automated &amp; assisted reroutes
+        </p>
+</div>
+<div class="flex items-center justify-between font-caption text-caption text-text-muted">
+<span>Cargo At-Risk: ₹3.68 Cr</span>
+<span class="text-risk-low font-medium">92.9% Salvaged</span>
+</div>
+</div>
+<!-- KPI 3: Mean Time to Resolution (MTTR) -->
+<div class="bg-bg-surface p-3.5 rounded-xl flex flex-col justify-between shadow-sm relative overflow-hidden group hover:bg-bg-surface-hover transition-all">
+<div class="flex items-center justify-between">
+<span class="font-caption text-caption text-text-secondary uppercase tracking-wider">Detour MTTR</span>
+<span class="material-symbols-outlined text-[18px] text-status-info">timer</span>
+</div>
+<div class="my-2">
+<div class="flex items-baseline gap-2">
+<span class="font-kpi-val text-kpi-val text-text-primary tracking-tight">24.5 min</span>
+<span class="font-caption text-caption text-risk-low flex items-center font-medium">
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+            -42.0%
+          </span>
+</div>
+<p class="font-caption text-caption text-text-secondary mt-1">
+          Detection to corridor clearance
+        </p>
+</div>
+<div class="flex items-center justify-between font-caption text-caption text-text-muted">
+<span>Prior Baseline: 42.1m</span>
+<span class="text-status-info font-medium">AI Dispatch</span>
+</div>
+</div>
+<!-- KPI 4: Cold Chain Excursion Rate -->
+<div class="bg-bg-surface p-3.5 rounded-xl flex flex-col justify-between shadow-sm relative overflow-hidden group hover:bg-bg-surface-hover transition-all">
+<div class="flex items-center justify-between">
+<span class="font-caption text-caption text-text-secondary uppercase tracking-wider">Cold Excursion</span>
+<span class="material-symbols-outlined text-[18px] text-status-info">device_thermostat</span>
+</div>
+<div class="my-2">
+<div class="flex items-baseline gap-2">
+<span class="font-kpi-val text-kpi-val text-text-primary tracking-tight">0.8%</span>
+<span class="font-caption text-caption text-risk-low flex items-center font-medium">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+            Safe
+          </span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5 rounded-full mt-2 overflow-hidden">
+<div class="bg-status-info h-full rounded-full" style="width: 53%;"></div>
+</div>
+</div>
+<div class="flex items-center justify-between font-caption text-caption text-text-muted">
+<span>Target: &lt;1.5% SLA</span>
+<span class="text-risk-low font-medium">0 Write-Offs</span>
+</div>
+</div>
+<!-- KPI 5: Saved Delay Penalty & Demurrage -->
+<div class="bg-bg-surface p-3.5 rounded-xl flex flex-col justify-between shadow-sm relative overflow-hidden group hover:bg-bg-surface-hover transition-all">
+<div class="flex items-center justify-between">
+<span class="font-caption text-caption text-text-secondary uppercase tracking-wider">Penalty Demurrage</span>
+<span class="material-symbols-outlined text-[18px] text-risk-low">savings</span>
+</div>
+<div class="my-2">
+<div class="flex items-baseline gap-2">
+<span class="font-kpi-val text-kpi-val text-risk-low tracking-tight">₹18.6 L</span>
+<span class="font-caption text-caption text-risk-low flex items-center font-medium">
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+            Net
+          </span>
+</div>
+<p class="font-caption text-caption text-text-secondary mt-1">
+          Post-fuel &amp; toll overhead offset
+        </p>
+</div>
+<div class="flex items-center justify-between font-caption text-caption text-text-muted">
+<span>Gross Avoided: ₹24.2L</span>
+<span class="text-text-secondary font-medium">100% Retained</span>
+</div>
+</div>
+</div>
+<!-- Operational Focus Banner / Corridor Health Index -->
+<div class="bg-surface-container-low rounded-xl p-3.5 mb-4 flex flex-col md:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<div class="p-2.5 rounded-lg bg-primary-soft text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[24px]">troubleshoot</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-card-title text-card-title text-text-primary">Operational Corridor Resiliency Index: 96.4/100</span>
+<span class="font-caption text-caption px-2 py-0.5 rounded bg-risk-low/10 text-risk-low font-medium">Tier-1 Optimal</span>
+</div>
+<p class="font-caption text-caption text-text-muted mt-0.5">
+          Dynamic multi-route failover active across all 4 key economic arterial routes. Current average detour deviation penalty stands at +14.2 km (+3.8% transit time impact).
+        </p>
+</div>
+</div>
+<div class="flex items-center gap-4 flex-shrink-0">
+<div class="text-right hidden sm:block">
+<span class="font-caption text-caption text-text-muted block">Automated Dispatch Rate</span>
+<span class="font-card-title text-card-title text-primary">88.4% Autonomous</span>
+</div>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bg-surface-hover hover:bg-surface-container-high text-xs text-text-primary transition-colors" onclick="triggerExport('Audit Log')">
+<span class="material-symbols-outlined text-[16px]">verified_user</span>
+<span>Export Regulatory Proof</span>
+</button>
+</div>
+</div>
+<!-- Main Analytical Grid (Visualizations & Charts) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
+<!-- 1. Disruption Resolution & Cost Avoidance Waterfall (7 Cols) -->
+<div class="lg:col-span-7 bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm">
+<div class="flex items-center justify-between mb-3">
+<div>
+<div class="flex items-center gap-2">
+<h2 class="font-section-title text-section-title text-text-primary">Disruption Resolution &amp; Cargo Protection by Corridor</h2>
+<span class="font-caption text-caption text-text-muted px-2 py-0.5 bg-surface-container-low rounded">₹3.68 Cr Gross Risk</span>
+</div>
+<p class="font-caption text-caption text-text-secondary mt-0.5">Comparative value analysis: Cargo value at threat vs value successfully salvaged via dynamic detour rerouting</p>
+</div>
+<div class="flex items-center gap-3 text-xs">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-sm bg-risk-high"></span>
+<span class="font-caption text-caption text-text-secondary">Gross At-Risk</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-sm bg-primary-container"></span>
+<span class="font-caption text-caption text-text-secondary">Salvaged Value</span>
+</div>
+</div>
+</div>
+<!-- Corridor Bar Visualizer Chart -->
+<div class="space-y-3.5 my-2">
+<!-- Western Corridor NH-48 -->
+<div>
+<div class="flex items-center justify-between text-xs mb-1">
+<span class="font-body-default text-body-default font-medium text-text-primary flex items-center gap-1.5">
+<span>Western Corridor (NH-48 / Mumbai-Surat)</span>
+<span class="font-caption text-caption text-risk-low bg-risk-low/10 px-1.5 py-0.2 rounded">96.8% Rescued</span>
+</span>
+<div class="text-right font-caption text-caption">
+<span class="text-text-muted">₹1.85 Cr At-Risk</span>
+<span class="text-text-primary font-medium ml-2">₹1.79 Cr Salvaged</span>
+</div>
+</div>
+<div class="w-full h-3 bg-surface-container-lowest rounded-full overflow-hidden flex">
+<div class="bg-primary-container h-full rounded-l-full transition-all duration-500" style="width: 96.8%;"></div>
+<div class="bg-risk-high h-full rounded-r-full" style="width: 3.2%;"></div>
+</div>
+</div>
+<!-- JNPT Coastal Intermodal -->
+<div>
+<div class="flex items-center justify-between text-xs mb-1">
+<span class="font-body-default text-body-default font-medium text-text-primary flex items-center gap-1.5">
+<span>JNPT Coastal Port Expressway</span>
+<span class="font-caption text-caption text-risk-low bg-risk-low/10 px-1.5 py-0.2 rounded">91.4% Rescued</span>
+</span>
+<div class="text-right font-caption text-caption">
+<span class="text-text-muted">₹98.4 L At-Risk</span>
+<span class="text-text-primary font-medium ml-2">₹89.9 L Salvaged</span>
+</div>
+</div>
+<div class="w-full h-3 bg-surface-container-lowest rounded-full overflow-hidden flex">
+<div class="bg-primary-container h-full rounded-l-full transition-all duration-500" style="width: 91.4%;"></div>
+<div class="bg-risk-high h-full rounded-r-full" style="width: 8.6%;"></div>
+</div>
+</div>
+<!-- Delhi-NCR Logistics Hub -->
+<div>
+<div class="flex items-center justify-between text-xs mb-1">
+<span class="font-body-default text-body-default font-medium text-text-primary flex items-center gap-1.5">
+<span>Delhi-NCR Eastern Peripheral Expressway</span>
+<span class="font-caption text-caption text-risk-low bg-risk-low/10 px-1.5 py-0.2 rounded">94.2% Rescued</span>
+</span>
+<div class="text-right font-caption text-caption">
+<span class="text-text-muted">₹52.0 L At-Risk</span>
+<span class="text-text-primary font-medium ml-2">₹49.0 L Salvaged</span>
+</div>
+</div>
+<div class="w-full h-3 bg-surface-container-lowest rounded-full overflow-hidden flex">
+<div class="bg-primary-container h-full rounded-l-full transition-all duration-500" style="width: 94.2%;"></div>
+<div class="bg-risk-high h-full rounded-r-full" style="width: 5.8%;"></div>
+</div>
+</div>
+<!-- Bengaluru-Chennai Tech Belt -->
+<div>
+<div class="flex items-center justify-between text-xs mb-1">
+<span class="font-body-default text-body-default font-medium text-text-primary flex items-center gap-1.5">
+<span>Bengaluru-Chennai Tech &amp; Pharma Belt</span>
+<span class="font-caption text-caption text-risk-low bg-risk-low/10 px-1.5 py-0.2 rounded">73.6% Rescued</span>
+</span>
+<div class="text-right font-caption text-caption">
+<span class="text-text-muted">₹32.6 L At-Risk</span>
+<span class="text-text-primary font-medium ml-2">₹24.0 L Salvaged</span>
+</div>
+</div>
+<div class="w-full h-3 bg-surface-container-lowest rounded-full overflow-hidden flex">
+<div class="bg-primary-container h-full rounded-l-full transition-all duration-500" style="width: 73.6%;"></div>
+<div class="bg-risk-high h-full rounded-r-full" style="width: 26.4%;"></div>
+</div>
+</div>
+</div>
+<!-- Quick Metrics Ribbon below the bar chart -->
+<div class="grid grid-cols-3 gap-2 pt-3 bg-surface-container-low rounded-lg p-2.5 mt-2">
+<div>
+<span class="font-caption text-caption text-text-muted block">Average Reroute ETA Shift</span>
+<span class="font-card-title text-card-title text-text-primary">+38 mins (vs 4.2h delay)</span>
+</div>
+<div>
+<span class="font-caption text-caption text-text-muted block">Autonomous Intervention</span>
+<span class="font-card-title text-card-title text-risk-low">36 / 48 (75.0%)</span>
+</div>
+<div>
+<span class="font-caption text-caption text-text-muted block">Operator Override Rate</span>
+<span class="font-card-title text-card-title text-text-primary">4.1% (Low friction)</span>
+</div>
+</div>
+</div>
+<!-- 2. Multi-Objective Operational Efficiency Gauge & Breakdowns (5 Cols) -->
+<div class="lg:col-span-5 bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<div>
+<h2 class="font-section-title text-section-title text-text-primary">Operational Efficiency Breakdown</h2>
+<p class="font-caption text-caption text-text-secondary mt-0.5">Real-time telematics adherence vs baseline operational benchmarks</p>
+</div>
+<span class="font-caption text-caption text-text-muted bg-surface-container-low px-2 py-0.5 rounded">30-Day Mean</span>
+</div>
+<div class="grid grid-cols-2 gap-3 my-2">
+<!-- Metric Tile A: Driver Shift Compliance -->
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-caption text-caption text-text-muted uppercase">Driver Shift Adherence</span>
+<span class="material-symbols-outlined text-[16px] text-risk-low">timer</span>
+</div>
+<div class="my-1.5">
+<span class="font-kpi-val text-kpi-val text-text-primary">98.4%</span>
+<span class="font-caption text-caption text-risk-low block mt-0.5">0 Hours-of-Service Breaches</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1 rounded-full overflow-hidden">
+<div class="bg-risk-low h-full" style="width: 98.4%;"></div>
+</div>
+</div>
+<!-- Metric Tile B: Detour Fuel Overhead -->
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-caption text-caption text-text-muted uppercase">Fuel Overhead Index</span>
+<span class="material-symbols-outlined text-[16px] text-risk-medium">local_gas_station</span>
+</div>
+<div class="my-1.5">
+<span class="font-kpi-val text-kpi-val text-risk-medium">+4.1%</span>
+<span class="font-caption text-caption text-text-muted block mt-0.5">Target &lt; +6.0% Detour Fuel</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1 rounded-full overflow-hidden">
+<div class="bg-risk-medium h-full" style="width: 68%;"></div>
+</div>
+</div>
+<!-- Metric Tile C: FastTag Automated Lane Clearance -->
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-caption text-caption text-text-muted uppercase">FASTag Toll Clearance</span>
+<span class="material-symbols-outlined text-[16px] text-primary">toll</span>
+</div>
+<div class="my-1.5">
+<span class="font-kpi-val text-kpi-val text-text-primary">99.1%</span>
+<span class="font-caption text-caption text-risk-low block mt-0.5">Average Plaza Delay: 1.8m</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full" style="width: 99.1%;"></div>
+</div>
+</div>
+<!-- Metric Tile D: Cold Telemetry Pings -->
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-caption text-caption text-text-muted uppercase">IoT Sensor Integrity</span>
+<span class="material-symbols-outlined text-[16px] text-risk-low">sensors</span>
+</div>
+<div class="my-1.5">
+<span class="font-kpi-val text-kpi-val text-text-primary">99.9%</span>
+<span class="font-caption text-caption text-risk-low block mt-0.5">14.2M Heartbeats Verified</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1 rounded-full overflow-hidden">
+<div class="bg-risk-low h-full" style="width: 99.9%;"></div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-2.5 rounded-lg flex items-center justify-between text-xs">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">psychology</span>
+<span class="text-text-secondary">AI Dispatch Optimization Efficiency:</span>
+</div>
+<span class="font-mono text-primary font-semibold">Score: 98.2 / 100</span>
+</div>
+</div>
+</div>
+<!-- Secondary Analytical Row: Cold Chain Compliance Audit & Partner SLA Benchmark -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
+<!-- Cold Chain Thermal Excursion & Regulatory Audit (4 Cols) -->
+<div class="lg:col-span-4 bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm">
+<div>
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<div class="p-1.5 rounded bg-primary-soft text-primary">
+<span class="material-symbols-outlined text-[18px]">ac_unit</span>
+</div>
+<div>
+<h2 class="font-section-title text-section-title text-text-primary">Cold Chain Thermal Audit</h2>
+<span class="font-caption text-caption text-text-muted">GDP &amp; ISO 17025 Regulatory Standard</span>
+</div>
+</div>
+<span class="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-low/10 text-risk-low">100% Compliant</span>
+</div>
+<div class="my-3 p-3 rounded-lg bg-surface-container-low flex items-center justify-between">
+<div>
+<span class="font-caption text-caption text-text-muted block">Monitored Pharma Shipments</span>
+<span class="font-kpi-val text-kpi-val text-text-primary">342 Loads</span>
+</div>
+<div class="text-right">
+<span class="font-caption text-caption text-text-muted block">Cargo Spoilage / Denaturation</span>
+<span class="font-card-title text-card-title text-risk-low font-semibold">₹0.00 Lost (0.0%)</span>
+</div>
+</div>
+<!-- Excursion Duration Breakdown -->
+<div class="space-y-2.5">
+<span class="font-caption text-caption uppercase tracking-wider text-text-muted block">Thermal Deviation Duration Analysis</span>
+<div>
+<div class="flex items-center justify-between text-xs mb-1">
+<span class="text-text-secondary flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-risk-low"></span>
+<span>Normal Operating Envelope (+2°C to +8°C)</span>
+</span>
+<span class="text-text-primary font-medium">99.2% (339 units)</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-2 rounded-full overflow-hidden">
+<div class="bg-risk-low h-full rounded-full" style="width: 99.2%;"></div>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between text-xs mb-1">
+<span class="text-text-secondary flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-risk-medium"></span>
+<span>Minor Excursion (&lt;15 mins, Self-Corrected)</span>
+</span>
+<span class="text-text-primary font-medium">0.8% (3 units)</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-2 rounded-full overflow-hidden">
+<div class="bg-risk-medium h-full rounded-full" style="width: 0.8%;"></div>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between text-xs mb-1">
+<span class="text-text-secondary flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-risk-high"></span>
+<span>Moderate Excursion (15m – 45m Detour Cryo-Boost)</span>
+</span>
+<span class="text-text-primary font-medium">0.0% (0 units)</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-2 rounded-full overflow-hidden">
+<div class="bg-risk-high h-full rounded-full" style="width: 0%;"></div>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between text-xs mb-1">
+<span class="text-text-secondary flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-risk-critical"></span>
+<span>Critical Excursion (&gt;45m Breach Threshold)</span>
+</span>
+<span class="text-text-primary font-medium">0.0% (0 units)</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-2 rounded-full overflow-hidden">
+<div class="bg-risk-critical h-full rounded-full" style="width: 0%;"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 bg-surface-container-lowest p-2.5 rounded-lg flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-risk-low">verified</span>
+<span class="font-caption text-caption text-text-muted">WHO GDP Audit Stamp ID:</span>
+</div>
+<span class="font-caption text-caption font-mono text-text-primary font-medium">GDP-2026-Q2-IN</span>
+</div>
+</div>
+<!-- Carrier & Fleet Partner SLA Benchmark Scorecard (8 Cols) -->
+<div class="lg:col-span-8 bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm">
+<div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+<div>
+<div class="flex items-center gap-2">
+<h2 class="font-section-title text-section-title text-text-primary">Carrier &amp; Fleet SLA Benchmark Scorecard</h2>
+<span class="font-caption text-caption text-text-muted px-2 py-0.5 bg-surface-container-low rounded">5 Contracted Operators</span>
+</div>
+<p class="font-caption text-caption text-text-secondary mt-0.5">Objective audit of carrier compliance across on-time delivery, reroute cooperation, and sensor adherence</p>
+</div>
+<button class="flex items-center gap-1 text-xs text-primary hover:text-primary-hover font-medium" onclick="triggerExport('Carrier SLA Matrix')">
+<span>Export Scorecard</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+</div>
+<!-- Table Container -->
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-default text-table-cell">
+<thead>
+<tr class="h-9 bg-bg-sidebar text-text-muted font-caption text-caption uppercase tracking-wider">
+<th class="px-3 rounded-l-lg">Carrier Partner</th>
+<th class="px-3">On-Time SLA</th>
+<th class="px-3">Disruption Detour Compliance</th>
+<th class="px-3">Temp Stability</th>
+<th class="px-3">HOS Driver Score</th>
+<th class="px-3">Penalty Deduction</th>
+<th class="px-3 rounded-r-lg text-right">Audit Tier</th>
+</tr>
+</thead>
+<tbody class="divide-y-0">
+<!-- Row 1: SupplyShield Dedicated Fleet -->
+<tr class="h-10 hover:bg-bg-surface-hover transition-colors">
+<td class="px-3 font-medium text-text-primary flex items-center gap-2 py-2">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span>SupplyShield Dedicated</span>
+</td>
+<td class="px-3 font-mono font-medium text-risk-low">98.9%</td>
+<td class="px-3">
+<div class="flex items-center gap-1.5">
+<span class="font-mono text-text-primary">100%</span>
+<span class="font-caption text-caption text-text-muted">(24/24)</span>
+</div>
+</td>
+<td class="px-3 font-mono text-text-primary">99.9%</td>
+<td class="px-3 font-mono text-text-primary">99.4%</td>
+<td class="px-3 font-mono text-risk-low">₹0</td>
+<td class="px-3 text-right">
+<span class="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-primary-soft text-primary font-medium">Prime Tier 1</span>
+</td>
+</tr>
+<!-- Row 2: BlueDart Express Logistics -->
+<tr class="h-10 hover:bg-bg-surface-hover transition-colors bg-surface-container-low/40">
+<td class="px-3 font-medium text-text-primary flex items-center gap-2 py-2">
+<span class="w-2 h-2 rounded-full bg-risk-low"></span>
+<span>BlueDart Express</span>
+</td>
+<td class="px-3 font-mono font-medium text-risk-low">95.4%</td>
+<td class="px-3">
+<div class="flex items-center gap-1.5">
+<span class="font-mono text-text-primary">94.1%</span>
+<span class="font-caption text-caption text-text-muted">(16/17)</span>
+</div>
+</td>
+<td class="px-3 font-mono text-text-primary">99.1%</td>
+<td class="px-3 font-mono text-text-primary">98.2%</td>
+<td class="px-3 font-mono text-text-muted">₹14,500</td>
+<td class="px-3 text-right">
+<span class="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-low/10 text-risk-low font-medium">Tier 1 Partner</span>
+</td>
+</tr>
+<!-- Row 3: VRL Logistics -->
+<tr class="h-10 hover:bg-bg-surface-hover transition-colors">
+<td class="px-3 font-medium text-text-primary flex items-center gap-2 py-2">
+<span class="w-2 h-2 rounded-full bg-risk-low"></span>
+<span>VRL Logistics Intermodal</span>
+</td>
+<td class="px-3 font-mono font-medium text-risk-low">93.8%</td>
+<td class="px-3">
+<div class="flex items-center gap-1.5">
+<span class="font-mono text-text-primary">90.0%</span>
+<span class="font-caption text-caption text-text-muted">(9/10)</span>
+</div>
+</td>
+<td class="px-3 font-mono text-text-primary">98.7%</td>
+<td class="px-3 font-mono text-text-primary">97.5%</td>
+<td class="px-3 font-mono text-text-muted">₹28,200</td>
+<td class="px-3 text-right">
+<span class="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-low/10 text-risk-low font-medium">Tier 1 Partner</span>
+</td>
+</tr>
+<!-- Row 4: TCI Freight -->
+<tr class="h-10 hover:bg-bg-surface-hover transition-colors bg-surface-container-low/40">
+<td class="px-3 font-medium text-text-primary flex items-center gap-2 py-2">
+<span class="w-2 h-2 rounded-full bg-risk-medium"></span>
+<span>TCI Freight Carriers</span>
+</td>
+<td class="px-3 font-mono font-medium text-risk-medium">91.2%</td>
+<td class="px-3">
+<div class="flex items-center gap-1.5">
+<span class="font-mono text-text-primary">85.7%</span>
+<span class="font-caption text-caption text-risk-medium">(6/7)</span>
+</div>
+</td>
+<td class="px-3 font-mono text-text-primary">97.8%</td>
+<td class="px-3 font-mono text-text-primary">96.0%</td>
+<td class="px-3 font-mono text-risk-medium">₹62,000</td>
+<td class="px-3 text-right">
+<span class="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-medium/10 text-risk-medium font-medium">Tier 2 Review</span>
+</td>
+</tr>
+<!-- Row 5: Safexpress -->
+<tr class="h-10 hover:bg-bg-surface-hover transition-colors">
+<td class="px-3 font-medium text-text-primary flex items-center gap-2 py-2">
+<span class="w-2 h-2 rounded-full bg-risk-low"></span>
+<span>Safexpress 3PL</span>
+</td>
+<td class="px-3 font-mono font-medium text-risk-low">94.0%</td>
+<td class="px-3">
+<div class="flex items-center gap-1.5">
+<span class="font-mono text-text-primary">92.3%</span>
+<span class="font-caption text-caption text-text-muted">(12/13)</span>
+</div>
+</td>
+<td class="px-3 font-mono text-text-primary">99.0%</td>
+<td class="px-3 font-mono text-text-primary">98.0%</td>
+<td class="px-3 font-mono text-text-muted">₹18,000</td>
+<td class="px-3 text-right">
+<span class="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-low/10 text-risk-low font-medium">Tier 1 Partner</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="mt-2 pt-2 flex items-center justify-between text-xs text-text-muted">
+<span>* SLA Threshold defined at 92.0% on-time window with ±20 min tolerance.</span>
+<span class="text-text-secondary">Next Audit Cycle: July 01, 2026</span>
+</div>
+</div>
+</div>
+<!-- Incident Log & Disruption Audit History Table (Bottom Section) -->
+<div class="bg-bg-surface rounded-xl p-4 shadow-sm">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+<div>
+<div class="flex items-center gap-2">
+<h2 class="font-section-title text-section-title text-text-primary">Incident Telemetry &amp; Operator Audit History</h2>
+<span class="font-caption text-caption px-2 py-0.5 rounded bg-surface-container-low text-text-secondary font-medium">48 Total Interventions Logged</span>
+</div>
+<p class="font-caption text-caption text-text-secondary mt-0.5">Cryptographically signed logs of all disruption bypass orders, autonomous reroutes, and cold-chain transfers.</p>
+</div>
+<!-- Filter Controls for Table -->
+<div class="flex items-center gap-2">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted text-[16px]">search</span>
+<input class="pl-8 pr-3 py-1 text-xs bg-bg-app text-text-primary placeholder-text-muted rounded-md focus:outline-none focus:ring-1 focus:ring-primary-container w-64" placeholder="Filter by Incident ID, Corridor, or Carrier..." type="text"/>
+</div>
+<button class="flex items-center gap-1 px-2.5 py-1 text-xs bg-surface-container-low text-text-secondary hover:text-text-primary rounded transition-colors">
+<span class="material-symbols-outlined text-[16px]">filter_list</span>
+<span>Severity</span>
+</button>
+</div>
+</div>
+<!-- Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-default text-table-cell">
+<thead>
+<tr class="h-9 bg-bg-sidebar text-text-muted font-caption text-caption uppercase tracking-wider">
+<th class="px-3 rounded-l-lg">Incident ID &amp; Timestamp</th>
+<th class="px-3">Corridor &amp; Chokepoint</th>
+<th class="px-3">Disruption Class</th>
+<th class="px-3">Impacted Fleet</th>
+<th class="px-3">Autonomous Action Taken</th>
+<th class="px-3">Protected Value</th>
+<th class="px-3">Human Approver</th>
+<th class="px-3 rounded-r-lg text-right">Audit Verification</th>
+</tr>
+</thead>
+<tbody class="divide-y-0">
+<!-- Item 1 -->
+<tr class="h-11 hover:bg-bg-surface-hover transition-colors">
+<td class="px-3 py-2 font-mono text-text-primary">
+<div class="font-semibold text-primary">#INC-88942</div>
+<span class="font-caption text-caption text-text-muted">Jun 12, 14:22 IST</span>
+</td>
+<td class="px-3 text-text-secondary">
+<span class="text-text-primary font-medium block">NH-48 Manor Toll Gate</span>
+<span class="font-caption text-caption text-text-muted">Mumbai → Surat Arterial</span>
+</td>
+<td class="px-3">
+<span class="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-critical/10 text-risk-critical flex items-center gap-1 w-max">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-critical"></span>
+                Flash Inundation
+              </span>
+</td>
+<td class="px-3 font-mono text-text-primary">6 Multi-Axle Trucks</td>
+<td class="px-3 text-text-primary">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-risk-low">alt_route</span>
+<span>SH-73 Dynamic Bypass Divert</span>
+</div>
+<span class="font-caption text-caption text-text-muted">+18.4km detour (+24 min)</span>
+</td>
+<td class="px-3 font-mono font-medium text-risk-low">₹42.8 L</td>
+<td class="px-3 text-text-secondary">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-risk-low"></span>
+<span>R. Deshmukh (Lead)</span>
+</div>
+<span class="font-caption text-caption text-text-muted">Auto-Approved (Rule #4)</span>
+</td>
+<td class="px-3 text-right">
+<button class="inline-flex items-center gap-1 px-2 py-1 rounded bg-surface-container-low hover:bg-bg-surface-hover text-xs font-mono text-text-primary hover:text-primary transition-colors" onclick="triggerExport('INC-88942')">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>0xFA...901E</span>
+</button>
+</td>
+</tr>
+<!-- Item 2 -->
+<tr class="h-11 hover:bg-bg-surface-hover transition-colors bg-surface-container-low/40">
+<td class="px-3 py-2 font-mono text-text-primary">
+<div class="font-semibold text-primary">#INC-88931</div>
+<span class="font-caption text-caption text-text-muted">Jun 10, 09:15 IST</span>
+</td>
+<td class="px-3 text-text-secondary">
+<span class="text-text-primary font-medium block">JNPT Custom Terminal 3</span>
+<span class="font-caption text-caption text-text-muted">Port Access Bottleneck</span>
+</td>
+<td class="px-3">
+<span class="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-high/10 text-risk-high flex items-center gap-1 w-max">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-high"></span>
+                Gate Strike Delay
+              </span>
+</td>
+<td class="px-3 font-mono text-text-primary">4 Reefer Units</td>
+<td class="px-3 text-text-primary">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-status-info">ac_unit</span>
+<span>Cryo-Booster Aux Auto-Engage</span>
+</div>
+<span class="font-caption text-caption text-text-muted">Rerouted to Inland Depot 2B</span>
+</td>
+<td class="px-3 font-mono font-medium text-risk-low">₹1.15 Cr</td>
+<td class="px-3 text-text-secondary">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span>Autonomous AI Agent</span>
+</div>
+<span class="font-caption text-caption text-text-muted">SLA Safety Guard</span>
+</td>
+<td class="px-3 text-right">
+<button class="inline-flex items-center gap-1 px-2 py-1 rounded bg-surface-container-low hover:bg-bg-surface-hover text-xs font-mono text-text-primary hover:text-primary transition-colors" onclick="triggerExport('INC-88931')">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>0xCB...348A</span>
+</button>
+</td>
+</tr>
+<!-- Item 3 -->
+<tr class="h-11 hover:bg-bg-surface-hover transition-colors">
+<td class="px-3 py-2 font-mono text-text-primary">
+<div class="font-semibold text-primary">#INC-88905</div>
+<span class="font-caption text-caption text-text-muted">Jun 07, 22:40 IST</span>
+</td>
+<td class="px-3 text-text-secondary">
+<span class="text-text-primary font-medium block">NH-44 Hyderabad-Bengaluru</span>
+<span class="font-caption text-caption text-text-muted">Kurnool Ghat Section</span>
+</td>
+<td class="px-3">
+<span class="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-high/10 text-risk-high flex items-center gap-1 w-max">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-high"></span>
+                Multi-Vehicle Pileup
+              </span>
+</td>
+<td class="px-3 font-mono text-text-primary">8 Dry Van Freighters</td>
+<td class="px-3 text-text-primary">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-risk-low">alt_route</span>
+<span>State Highway 51 Detour (Gooty)</span>
+</div>
+<span class="font-caption text-caption text-text-muted">+22km deviation (+31 min)</span>
+</td>
+<td class="px-3 font-mono font-medium text-risk-low">₹68.0 L</td>
+<td class="px-3 text-text-secondary">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-risk-low"></span>
+<span>A. Sen (Dispatch Operator)</span>
+</div>
+<span class="font-caption text-caption text-text-muted">Manual Detour Sign-Off</span>
+</td>
+<td class="px-3 text-right">
+<button class="inline-flex items-center gap-1 px-2 py-1 rounded bg-surface-container-low hover:bg-bg-surface-hover text-xs font-mono text-text-primary hover:text-primary transition-colors" onclick="triggerExport('INC-88905')">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>0x5A...119F</span>
+</button>
+</td>
+</tr>
+<!-- Item 4 -->
+<tr class="h-11 hover:bg-bg-surface-hover transition-colors bg-surface-container-low/40">
+<td class="px-3 py-2 font-mono text-text-primary">
+<div class="font-semibold text-primary">#INC-88874</div>
+<span class="font-caption text-caption text-text-muted">Jun 03, 11:05 IST</span>
+</td>
+<td class="px-3 text-text-secondary">
+<span class="text-text-primary font-medium block">Eastern Peripheral Express (NCR)</span>
+<span class="font-caption text-caption text-text-muted">Kundli Interchange</span>
+</td>
+<td class="px-3">
+<span class="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-medium/10 text-risk-medium flex items-center gap-1 w-max">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-medium"></span>
+                Toll Server Outage
+              </span>
+</td>
+<td class="px-3 font-mono text-text-primary">12 Consignments</td>
+<td class="px-3 text-text-primary">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-status-info">chevron_forward</span>
+<span>Emergency Lane Fast-Track Protocol</span>
+</div>
+<span class="font-caption text-caption text-text-muted">Digital pass pass-through</span>
+</td>
+<td class="px-3 font-mono font-medium text-risk-low">₹34.5 L</td>
+<td class="px-3 text-text-secondary">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span>Autonomous AI Agent</span>
+</div>
+<span class="font-caption text-caption text-text-muted">Corridor Clearance</span>
+</td>
+<td class="px-3 text-right">
+<button class="inline-flex items-center gap-1 px-2 py-1 rounded bg-surface-container-low hover:bg-bg-surface-hover text-xs font-mono text-text-primary hover:text-primary transition-colors" onclick="triggerExport('INC-88874')">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>0x8E...73CC</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination & Audit Footer -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 mt-3 bg-surface-container-lowest p-3 rounded-lg text-xs">
+<div class="flex items-center gap-2 text-text-muted">
+<span>Showing 1 to 4 of 48 incidents resolved</span>
+<span>•</span>
+<span class="text-risk-low flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-low"></span>
+          All audit log hashes anchored to distributed operations ledger
+        </span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="px-2.5 py-1 rounded bg-bg-surface text-text-disabled cursor-not-allowed">Previous</button>
+<button class="px-2.5 py-1 rounded bg-primary-container text-text-primary font-medium">1</button>
+<button class="px-2.5 py-1 rounded bg-bg-surface hover:bg-bg-surface-hover text-text-secondary transition-colors">2</button>
+<button class="px-2.5 py-1 rounded bg-bg-surface hover:bg-bg-surface-hover text-text-secondary transition-colors">3</button>
+<span class="text-text-muted px-1">...</span>
+<button class="px-2.5 py-1 rounded bg-bg-surface hover:bg-bg-surface-hover text-text-secondary transition-colors">12</button>
+<button class="px-2.5 py-1 rounded bg-bg-surface hover:bg-bg-surface-hover text-text-secondary transition-colors">Next</button>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

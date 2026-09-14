@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-variant":"#30353d","bg-surface-raised":"#141d29","risk-low":"#22c55e","surface-container-lowest":"#090e16","risk-medium":"#f59e0b","on-secondary-fixed":"#131c28","on-surface-variant":"#c3c6d7","on-tertiary-container":"#ffffff","surface-container-highest":"#30353d","surface-tint":"#b3c5ff","secondary-container":"#3e4755","tertiary-container":"#6a778b","primary":"#b3c5ff","border-subtle":"#243142","secondary":"#bec7d7","on-surface":"#dee2ed","text-secondary":"#a8b3c2","on-error-container":"#ffdad6","surface-container-low":"#171c23","bg-surface":"#101722","on-primary":"#002a76","on-background":"#dee2ed","on-secondary":"#28313e","surface-dim":"#0f141b","primary-fixed-dim":"#b3c5ff","tertiary":"#bac7dd","background":"#0f141b","outline-variant":"#424655","inverse-surface":"#dee2ed","on-primary-fixed":"#00174a","primary-hover":"#4a7ff7","error-container":"#93000a","surface":"#0f141b","bg-surface-hover":"#192333","risk-high":"#f97316","bg-sidebar":"#0b111a","primary-soft":"rgba(47, 109, 246, 0.16)","inverse-on-surface":"#2c3139","on-tertiary":"#243142","primary-fixed":"#dbe1ff","text-muted":"#6f7d8f","on-tertiary-fixed":"#0f1c2c","on-tertiary-fixed-variant":"#3b485a","primary-container":"#2f6df6","on-secondary-container":"#adb6c6","bg-app":"#080d14","tertiary-fixed":"#d6e3fa","tertiary-fixed-dim":"#bac7dd","secondary-fixed-dim":"#bec7d7","surface-container-high":"#252a32","text-disabled":"#4b5868","on-secondary-fixed-variant":"#3e4755","inverse-primary":"#0054d8","risk-critical":"#ef4444","on-primary-fixed-variant":"#003ea6","on-error":"#690005","border-strong":"#334155","secondary-fixed":"#dae3f4","status-info":"#38bdf8","surface-bright":"#343942","text-primary":"#f3f6fa","on-primary-container":"#ffffff","error":"#ffb4ab","surface-container":"#1b2027","outline":"#8d90a0"},borderRadius:{DEFAULT:"0.125rem",lg:"0.25rem",xl:"0.5rem",full:"0.75rem"},spacing:{"space-lg":"1rem",gutter:"0.75rem","space-md":"0.75rem","space-xs":"0.25rem","space-xl":"1.5rem",margin:"1.25rem","space-sm":"0.5rem"},fontFamily:{"page-title":["Inter"],"table-cell":["Inter"],"section-title":["Inter"],"card-title":["Inter"],caption:["Inter"],"body-default":["Inter"],"kpi-val":["Inter"],"badge-label":["Inter"]},fontSize:{"page-title":["22px",{lineHeight:"28px",letterSpacing:"-0.015em",fontWeight:"600"}],"table-cell":["12px",{lineHeight:"16px",fontWeight:"400"}],"section-title":["16px",{lineHeight:"22px",letterSpacing:"-0.01em",fontWeight:"600"}],"card-title":["14px",{lineHeight:"20px",fontWeight:"600"}],caption:["11px",{lineHeight:"14px",fontWeight:"400"}],"body-default":["13px",{lineHeight:"18px",fontWeight:"400"}],"kpi-val":["26px",{lineHeight:"32px",letterSpacing:"-0.02em",fontWeight:"600"}],"badge-label":["11px",{lineHeight:"14px",letterSpacing:"0.02em",fontWeight:"500"}]}}}};</script></head><body class="bg-bg-app font-body-default text-body-default text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-[230px] bg-bg-sidebar border-r border-border-subtle z-50 flex flex-col justify-between select-none"><div class="flex flex-col"><div class="h-14 px-4 flex items-center gap-3 border-b border-border-subtle bg-bg-sidebar"><img alt="SupplyShield AI Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvEGrDxLyZoNTS3I0NP9GfmGWdnTT9-HFwaJj1Yt9ViiQzf988VfL2sa4aqjhnxhdipltHpHbs38XhipMwS9B_p4Tw39oSFP2JQPzxGc1UYYBVtlh5Q2kH7Mk_jx4o3QAMbCWe_E37kGKSLnla9-NRawEZHA-wuyyEQmP-nSc9W3uWJB8dRIqI6qvtPPWjt8Ry2luS-qa6LOgdMTAFCkIA4X7jeVXQG1A6Jaj4SiJ2WqIksL_GYMeyIA"/><div class="flex flex-col min-w-0"><span class="text-xs font-semibold tracking-wider text-text-primary uppercase truncate font-page-title">SupplyShield AI</span><span class="font-caption text-caption text-text-muted tracking-tight truncate">Control Tower</span></div></div><div class="px-3 pt-3 pb-1"><span class="font-caption text-caption uppercase tracking-wider text-text-disabled font-medium px-2">Navigation</span></div><nav class="flex flex-col gap-0.5 px-2" data-active-classes="bg-primary-soft text-primary border-l-2 border-primary-container font-medium"><a aria-current="page" class="flex items-center gap-3 px-2.5 py-2 rounded-lg transition-colors bg-primary-soft text-primary border-l-2 border-primary-container font-medium" data-path="command-center" href="#"><span class="material-symbols-outlined text-[18px]">grid_view</span><span class="truncate">Command Center</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="shipments" href="#"><span class="material-symbols-outlined text-[18px]">local_shipping</span><span class="truncate">Shipments</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="fleet" href="#"><span class="material-symbols-outlined text-[18px]">directions_boat</span><span class="truncate">Fleet</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="disruptions" href="#"><span class="material-symbols-outlined text-[18px]">warning</span><span class="truncate">Disruptions</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="cold-chain" href="#"><span class="material-symbols-outlined text-[18px]">ac_unit</span><span class="truncate">Cold Chain</span></a><a class="flex items-center justify-between px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="alerts" href="#"><div class="flex items-center gap-3 min-w-0"><span class="material-symbols-outlined text-[18px]">notifications</span><span class="truncate">Alerts</span></div><span class="font-caption text-caption px-1.5 py-0.5 rounded-full bg-error-container/40 text-error border border-error/30 font-medium leading-none">5</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="ai-insights" href="#"><span class="material-symbols-outlined text-[18px]">neurology</span><span class="truncate">AI Insights</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="what-if-simulation" href="#"><span class="material-symbols-outlined text-[18px]">alt_route</span><span class="truncate">What-If Simulation</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="reports" href="#"><span class="material-symbols-outlined text-[18px]">monitoring</span><span class="truncate">Reports</span></a><a class="flex items-center gap-3 px-2.5 py-2 rounded-lg text-text-secondary hover:bg-bg-surface-hover hover:text-on-surface transition-colors" data-path="settings" href="#"><span class="material-symbols-outlined text-[18px]">tune</span><span class="truncate">Settings</span></a></nav></div><div class="p-3 border-t border-border-subtle bg-surface-container-lowest"><div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low border border-border-subtle hover:border-border-strong transition-colors"><div class="flex items-center gap-2.5 min-w-0"><div class="relative flex-shrink-0"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-border-subtle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLPOMCOxF6SyH-u8HYYxWSeFF2z1RVaK_dJAC4httBxASNGbFlQeRGjUuzEc8ohUNHXWqRvSo7cLeoZa_G4Lo-NJiddvX2oFJZuJLm6yt7jCBy7JaZPz0JEeFSpJpZZk0am0cApuer18G7iI9Xbnq4O8iLenbLb5asC9C7pM1qmNxRx805kGBdLbSM051NSgTbspXCWKcQh4odniSh20FOtIEmEP7VD5lWqNTdUBsQ_BRcv-PcM53JJw"/><span class="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-risk-low ring-2 ring-surface-container-low"></span></div><div class="flex flex-col min-w-0"><span class="font-card-title text-card-title text-text-primary truncate">Operator</span><span class="font-caption text-caption text-text-muted truncate">Control Tower Lead</span></div></div><button aria-label="Sign out" class="text-text-muted hover:text-text-primary p-1 rounded transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">more_vert</span></button></div></div></aside><div class="pl-[230px] flex flex-col min-h-screen"><header class="fixed top-0 left-[230px] right-0 h-14 bg-bg-app border-b border-border-subtle z-40 px-6 flex items-center justify-between"><div class="flex items-center gap-3"><img alt="SupplyShield AI Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvEGrDxLyZoNTS3I0NP9GfmGWdnTT9-HFwaJj1Yt9ViiQzf988VfL2sa4aqjhnxhdipltHpHbs38XhipMwS9B_p4Tw39oSFP2JQPzxGc1UYYBVtlh5Q2kH7Mk_jx4o3QAMbCWe_E37kGKSLnla9-NRawEZHA-wuyyEQmP-nSc9W3uWJB8dRIqI6qvtPPWjt8Ry2luS-qa6LOgdMTAFCkIA4X7jeVXQG1A6Jaj4SiJ2WqIksL_GYMeyIA"/><div class="flex flex-col"><span class="font-card-title text-card-title text-text-primary leading-tight font-semibold">SupplyShield AI</span><span class="font-caption text-caption text-text-muted leading-tight">Global Operations Intelligence Engine</span></div></div><div class="flex items-center gap-4"><div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-risk-low/10 border border-risk-low/30 font-badge-label text-badge-label text-risk-low"><span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span><span>Live</span></div><button class="flex items-center gap-2 h-8 px-3 rounded-lg bg-surface-container-lowest border border-border-subtle hover:border-border-strong hover:bg-bg-surface text-text-muted hover:text-text-primary transition-colors text-xs" type="button"><span class="material-symbols-outlined text-[16px]">search</span><span>Quick search</span><kbd class="font-caption text-caption text-text-disabled border border-border-subtle px-1 py-0.5 rounded bg-bg-surface">⌘K</kbd></button><button aria-label="Notifications" class="relative p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-bg-surface transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-risk-high"></span></button><button aria-label="Settings" class="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-bg-surface transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">settings</span></button><div class="pl-2 border-l border-border-subtle"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLPOMCOxF6SyH-u8HYYxWSeFF2z1RVaK_dJAC4httBxASNGbFlQeRGjUuzEc8ohUNHXWqRvSo7cLeoZa_G4Lo-NJiddvX2oFJZuJLm6yt7jCBy7JaZPz0JEeFSpJpZZk0am0cApuer18G7iI9Xbnq4O8iLenbLb5asC9C7pM1qmNxRx805kGBdLbSM051NSgTbspXCWKcQh4odniSh20FOtIEmEP7VD5lWqNTdUBsQ_BRcv-PcM53JJw"/></div></div></header><main class="w-full pt-14 bg-bg-app px-6 py-6 min-h-screen"><div class="flex flex-col w-full gap-3 pb-8">
+<!-- Top Command Bar: Page Header & Quick Controls -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+<div>
+<div class="flex items-center gap-2">
+<h1 class="font-page-title text-page-title text-text-primary">Command Center</h1>
+<span class="px-2 py-0.5 rounded-full bg-risk-low/10 border border-risk-low/30 font-badge-label text-badge-label text-risk-low flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-ping"></span> Live Sync
+        </span>
+</div>
+<p class="font-caption text-caption text-text-muted">Real-time Operations &amp; Supply Chain Telemetry Engine</p>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex items-center bg-bg-surface rounded border border-border-subtle p-0.5">
+<button class="px-2.5 py-1 text-xs rounded font-medium bg-bg-surface-raised text-primary shadow-sm" type="button">All Corridors</button>
+<button class="px-2.5 py-1 text-xs rounded text-text-secondary hover:text-text-primary transition-colors" type="button">West Hub</button>
+<button class="px-2.5 py-1 text-xs rounded text-text-secondary hover:text-text-primary transition-colors" type="button">South Zone</button>
+</div>
+<button class="flex items-center gap-1.5 h-7 px-2.5 rounded bg-bg-surface hover:bg-bg-surface-hover border border-border-subtle text-text-secondary hover:text-text-primary text-xs transition-colors" type="button">
+<span class="material-symbols-outlined text-[15px]">filter_list</span>
+<span>Filters</span>
+</button>
+<button class="flex items-center gap-1.5 h-7 px-2.5 rounded bg-primary-container text-on-primary-container hover:bg-primary-hover text-xs font-medium transition-colors" type="button">
+<span class="material-symbols-outlined text-[15px]">add_alert</span>
+<span>Simulate Disruption</span>
+</button>
+</div>
+</div>
+<!-- 1. Top KPI Metric Cards Grid -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+<!-- KPI 1 -->
+<div class="bg-bg-surface rounded-lg border border-border-subtle p-3 flex flex-col justify-between hover:border-border-strong transition-colors">
+<div class="flex items-center justify-between text-text-secondary">
+<span class="font-caption text-caption tracking-wider uppercase text-text-muted">Total Shipments</span>
+<span class="material-symbols-outlined text-[18px] text-text-muted">local_shipping</span>
+</div>
+<div class="mt-2 flex items-baseline justify-between">
+<span class="font-kpi-val text-kpi-val text-text-primary tracking-tight">1,248</span>
+<span class="font-badge-label text-badge-label text-risk-low flex items-center font-medium">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>12%
+        </span>
+</div>
+<div class="mt-1 flex items-center justify-between text-text-muted font-caption text-[11px]">
+<span>vs. 1,114 yesterday</span>
+<span class="text-risk-low font-medium">98.2% Svc</span>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="bg-bg-surface rounded-lg border border-border-subtle p-3 flex flex-col justify-between hover:border-border-strong transition-colors relative overflow-hidden">
+<div class="absolute top-0 left-0 bottom-0 w-1 bg-risk-high"></div>
+<div class="flex items-center justify-between text-text-secondary pl-1">
+<span class="font-caption text-caption tracking-wider uppercase text-text-muted">Active Disruptions</span>
+<span class="material-symbols-outlined text-[18px] text-risk-high">warning</span>
+</div>
+<div class="mt-2 flex items-baseline justify-between pl-1">
+<span class="font-kpi-val text-kpi-val text-text-primary tracking-tight">7</span>
+<span class="px-1.5 py-0.5 rounded-full bg-risk-high/15 border border-risk-high/30 font-badge-label text-badge-label text-risk-high font-medium">
+          +3 new
+        </span>
+</div>
+<div class="mt-1 flex items-center justify-between text-text-muted font-caption text-[11px] pl-1">
+<span>2 critical delays</span>
+<span class="text-risk-critical font-medium">NH-48 Alert</span>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="bg-bg-surface rounded-lg border border-border-subtle p-3 flex flex-col justify-between hover:border-border-strong transition-colors relative overflow-hidden">
+<div class="absolute top-0 left-0 bottom-0 w-1 bg-risk-critical"></div>
+<div class="flex items-center justify-between text-text-secondary pl-1">
+<span class="font-caption text-caption tracking-wider uppercase text-text-muted">At Risk Shipments</span>
+<span class="material-symbols-outlined text-[18px] text-risk-critical">report_problem</span>
+</div>
+<div class="mt-2 flex items-baseline justify-between pl-1">
+<span class="font-kpi-val text-kpi-val text-text-primary tracking-tight">23</span>
+<span class="font-badge-label text-badge-label text-risk-critical flex items-center font-medium">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>6%
+        </span>
+</div>
+<div class="mt-1 flex items-center justify-between text-text-muted font-caption text-[11px] pl-1">
+<span>1.8% of active volume</span>
+<span class="text-text-secondary">₹3.8 Cr at stake</span>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="bg-bg-surface rounded-lg border border-border-subtle p-3 flex flex-col justify-between hover:border-border-strong transition-colors relative overflow-hidden">
+<div class="absolute top-0 left-0 bottom-0 w-1 bg-risk-medium"></div>
+<div class="flex items-center justify-between text-text-secondary pl-1">
+<span class="font-caption text-caption tracking-wider uppercase text-text-muted">Cold Chain Alerts</span>
+<span class="material-symbols-outlined text-[18px] text-risk-medium">ac_unit</span>
+</div>
+<div class="mt-2 flex items-baseline justify-between pl-1">
+<span class="font-kpi-val text-kpi-val text-text-primary tracking-tight">5</span>
+<span class="px-1.5 py-0.5 rounded-full bg-risk-medium/15 border border-risk-medium/30 font-badge-label text-badge-label text-risk-medium font-medium">
+          +2 new
+        </span>
+</div>
+<div class="mt-1 flex items-center justify-between text-text-muted font-caption text-[11px] pl-1">
+<span>1 Pharma excursion</span>
+<span class="text-risk-medium font-medium">SH-117 active</span>
+</div>
+</div>
+<!-- KPI 5 -->
+<div class="bg-bg-surface rounded-lg border border-border-subtle p-3 flex flex-col justify-between hover:border-border-strong transition-colors">
+<div class="flex items-center justify-between text-text-secondary">
+<span class="font-caption text-caption tracking-wider uppercase text-text-muted">Idle Vehicles</span>
+<span class="material-symbols-outlined text-[18px] text-text-muted">directions_boat</span>
+</div>
+<div class="mt-2 flex items-baseline justify-between">
+<span class="font-kpi-val text-kpi-val text-text-primary tracking-tight">42</span>
+<span class="font-badge-label text-badge-label text-text-secondary flex items-center font-medium">
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span>4%
+        </span>
+</div>
+<div class="mt-1 flex items-center justify-between text-text-muted font-caption text-[11px]">
+<span>Deployable fleet</span>
+<span class="text-risk-low font-medium">18 in Hub B</span>
+</div>
+</div>
+</div>
+<!-- 2. Center Live Operational Grid: Map & Disruption Detail Panel -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-3 min-h-[540px]">
+<!-- Live Map Monitoring Panel (7 Columns Desktop) -->
+<div class="xl:col-span-7 bg-bg-surface rounded-lg border border-border-subtle flex flex-col relative overflow-hidden group">
+<!-- Map Header Controls Bar -->
+<div class="h-11 px-3 border-b border-border-subtle flex items-center justify-between bg-bg-surface z-10">
+<div class="flex items-center gap-2">
+<span class="font-card-title text-card-title text-text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">hub</span>
+            Live Shipments &amp; Corridors
+          </span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-caption font-caption text-text-secondary border border-border-subtle">
+            Transit Nodes: 6 Active
+          </span>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-1 rounded text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover transition-colors" title="Layers" type="button">
+<span class="material-symbols-outlined text-[16px]">layers</span>
+</button>
+<button class="p-1 rounded text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover transition-colors" title="Traffic Density" type="button">
+<span class="material-symbols-outlined text-[16px]">traffic</span>
+</button>
+<button class="p-1 rounded text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover transition-colors" title="Center" type="button">
+<span class="material-symbols-outlined text-[16px]">my_location</span>
+</button>
+<button class="p-1 rounded text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover transition-colors" title="Fullscreen" type="button">
+<span class="material-symbols-outlined text-[16px]">fullscreen</span>
+</button>
+</div>
+</div>
+<!-- Tactical Vector Canvas / Map Surface -->
+<div class="relative flex-1 bg-[#090e17] w-full min-h-[460px] select-none overflow-hidden">
+<!-- SVG Map Cartography & Realtime Routes -->
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none" viewbox="0 0 740 460" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<!-- Grid pattern -->
+<pattern height="40" id="tacGrid" patternunits="userSpaceOnUse" width="40">
+<path d="M 40 0 L 0 0 0 40" fill="none" stroke="#172233" stroke-width="0.75"></path>
+<circle cx="0" cy="0" fill="#243142" r="1"></circle>
+</pattern>
+<!-- Gradients for transit glows -->
+<radialgradient cx="50%" cy="50%" id="epicenterGlow" r="50%">
+<stop offset="0%" stop-color="#ef4444" stop-opacity="0.38"></stop>
+<stop offset="70%" stop-color="#ef4444" stop-opacity="0.10"></stop>
+<stop offset="100%" stop-color="#ef4444" stop-opacity="0"></stop>
+</radialgradient>
+<lineargradient id="bypassGrad" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#f59e0b" stop-opacity="0.9"></stop>
+<stop offset="100%" stop-color="#38bdf8" stop-opacity="0.7"></stop>
+</lineargradient>
+<!-- Animated dash -->
+<style>
+              .flow-path { stroke-dasharray: 6, 6; animation: dashMove 18s linear infinite; }
+              .blocked-path { stroke-dasharray: 8, 5; animation: dashAlert 2s linear infinite; }
+              @keyframes dashMove { to { stroke-dashoffset: -200; } }
+              @keyframes dashAlert { to { stroke-dashoffset: 13; } }
+            </style>
+</defs>
+<!-- Topographic Grid Background -->
+<rect fill="#090e17" height="100%" width="100%"></rect>
+<rect fill="url(#tacGrid)" height="100%" opacity="0.8" width="100%"></rect>
+<!-- Regional Territorial Contours (Stylized) -->
+<path d="M 40,80 Q 180,40 320,70 T 560,90 T 700,60 L 710,410 Q 520,430 350,390 T 50,420 Z" fill="#0d1420" stroke="#1a2536" stroke-width="1.2"></path>
+<!-- Normal / Clear Transit Corridors -->
+<!-- Delhi to Ahmedabad / Mumbai corridor -->
+<path d="M 190,50 L 150,140 L 170,230" fill="none" stroke="#243b55" stroke-linecap="round" stroke-width="4"></path>
+<path class="flow-path" d="M 190,50 L 150,140 L 170,230" fill="none" opacity="0.8" stroke="#38bdf8" stroke-width="1.8"></path>
+<!-- Ahmedabad to Bangalore via bypass -->
+<path d="M 150,140 Q 230,220 320,380" fill="none" stroke="#1e2d42" stroke-width="3"></path>
+<!-- Chennai to Bangalore corridor -->
+<path d="M 470,360 L 320,380" fill="none" stroke="#22c55e" stroke-dasharray="4,4" stroke-opacity="0.7" stroke-width="2.5"></path>
+<!-- Mumbai to Pune Segment -->
+<path d="M 170,230 L 250,260" fill="none" stroke="#38bdf8" stroke-linecap="round" stroke-width="3.5"></path>
+<!-- BLOCKED NH-48 Corridor (Pune -> Hyderabad -> Solapur Segment) -->
+<path d="M 250,260 Q 320,270 410,240" fill="none" opacity="0.4" stroke="#ef4444" stroke-linecap="round" stroke-width="4.5"></path>
+<path class="blocked-path" d="M 250,260 Q 320,270 410,240" fill="none" stroke="#ffb4ab" stroke-width="2"></path>
+<!-- AI Recommended Bypass Route (Route B: Solapur North Detour) -->
+<path d="M 250,260 Q 290,190 360,190 T 410,240" fill="none" stroke="url(#bypassGrad)" stroke-dasharray="5,3" stroke-width="2.5"></path>
+<!-- Hyderabad to Bangalore corridor -->
+<path d="M 410,240 L 320,380" fill="none" stroke="#243b55" stroke-width="3.5"></path>
+<path class="flow-path" d="M 410,240 L 320,380" fill="none" opacity="0.7" stroke="#38bdf8" stroke-width="1.5"></path>
+<!-- Disruption Epicenter Halo (NH-48 Flooding) -->
+<circle cx="330" cy="255" fill="url(#epicenterGlow)" r="72"></circle>
+<circle class="animate-spin" cx="330" cy="255" fill="none" opacity="0.7" r="54" stroke="#ef4444" stroke-dasharray="4,3" stroke-width="1" style="transform-origin: 330px 255px; animation-duration: 26s;"></circle>
+<circle cx="330" cy="255" fill="#ef4444" fill-opacity="0.22" r="28" stroke="#ef4444" stroke-width="1.5"></circle>
+<!-- Transit Hub Nodes -->
+<!-- Mumbai -->
+<circle cx="170" cy="230" fill="#38bdf8" r="5" stroke="#080d14" stroke-width="2"></circle>
+<text fill="#a8b3c2" font-family="Inter" font-size="11" font-weight="600" text-anchor="end" x="160" y="220">Mumbai Hub</text>
+<!-- Pune -->
+<circle cx="250" cy="260" fill="#f59e0b" r="5" stroke="#080d14" stroke-width="2"></circle>
+<text fill="#dee2ed" font-family="Inter" font-size="11" font-weight="600" text-anchor="end" x="240" y="280">Pune</text>
+<!-- Disruption Point: Flooding Zone -->
+<circle cx="330" cy="255" fill="#ef4444" r="10" stroke="#ffffff" stroke-width="1.5"></circle>
+<text fill="#ffffff" font-family="Inter" font-size="11" font-weight="700" text-anchor="middle" x="330" y="259">A</text>
+<text fill="#ffb4ab" font-family="Inter" font-size="11" font-weight="600" text-anchor="middle" x="330" y="282">NH-48 Flooding (Km 184)</text>
+<!-- Hyderabad -->
+<circle cx="410" cy="240" fill="#38bdf8" r="5" stroke="#080d14" stroke-width="2"></circle>
+<text fill="#dee2ed" font-family="Inter" font-size="11" font-weight="600" x="424" y="244">Hyderabad Hub</text>
+<!-- Bangalore -->
+<circle cx="320" cy="380" fill="#22c55e" r="6" stroke="#080d14" stroke-width="2"></circle>
+<text fill="#dee2ed" font-family="Inter" font-size="11" font-weight="600" text-anchor="middle" x="320" y="402">Bangalore DC</text>
+<!-- Chennai -->
+<circle cx="470" cy="360" fill="#38bdf8" r="5" stroke="#080d14" stroke-width="2"></circle>
+<text fill="#dee2ed" font-family="Inter" font-size="11" font-weight="600" x="482" y="364">Chennai Port</text>
+<!-- Ahmedabad -->
+<circle cx="150" cy="140" fill="#38bdf8" r="5" stroke="#080d14" stroke-width="2"></circle>
+<text fill="#a8b3c2" font-family="Inter" font-size="11" font-weight="500" text-anchor="end" x="140" y="138">Ahmedabad</text>
+<!-- Moving Shipments Interactive Pins (SVG layer) -->
+<!-- SH-102 (Delayed near blocked area) -->
+<g transform="translate(290, 240)">
+<circle cx="0" cy="0" fill="#ef4444" r="9" stroke="#101722" stroke-width="2"></circle>
+<path d="M -3,-2 L 3,-2 L 4,1 L -4,1 Z M -3,1 L -3,3 L -1,3 L -1,1 M 1,1 L 1,3 L 3,3 L 3,1" fill="#ffffff"></path>
+</g>
+<!-- SH-117 (Cold Chain near Hyderabad) -->
+<g transform="translate(425, 290)">
+<circle cx="0" cy="0" fill="#f59e0b" r="9" stroke="#101722" stroke-width="2"></circle>
+<text fill="#000" font-size="8" font-weight="bold" text-anchor="middle" x="0" y="3">CC</text>
+</g>
+<!-- TRK-203 (On bypass detour) -->
+<g transform="translate(340, 192)">
+<circle cx="0" cy="0" fill="#2f6df6" r="8" stroke="#ffffff" stroke-width="1.5"></circle>
+<circle cx="0" cy="0" fill="#ffffff" r="3"></circle>
+</g>
+</svg>
+<!-- Dynamic Shipment Marker Overlay Chips on Map Canvas -->
+<div class="absolute left-4 top-4 bg-bg-surface-raised/95 border border-border-strong rounded-md p-2 shadow-lg backdrop-blur flex flex-col gap-1.5 z-20">
+<div class="flex items-center gap-1.5 font-caption text-caption text-text-primary">
+<span class="w-2 h-2 rounded-full bg-risk-critical animate-ping"></span>
+<span class="font-semibold text-error">CRITICAL CHOKEPOINT</span>
+</div>
+<p class="text-[11px] text-text-secondary leading-tight max-w-[190px]">
+            NH-48 submerged under 2.4m floodwater. 17 commercial freights in stall zone.
+          </p>
+<div class="flex items-center gap-2 mt-1">
+<span class="px-1.5 py-0.5 rounded bg-bg-surface text-[10px] text-primary border border-border-subtle">Detour B ready</span>
+<span class="text-[10px] text-text-muted">+1.2 hrs delay</span>
+</div>
+</div>
+<!-- Floating Live Map Legend (top right) -->
+<div class="absolute right-3 top-3 bg-bg-surface/95 border border-border-subtle rounded-lg p-2.5 shadow-md backdrop-blur z-20 w-44">
+<div class="font-caption text-[11px] uppercase tracking-wider text-text-muted font-semibold pb-1.5 border-b border-border-subtle mb-1.5 flex items-center justify-between">
+<span>Disruptions on Map</span>
+<span class="material-symbols-outlined text-[14px]">tune</span>
+</div>
+<div class="flex flex-col gap-1.5 text-[11px]">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-risk-critical"></span>
+<span class="text-text-primary">High Impact</span>
+</div>
+<span class="font-medium text-risk-critical">2</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-risk-medium"></span>
+<span class="text-text-primary">Medium Impact</span>
+</div>
+<span class="font-medium text-risk-medium">3</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-risk-low"></span>
+<span class="text-text-primary">Low Impact</span>
+</div>
+<span class="font-medium text-risk-low">2</span>
+</div>
+<div class="flex items-center justify-between pt-1 border-t border-border-subtle">
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-0.5 border-b-2 border-dashed border-risk-critical inline-block"></span>
+<span class="text-text-secondary">Blocked Corridor</span>
+</div>
+<span class="text-text-muted">1</span>
+</div>
+</div>
+</div>
+<!-- Map Zoom & Pan Control Floaters (bottom right) -->
+<div class="absolute right-3 bottom-3 flex flex-col gap-1 bg-bg-surface-raised rounded border border-border-subtle p-0.5 z-20 shadow">
+<button aria-label="Zoom in" class="w-6 h-6 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors rounded" type="button">
+<span class="material-symbols-outlined text-[15px]">add</span>
+</button>
+<div class="h-px bg-border-subtle"></div>
+<button aria-label="Zoom out" class="w-6 h-6 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors rounded" type="button">
+<span class="material-symbols-outlined text-[15px]">remove</span>
+</button>
+</div>
+<!-- Map Bottom Ticker for Selected Zone -->
+<div class="absolute left-3 bottom-3 bg-bg-surface/90 border border-border-subtle px-2.5 py-1 rounded text-caption text-text-secondary flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px] text-risk-medium">alt_route</span>
+<span>Simulation Active: Solapur Bypass Recommended</span>
+<span class="text-text-disabled">•</span>
+<span class="text-risk-low">Saves 4.2 hrs</span>
+</div>
+</div>
+</div>
+<!-- Right Disruption Detail Panel / Selected Incident Drawer (5 Columns Desktop) -->
+<div class="xl:col-span-5 bg-bg-surface rounded-lg border border-border-subtle flex flex-col justify-between overflow-hidden">
+<!-- Drawer Top Bar -->
+<div class="p-3 border-b border-border-subtle flex items-center justify-between bg-surface-container-low">
+<button class="flex items-center gap-1 text-xs text-text-secondary hover:text-primary transition-colors font-medium" type="button">
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+<span>Back to Disruptions</span>
+</button>
+<div class="flex items-center gap-2">
+<button class="h-7 px-2 rounded border border-border-subtle text-xs text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[14px]">share</span>
+<span>Share</span>
+</button>
+<button class="h-7 px-3 rounded bg-primary-container hover:bg-primary-hover text-on-primary-container text-xs font-medium transition-colors flex items-center gap-1 shadow-sm" type="button">
+<span class="material-symbols-outlined text-[14px]">sync</span>
+<span>Update</span>
+</button>
+</div>
+</div>
+<!-- Incident Header & High Level Metadata -->
+<div class="p-3.5 border-b border-border-subtle">
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-2">
+<h2 class="font-section-title text-section-title text-text-primary font-semibold">NH-48 Flooding</h2>
+<span class="px-2 py-0.5 rounded-full bg-risk-critical/15 border border-risk-critical/30 font-badge-label text-badge-label text-risk-critical font-medium">
+                High Impact
+              </span>
+</div>
+<p class="font-caption text-caption text-text-muted mt-0.5">Pune → Hyderabad Transit Corridor (Km 182 - 210)</p>
+</div>
+<span class="px-2 py-0.5 rounded bg-risk-low/10 border border-risk-low/30 text-[11px] text-risk-low font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span> Active
+          </span>
+</div>
+<div class="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-border-subtle/60 text-xs">
+<div>
+<span class="font-caption text-[11px] text-text-muted block">Started At</span>
+<span class="font-medium text-text-primary">12 May 2024, 08:30 AM</span>
+</div>
+<div>
+<span class="font-caption text-[11px] text-text-muted block">Expected To End</span>
+<span class="font-medium text-text-primary">14 May 2024, 08:30 PM</span>
+</div>
+</div>
+</div>
+<!-- Affected Summary 4-Column Metric Strip -->
+<div class="grid grid-cols-4 border-b border-border-subtle bg-bg-surface-raised divide-x divide-border-subtle text-center">
+<div class="p-2.5">
+<span class="font-caption text-[11px] text-text-muted block truncate">Affected</span>
+<span class="text-base font-semibold text-text-primary mt-0.5 block">17</span>
+<span class="text-[10px] text-text-muted">Shipments</span>
+</div>
+<div class="p-2.5 bg-risk-critical/5">
+<span class="font-caption text-[11px] text-error block truncate">Critical</span>
+<span class="text-base font-semibold text-risk-critical mt-0.5 block">4</span>
+<span class="text-[10px] text-error/80">Priority 1</span>
+</div>
+<div class="p-2.5">
+<span class="font-caption text-[11px] text-text-muted block truncate">At Risk Value</span>
+<span class="text-base font-semibold text-text-primary mt-0.5 block">₹2.4 Cr</span>
+<span class="text-[10px] text-text-secondary">Commercial</span>
+</div>
+<div class="p-2.5">
+<span class="font-caption text-[11px] text-text-muted block truncate">Delay Risk</span>
+<span class="text-base font-semibold text-risk-high mt-0.5 block">High</span>
+<span class="text-[10px] text-text-muted">+5.4h avg</span>
+</div>
+</div>
+<!-- Action Tabs Navigation -->
+<div class="px-3 pt-2 border-b border-border-subtle flex items-center justify-between bg-bg-surface">
+<div class="flex items-center gap-4 text-xs font-medium">
+<button class="pb-2 border-b-2 border-primary-container text-primary" type="button">
+            Affected Shipments (4)
+          </button>
+<button class="pb-2 border-b-2 border-transparent text-text-secondary hover:text-text-primary transition-colors" type="button">
+            Alternative Routes
+          </button>
+<button class="pb-2 border-b-2 border-transparent text-text-secondary hover:text-text-primary transition-colors" type="button">
+            Recommended Actions
+          </button>
+</div>
+<span class="text-[11px] text-text-muted">Realtime Sort: Risk</span>
+</div>
+<!-- Mini Affected Shipments Table Container -->
+<div class="flex-1 overflow-x-auto min-h-[175px]">
+<table class="w-full text-left border-collapse text-table-cell font-table-cell">
+<thead>
+<tr class="h-8 bg-surface-container-lowest text-text-muted uppercase text-[10px] tracking-wider border-b border-border-subtle">
+<th class="px-3 py-1 font-medium">Shipment ID</th>
+<th class="px-2 py-1 font-medium">Origin → Destination</th>
+<th class="px-2 py-1 font-medium text-center">Priority</th>
+<th class="px-2 py-1 font-medium text-center">ETA Risk</th>
+<th class="px-2 py-1 font-medium">Current Status</th>
+<th class="px-3 py-1 font-medium text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-subtle/50 text-xs">
+<!-- Row 1 -->
+<tr class="h-10 hover:bg-bg-surface-hover transition-colors">
+<td class="px-3 py-1.5 font-medium text-primary flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-critical"></span>
+<span>SH-102</span>
+</td>
+<td class="px-2 py-1.5 text-text-secondary truncate max-w-[120px]">Mumbai → Bangalore</td>
+<td class="px-2 py-1.5 text-center">
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-risk-critical/10 text-risk-critical border border-risk-critical/30 font-medium">High</span>
+</td>
+<td class="px-2 py-1.5 text-center">
+<span class="text-risk-critical font-medium text-[11px]">+4.5h</span>
+</td>
+<td class="px-2 py-1.5">
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-risk-critical/10 text-risk-critical">Delayed</span>
+</td>
+<td class="px-3 py-1.5 text-right">
+<button class="px-2 py-0.5 rounded text-[11px] font-medium bg-primary-container hover:bg-primary-hover text-on-primary-container transition-colors" type="button">Reroute</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="h-10 hover:bg-bg-surface-hover transition-colors">
+<td class="px-3 py-1.5 font-medium text-primary flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-high"></span>
+<span>SH-117</span>
+</td>
+<td class="px-2 py-1.5 text-text-secondary truncate max-w-[120px]">Hyderabad → Chennai</td>
+<td class="px-2 py-1.5 text-center">
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-risk-critical/10 text-risk-critical border border-risk-critical/30 font-medium">High</span>
+</td>
+<td class="px-2 py-1.5 text-center">
+<span class="text-risk-high font-medium text-[11px]">+3.0h</span>
+</td>
+<td class="px-2 py-1.5">
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-risk-medium/15 text-risk-medium">Temp Risk (9.4°C)</span>
+</td>
+<td class="px-3 py-1.5 text-right">
+<button class="px-2 py-0.5 rounded text-[11px] font-medium border border-border-subtle hover:bg-surface-container text-text-primary transition-colors" type="button">Inspect</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="h-10 hover:bg-bg-surface-hover transition-colors">
+<td class="px-3 py-1.5 font-medium text-primary flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-medium"></span>
+<span>SH-123</span>
+</td>
+<td class="px-2 py-1.5 text-text-secondary truncate max-w-[120px]">Pune → Hyderabad</td>
+<td class="px-2 py-1.5 text-center">
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-risk-medium/15 text-risk-medium border border-risk-medium/30 font-medium">Medium</span>
+</td>
+<td class="px-2 py-1.5 text-center">
+<span class="text-risk-medium font-medium text-[11px]">+2.1h</span>
+</td>
+<td class="px-2 py-1.5">
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-risk-medium/15 text-risk-medium">Delayed</span>
+</td>
+<td class="px-3 py-1.5 text-right">
+<button class="px-2 py-0.5 rounded text-[11px] font-medium border border-border-subtle hover:bg-surface-container text-text-primary transition-colors whitespace-nowrap" type="button">Assign Fleet</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="h-10 hover:bg-bg-surface-hover transition-colors">
+<td class="px-3 py-1.5 font-medium text-primary flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-low"></span>
+<span>SH-145</span>
+</td>
+<td class="px-2 py-1.5 text-text-secondary truncate max-w-[120px]">Delhi → Bangalore</td>
+<td class="px-2 py-1.5 text-center">
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-risk-low/15 text-risk-low border border-risk-low/30 font-medium">Low</span>
+</td>
+<td class="px-2 py-1.5 text-center">
+<span class="text-risk-low font-medium text-[11px]">Normal</span>
+</td>
+<td class="px-2 py-1.5">
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-risk-low/15 text-risk-low">On Track</span>
+</td>
+<td class="px-3 py-1.5 text-right">
+<button class="px-2 py-0.5 rounded text-[11px] font-medium border border-border-subtle hover:bg-surface-container text-text-primary transition-colors" type="button">Monitor</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Drawer Footer Link -->
+<div class="px-3 py-2 bg-surface-container-lowest border-t border-border-subtle flex items-center justify-between">
+<span class="text-caption text-text-muted">Showing top 4 high-risk shipments</span>
+<a class="text-xs text-primary hover:underline font-medium flex items-center gap-1" href="#">
+<span>View all 17 impacted shipments</span>
+<span class="material-symbols-outlined text-[14px]">east</span>
+</a>
+</div>
+</div>
+</div>
+<!-- 3. Bottom Analytical Cards Grid (3 Bespoke Dense Panels) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+<!-- Bottom Card 1: Top Disruptions -->
+<div class="bg-bg-surface rounded-lg border border-border-subtle p-3 flex flex-col justify-between hover:border-border-strong transition-colors">
+<div>
+<div class="flex items-center justify-between pb-2 mb-2 border-b border-border-subtle">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[17px] text-risk-critical">report</span>
+<h3 class="font-card-title text-card-title text-text-primary">Top Disruptions</h3>
+</div>
+<a class="font-caption text-caption text-primary hover:underline" href="#">View all (7)</a>
+</div>
+<!-- List of Active Disruptions -->
+<div class="flex flex-col gap-2">
+<!-- Item 1 -->
+<div class="p-2 rounded bg-surface-container-low border border-border-subtle flex items-center justify-between hover:border-border-strong transition-colors">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-2 h-2 rounded-full bg-risk-critical flex-shrink-0"></div>
+<div class="min-w-0">
+<div class="font-body-default text-xs font-semibold text-text-primary truncate">NH-48 Flooding</div>
+<div class="font-caption text-[11px] text-text-muted truncate">Pune → Hyderabad Corridor</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-risk-critical/15 border border-risk-critical/30 font-badge-label text-[10px] text-risk-critical whitespace-nowrap">
+              High Impact
+            </span>
+</div>
+<!-- Item 2 -->
+<div class="p-2 rounded bg-surface-container-low border border-border-subtle flex items-center justify-between hover:border-border-strong transition-colors">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-2 h-2 rounded-full bg-risk-critical flex-shrink-0"></div>
+<div class="min-w-0">
+<div class="font-body-default text-xs font-semibold text-text-primary truncate">Chennai Port Congestion</div>
+<div class="font-caption text-[11px] text-text-muted truncate">Berth 4-7 Maintenance Backlog</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-risk-critical/15 border border-risk-critical/30 font-badge-label text-[10px] text-risk-critical whitespace-nowrap">
+              High Impact
+            </span>
+</div>
+<!-- Item 3 -->
+<div class="p-2 rounded bg-surface-container-low border border-border-subtle flex items-center justify-between hover:border-border-strong transition-colors">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-2 h-2 rounded-full bg-risk-medium flex-shrink-0"></div>
+<div class="min-w-0">
+<div class="font-body-default text-xs font-semibold text-text-primary truncate">Heavy Rain - Mumbai</div>
+<div class="font-caption text-[11px] text-text-muted truncate">Coastal Highway Low Visibility</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-risk-medium/15 border border-risk-medium/30 font-badge-label text-[10px] text-risk-medium whitespace-nowrap">
+              Medium Impact
+            </span>
+</div>
+</div>
+</div>
+<div class="pt-2 mt-2 border-t border-border-subtle/70 flex items-center justify-between text-caption text-[11px] text-text-muted">
+<span class="flex items-center gap-1 text-risk-critical">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-critical"></span> 2 Unmitigated
+        </span>
+<span>Avg resolution: 18 hrs</span>
+</div>
+</div>
+<!-- Bottom Card 2: Critical Actions (AI Co-Pilot Prescriptions) -->
+<div class="bg-bg-surface rounded-lg border border-border-subtle p-3 flex flex-col justify-between hover:border-border-strong transition-colors">
+<div>
+<div class="flex items-center justify-between pb-2 mb-2 border-b border-border-subtle">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[17px] text-primary">neurology</span>
+<h3 class="font-card-title text-card-title text-text-primary">Critical Actions</h3>
+<span class="px-1.5 py-0.2 rounded bg-primary-soft text-[10px] text-primary font-medium">AI Guard</span>
+</div>
+<a class="font-caption text-caption text-primary hover:underline" href="#">View all</a>
+</div>
+<!-- Action Rows -->
+<div class="flex flex-col gap-2">
+<!-- Action 1 -->
+<div class="p-2 rounded bg-surface-container-low border border-border-subtle flex items-center justify-between hover:border-border-strong transition-colors">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[18px] text-risk-critical flex-shrink-0">alt_route</span>
+<div class="min-w-0">
+<div class="font-body-default text-xs font-semibold text-text-primary truncate">SH-102 Reroute via Route B</div>
+<div class="font-caption text-[11px] text-text-muted">Avoids flood • ETA risk: 3.5h</div>
+</div>
+</div>
+<button class="px-2.5 py-1 text-xs font-medium rounded bg-primary-container hover:bg-primary-hover text-on-primary-container transition-colors shadow-sm ml-2" type="button">
+              Action
+            </button>
+</div>
+<!-- Action 2 -->
+<div class="p-2 rounded bg-surface-container-low border border-border-subtle flex items-center justify-between hover:border-border-strong transition-colors">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[18px] text-risk-high flex-shrink-0">thermostat</span>
+<div class="min-w-0">
+<div class="font-body-default text-xs font-semibold text-text-primary truncate">SH-117 Temperature Excursion</div>
+<div class="font-caption text-[11px] text-text-muted">Sensor S1 reading 9.4°C • High priority</div>
+</div>
+</div>
+<button class="px-2.5 py-1 text-xs font-medium rounded border border-border-subtle hover:bg-surface-container-high text-text-primary transition-colors ml-2" type="button">
+              Review
+            </button>
+</div>
+<!-- Action 3 -->
+<div class="p-2 rounded bg-surface-container-low border border-border-subtle flex items-center justify-between hover:border-border-strong transition-colors">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[18px] text-risk-medium flex-shrink-0">rv_hookup</span>
+<div class="min-w-0">
+<div class="font-body-default text-xs font-semibold text-text-primary truncate">SH-123 Assign Vehicle T203</div>
+<div class="font-caption text-[11px] text-text-muted">Vehicle Swap • Solapur Yard Ready</div>
+</div>
+</div>
+<button class="px-2.5 py-1 text-xs font-medium rounded bg-primary-container hover:bg-primary-hover text-on-primary-container transition-colors shadow-sm ml-2" type="button">
+              Action
+            </button>
+</div>
+</div>
+</div>
+<div class="pt-2 mt-2 border-t border-border-subtle/70 flex items-center justify-between text-caption text-[11px] text-text-muted">
+<span>Confidence Score: 94.8%</span>
+<span class="text-risk-low">Autonomous fallback verified</span>
+</div>
+</div>
+<!-- Bottom Card 3: Shipment Status Interactive Donut Breakdown -->
+<div class="bg-bg-surface rounded-lg border border-border-subtle p-3 flex flex-col justify-between hover:border-border-strong transition-colors">
+<div>
+<div class="flex items-center justify-between pb-2 mb-2 border-b border-border-subtle">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[17px] text-text-muted">donut_large</span>
+<h3 class="font-card-title text-card-title text-text-primary">Shipment Status</h3>
+</div>
+<span class="font-caption text-caption text-text-muted">Realtime Fleet Ratio</span>
+</div>
+<!-- Donut Visualization and Legend Horizontal Row -->
+<div class="flex items-center justify-center gap-4 py-1">
+<!-- Inline Donut SVG Chart -->
+<div class="relative w-28 h-28 flex items-center justify-center flex-shrink-0">
+<svg class="w-28 h-28 transform -rotate-90" viewbox="0 0 100 100">
+<!-- Background ring -->
+<circle cx="50" cy="50" fill="transparent" r="38" stroke="#1b2027" stroke-width="14"></circle>
+<!-- On Time: 68% (dasharray ~ 162.4, total ~ 238.76) -->
+<circle cx="50" cy="50" fill="transparent" r="38" stroke="#2f6df6" stroke-dasharray="162.3 238.8" stroke-dashoffset="0" stroke-width="14"></circle>
+<!-- Delayed: 17% (dasharray ~ 40.6) -->
+<circle cx="50" cy="50" fill="transparent" r="38" stroke="#f59e0b" stroke-dasharray="40.6 238.8" stroke-dashoffset="-162.3" stroke-width="14"></circle>
+<!-- At Risk: 10% (dasharray ~ 23.9) -->
+<circle cx="50" cy="50" fill="transparent" r="38" stroke="#f97316" stroke-dasharray="23.9 238.8" stroke-dashoffset="-202.9" stroke-width="14"></circle>
+<!-- Exception: 5% (dasharray ~ 11.9) -->
+<circle cx="50" cy="50" fill="transparent" r="38" stroke="#ef4444" stroke-dasharray="11.9 238.8" stroke-dashoffset="-226.8" stroke-width="14"></circle>
+</svg>
+<!-- Center Stats -->
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+<span class="text-sm font-bold text-text-primary leading-none">1,248</span>
+<span class="font-caption text-[10px] text-text-muted mt-0.5">Total</span>
+</div>
+</div>
+<!-- Color-coded Legend -->
+<div class="flex flex-col gap-1.5 text-xs flex-1">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>
+<span class="text-text-secondary">On Time</span>
+</div>
+<span class="font-semibold text-text-primary">68%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-risk-medium"></span>
+<span class="text-text-secondary">Delayed</span>
+</div>
+<span class="font-semibold text-text-primary">17%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-risk-high"></span>
+<span class="text-text-secondary">At Risk</span>
+</div>
+<span class="font-semibold text-text-primary">10%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-risk-critical"></span>
+<span class="text-text-secondary">Exception</span>
+</div>
+<span class="font-semibold text-risk-critical">5%</span>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-2 mt-2 border-t border-border-subtle/70 flex items-center justify-between text-caption text-[11px] text-text-muted">
+<span>SLA Baseline: 95.0% Target</span>
+<span class="text-risk-medium font-medium">Under Target (-10%)</span>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Micro-interactions for shipment action triggers
+  document.addEventListener('DOMContentLoaded', () => {
+    const actionButtons = document.querySelectorAll('button');
+    actionButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const text = btn.innerText.trim();
+        if (text === 'Reroute' || text === 'Action') {
+          btn.innerText = 'Rerouting...';
+          btn.classList.add('opacity-75');
+          setTimeout(() => {
+            btn.innerText = 'Dispatched';
+            btn.classList.remove('bg-primary-container', 'opacity-75');
+            btn.classList.add('bg-risk-low/20', 'text-risk-low', 'border', 'border-risk-low/40');
+          }, 600);
+        }
+      });
+    });
+  });
+</script></main></div></body></html>
