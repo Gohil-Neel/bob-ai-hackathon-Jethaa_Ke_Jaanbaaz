@@ -1,34 +1,31 @@
 /**
  * SupplyShield AI — Carrier & Vendor Directory
  *
- * Enterprise carrier performance & SLA management:
- * - Carrier scorecards (On-Time Delivery %, Cold-Chain integrity %, Claim rates)
+ * Enterprise carrier performance & SLA governance matching Stitch Design System:
+ * - On-Time Delivery (OTD), Cold-Chain compliance %, Claim incident rate
  * - Tier status (Tier 1 Strategic, Tier 2 Secondary, Under Probation)
- * - Active contracts & SLA benchmarks (MTTA, Penalty triggers)
- * - Fleet capacity & lane coverage matrices
- * - Direct emergency dispatch channels & escalation contacts
+ * - Contractual SLA parameters & penalty triggers
+ * - Direct emergency dispatch channels & war-room escalation bridges
  */
 
 import { useState, useMemo } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type CarrierTier = 'STRATEGIC_TIER_1' | 'STANDARD_TIER_2' | 'PROBATION' | 'RESTRICTED';
-type Mode = 'OCEAN' | 'AIR' | 'ROAD' | 'INTERMODAL';
+type CarrierTier = 'STRATEGIC_TIER_1' | 'STANDARD_TIER_2' | 'PROBATION';
+type TransportMode = 'OCEAN' | 'AIR' | 'ROAD' | 'INTERMODAL';
 
-interface Carrier {
+interface CarrierItem {
   id: string;
   name: string;
   code: string;
-  logoIcon: string;
   tier: CarrierTier;
-  modes: Mode[];
-  onTimeRate: number; // e.g. 94.8%
-  coldChainCompliance: number; // e.g. 99.2%
+  modes: TransportMode[];
+  onTimeRate: number;
+  coldChainCompliance: number;
   activeShipments: number;
-  totalVolumeYtd: string;
-  avgCostPerKm: string;
-  claimsRate: number; // e.g. 0.4%
+  cargoValueManaged: string;
+  claimsRate: number;
   primaryContact: {
     name: string;
     role: string;
@@ -39,29 +36,26 @@ interface Carrier {
   slaTerms: {
     maxResponseTimeHours: number;
     delayPenaltyThresholdHours: number;
-    temperatureExcursionPenaltyUsd: number;
-    forceMajeureClauseActive: boolean;
+    temperatureExcursionPenalty: string;
   };
   activeLanes: string[];
   recentIncidentsCount: number;
   status: 'ACTIVE' | 'AUDIT_PENDING' | 'SUSPENDED';
 }
 
-// ─── Mock Carriers ────────────────────────────────────────────────────────────
+// ─── Mock Data ────────────────────────────────────────────────────────────────
 
-const MOCK_CARRIERS: Carrier[] = [
+const MOCK_CARRIERS: CarrierItem[] = [
   {
     id: 'car-001',
-    name: 'Maersk Line',
+    name: 'Maersk Line Logistics',
     code: 'MAEU',
-    logoIcon: '🚢',
     tier: 'STRATEGIC_TIER_1',
     modes: ['OCEAN', 'INTERMODAL', 'ROAD'],
     onTimeRate: 94.2,
     coldChainCompliance: 98.9,
     activeShipments: 48,
-    totalVolumeYtd: '14,200 TEU',
-    avgCostPerKm: '$1.42',
+    cargoValueManaged: '₹24.8 Cr',
     claimsRate: 0.28,
     primaryContact: {
       name: 'Henrik Lindqvist',
@@ -69,14 +63,13 @@ const MOCK_CARRIERS: Carrier[] = [
       phone: '+45 33 63 33 63',
       email: 'h.lindqvist@maersk.com',
     },
-    emergencyHotline: '+45 33 63 99 00 (24/7 Operations)',
+    emergencyHotline: '+45 33 63 99 00 (24/7 War-Room)',
     slaTerms: {
       maxResponseTimeHours: 1,
       delayPenaltyThresholdHours: 12,
-      temperatureExcursionPenaltyUsd: 25000,
-      forceMajeureClauseActive: true,
+      temperatureExcursionPenalty: '₹25,00,000 / Event',
     },
-    activeLanes: ['North Atlantic (Hamburg - Chicago)', 'Trans-Pacific (Shanghai - LA)', 'Asia-Europe (Singapore - Rotterdam)'],
+    activeLanes: ['NH-48 Western (JNPT - Pune - Bengaluru)', 'North Atlantic (Hamburg - Chicago)', 'Asia-Europe (Singapore - Rotterdam)'],
     recentIncidentsCount: 1,
     status: 'ACTIVE',
   },
@@ -84,14 +77,12 @@ const MOCK_CARRIERS: Carrier[] = [
     id: 'car-002',
     name: 'CMA CGM Group',
     code: 'CMDU',
-    logoIcon: '⚓',
     tier: 'PROBATION',
     modes: ['OCEAN', 'AIR'],
     onTimeRate: 81.3,
     coldChainCompliance: 92.4,
     activeShipments: 22,
-    totalVolumeYtd: '8,400 TEU',
-    avgCostPerKm: '$1.35',
+    cargoValueManaged: '₹14.2 Cr',
     claimsRate: 1.45,
     primaryContact: {
       name: 'Claire Beauchamp',
@@ -103,25 +94,22 @@ const MOCK_CARRIERS: Carrier[] = [
     slaTerms: {
       maxResponseTimeHours: 4,
       delayPenaltyThresholdHours: 8,
-      temperatureExcursionPenaltyUsd: 50000,
-      forceMajeureClauseActive: false,
+      temperatureExcursionPenalty: '₹40,00,000 / Event',
     },
-    activeLanes: ['Trans-Pacific (LA - Tokyo)', 'Mediterranean (Marseille - Alexandria)'],
+    activeLanes: ['Trans-Pacific (LA - Tokyo)', 'JNPT Feeder Route'],
     recentIncidentsCount: 4,
     status: 'AUDIT_PENDING',
   },
   {
     id: 'car-003',
-    name: 'Hapag-Lloyd',
+    name: 'Hapag-Lloyd AG',
     code: 'HLCU',
-    logoIcon: '🛳️',
     tier: 'STRATEGIC_TIER_1',
     modes: ['OCEAN', 'ROAD'],
     onTimeRate: 96.1,
     coldChainCompliance: 99.6,
     activeShipments: 34,
-    totalVolumeYtd: '11,100 TEU',
-    avgCostPerKm: '$1.48',
+    cargoValueManaged: '₹18.5 Cr',
     claimsRate: 0.12,
     primaryContact: {
       name: 'Klaus Richter',
@@ -133,8 +121,7 @@ const MOCK_CARRIERS: Carrier[] = [
     slaTerms: {
       maxResponseTimeHours: 1,
       delayPenaltyThresholdHours: 6,
-      temperatureExcursionPenaltyUsd: 35000,
-      forceMajeureClauseActive: false,
+      temperatureExcursionPenalty: '₹30,00,000 / Event',
     },
     activeLanes: ['Indian Ocean (Mumbai - Dubai)', 'North Sea (Rotterdam - Hamburg)'],
     recentIncidentsCount: 0,
@@ -142,76 +129,14 @@ const MOCK_CARRIERS: Carrier[] = [
   },
   {
     id: 'car-004',
-    name: 'COSCO Shipping',
-    code: 'COSU',
-    logoIcon: '🌐',
-    tier: 'STANDARD_TIER_2',
-    modes: ['OCEAN', 'INTERMODAL'],
-    onTimeRate: 88.7,
-    coldChainCompliance: 95.1,
-    activeShipments: 19,
-    totalVolumeYtd: '9,800 TEU',
-    avgCostPerKm: '$1.22',
-    claimsRate: 0.85,
-    primaryContact: {
-      name: 'Wei Zhang',
-      role: 'Asia-Pacific Account Exec',
-      phone: '+86 21 6596 6666',
-      email: 'wei.zhang@coscoshipping.com',
-    },
-    emergencyHotline: '+86 21 6596 8888',
-    slaTerms: {
-      maxResponseTimeHours: 3,
-      delayPenaltyThresholdHours: 18,
-      temperatureExcursionPenaltyUsd: 20000,
-      forceMajeureClauseActive: false,
-    },
-    activeLanes: ['East Asia (Shanghai - Rotterdam)', 'Trans-Pacific (Ningbo - Long Beach)'],
-    recentIncidentsCount: 2,
-    status: 'ACTIVE',
-  },
-  {
-    id: 'car-005',
-    name: 'Lufthansa Cargo / Swiss WorldCargo',
-    code: 'LHCR',
-    logoIcon: '✈️',
-    tier: 'STRATEGIC_TIER_1',
-    modes: ['AIR'],
-    onTimeRate: 98.4,
-    coldChainCompliance: 99.9,
-    activeShipments: 12,
-    totalVolumeYtd: '1,450 Tons',
-    avgCostPerKm: '$4.90',
-    claimsRate: 0.04,
-    primaryContact: {
-      name: 'Sabine Weber',
-      role: 'Active Cold Chain Solutions Lead',
-      phone: '+49 69 696 0',
-      email: 'sabine.weber@lufthansa-cargo.com',
-    },
-    emergencyHotline: '+49 69 696 9000 (Expedited Triage)',
-    slaTerms: {
-      maxResponseTimeHours: 0.5,
-      delayPenaltyThresholdHours: 2,
-      temperatureExcursionPenaltyUsd: 100000,
-      forceMajeureClauseActive: false,
-    },
-    activeLanes: ['Transatlantic Air (Frankfurt - Chicago O’Hare)', 'Trans-Eurasia (Zurich - Singapore Changi)'],
-    recentIncidentsCount: 0,
-    status: 'ACTIVE',
-  },
-  {
-    id: 'car-006',
-    name: 'Kuehne + Nagel Road Logistics',
+    name: 'Kuehne + Nagel Pharma Road Fleet',
     code: 'KNRL',
-    logoIcon: '🚛',
     tier: 'STANDARD_TIER_2',
     modes: ['ROAD', 'INTERMODAL'],
     onTimeRate: 91.5,
     coldChainCompliance: 97.2,
     activeShipments: 28,
-    totalVolumeYtd: '4,200 FTL',
-    avgCostPerKm: '$2.15',
+    cargoValueManaged: '₹9.8 Cr',
     claimsRate: 0.42,
     primaryContact: {
       name: 'Thomas Meier',
@@ -223,205 +148,277 @@ const MOCK_CARRIERS: Carrier[] = [
     slaTerms: {
       maxResponseTimeHours: 2,
       delayPenaltyThresholdHours: 4,
-      temperatureExcursionPenaltyUsd: 15000,
-      forceMajeureClauseActive: false,
+      temperatureExcursionPenalty: '₹15,00,000 / Event',
     },
-    activeLanes: ['EU Pharma Corridor (Basel - Antwerp)', 'Cross-Channel (Rotterdam - London Gateway)'],
+    activeLanes: ['EU Pharma Corridor (Basel - Antwerp)', 'NH-44 South-North Express'],
     recentIncidentsCount: 1,
+    status: 'ACTIVE',
+  },
+  {
+    id: 'car-005',
+    name: 'Lufthansa Cargo / Swiss WorldCargo',
+    code: 'LHCR',
+    tier: 'STRATEGIC_TIER_1',
+    modes: ['AIR'],
+    onTimeRate: 98.4,
+    coldChainCompliance: 99.9,
+    activeShipments: 12,
+    cargoValueManaged: '₹32.0 Cr',
+    claimsRate: 0.04,
+    primaryContact: {
+      name: 'Sabine Weber',
+      role: 'Active Cold Chain Solutions Lead',
+      phone: '+49 69 696 0',
+      email: 'sabine.weber@lufthansa-cargo.com',
+    },
+    emergencyHotline: '+49 69 696 9000 (Expedited Air Triage)',
+    slaTerms: {
+      maxResponseTimeHours: 0.5,
+      delayPenaltyThresholdHours: 2,
+      temperatureExcursionPenalty: '₹75,00,000 / Event',
+    },
+    activeLanes: ['Frankfurt - Chicago O’Hare (ORD)', 'Zurich - Singapore Changi (SIN)', 'Mumbai (BOM) - Frankfurt (FRA)'],
+    recentIncidentsCount: 0,
     status: 'ACTIVE',
   },
 ];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const TIER_STYLES: Record<CarrierTier, { label: string; bg: string; text: string; border: string }> = {
-  STRATEGIC_TIER_1: { label: 'Tier 1 Strategic', bg: 'rgba(34,197,94,0.12)', text: '#4ade80', border: 'rgba(34,197,94,0.35)' },
-  STANDARD_TIER_2:  { label: 'Tier 2 Secondary', bg: 'rgba(59,130,246,0.12)', text: '#60a5fa', border: 'rgba(59,130,246,0.35)' },
-  PROBATION:        { label: 'Probationary Audit', bg: 'rgba(239,68,68,0.12)', text: '#f87171', border: 'rgba(239,68,68,0.35)' },
-  RESTRICTED:       { label: 'Restricted / Locked', bg: 'rgba(107,114,128,0.12)', text: '#9ca3af', border: 'rgba(107,114,128,0.35)' },
-};
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function CarriersPage() {
-  const [carriers] = useState<Carrier[]>(MOCK_CARRIERS);
-  const [search, setSearch] = useState('');
-  const [tierFilter, setTierFilter] = useState<CarrierTier | 'ALL'>('ALL');
-  const [modeFilter, setModeFilter] = useState<Mode | 'ALL'>('ALL');
-  const [selectedCarrier, setSelectedCarrier] = useState<Carrier | null>(MOCK_CARRIERS[0]);
+  const [carriers] = useState<CarrierItem[]>(MOCK_CARRIERS);
+  const [activeId, setActiveId] = useState<string>(MOCK_CARRIERS[0].id);
+  const [tierFilter, setTierFilter] = useState<CarrierTier | 'all'>('all');
+  const [modeFilter, setModeFilter] = useState<TransportMode | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const activeCarrier = carriers.find((c) => c.id === activeId) || carriers[0];
 
   const filteredCarriers = useMemo(() => {
     return carriers.filter((c) => {
-      if (tierFilter !== 'ALL' && c.tier !== tierFilter) return false;
-      if (modeFilter !== 'ALL' && !c.modes.includes(modeFilter)) return false;
-      if (search && !c.name.toLowerCase().includes(search.toLowerCase()) && !c.code.toLowerCase().includes(search.toLowerCase())) return false;
+      if (tierFilter !== 'all' && c.tier !== tierFilter) return false;
+      if (modeFilter !== 'all' && !c.modes.includes(modeFilter)) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        return (
+          c.name.toLowerCase().includes(q) ||
+          c.code.toLowerCase().includes(q) ||
+          c.primaryContact.name.toLowerCase().includes(q)
+        );
+      }
       return true;
     });
-  }, [carriers, tierFilter, modeFilter, search]);
+  }, [carriers, tierFilter, modeFilter, searchQuery]);
 
+  // Network averages
   const avgOtd = (carriers.reduce((acc, c) => acc + c.onTimeRate, 0) / carriers.length).toFixed(1);
   const avgColdChain = (carriers.reduce((acc, c) => acc + c.coldChainCompliance, 0) / carriers.length).toFixed(1);
-  const totalActiveShipments = carriers.reduce((acc, c) => acc + c.activeShipments, 0);
+  const totalShipments = carriers.reduce((acc, c) => acc + c.activeShipments, 0);
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }} className="space-y-6">
-      {/* ── Page Header ── */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <span className="text-2xl">🏢</span>
-            <h1 className="text-2xl font-extrabold text-white">Carrier & Vendor Directory</h1>
-            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
-              {carriers.length} Active Partners
+    <div className="flex flex-col w-full gap-5 pb-12">
+      {/* ── Top Header Bar ── */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-md border border-border-subtle">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-primary-soft flex items-center justify-center text-primary border border-primary/20">
+            <span className="material-symbols-outlined text-[24px]">apartment</span>
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-section-title text-section-title text-text-primary">
+                Carrier &amp; Vendor Performance Directory
+              </span>
+              <span className="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-primary-soft text-primary font-semibold">
+                {carriers.length} CERTIFIED PARTNERS
+              </span>
+              <span className="font-caption text-caption text-text-muted flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-ping" />
+                SLA Telemetry Live
+              </span>
+            </div>
+            <span className="font-caption text-caption text-text-secondary">
+              Contractual SLA compliance scorecards • On-Time In-Full (OTIF) telemetry &amp; emergency dispatch bridges
             </span>
           </div>
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
-            SLA performance governance, cold-chain compliance scorecards & direct incident escalation paths
-          </p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => alert('New carrier onboarding workflow initiated. Generating ISO 9001/GDP audit checklist.')}
-            className="text-sm px-4 py-2 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:brightness-110 transition-all"
+
+        <button
+          onClick={() => alert('Opening new carrier onboarding ISO 9001 / GDP compliance workflow.')}
+          type="button"
+          className="px-3.5 py-2 rounded-lg bg-primary text-white font-badge-label text-badge-label font-semibold shadow-sm hover:brightness-110 flex items-center gap-1.5 transition-all self-start xl:self-auto"
+        >
+          <span className="material-symbols-outlined text-[16px]">add_business</span>
+          Onboard Carrier
+        </button>
+      </div>
+
+      {/* ── KPI Metrics Bar ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors">
+          <div className="flex items-center justify-between mb-2.5">
+            <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">
+              Network On-Time Rate
+            </span>
+            <span className="material-symbols-outlined text-risk-low text-[18px]">verified</span>
+          </div>
+          <div className="flex items-baseline justify-between mb-2">
+            <span className="font-kpi-val text-kpi-val text-text-primary">{avgOtd}%</span>
+            <span className="font-caption text-caption text-risk-low font-medium">Target: ≥ 92%</span>
+          </div>
+          <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+            <div className="bg-risk-low h-full" style={{ width: `${avgOtd}%` }} />
+          </div>
+        </div>
+
+        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors">
+          <div className="flex items-center justify-between mb-2.5">
+            <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">
+              Cold Chain Compliance
+            </span>
+            <span className="material-symbols-outlined text-teal-400 text-[18px]">ac_unit</span>
+          </div>
+          <div className="flex items-baseline justify-between mb-2">
+            <span className="font-kpi-val text-kpi-val text-text-primary">{avgColdChain}%</span>
+            <span className="font-caption text-caption text-teal-400 font-medium">MKT Integrity</span>
+          </div>
+          <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+            <div className="bg-teal-400 h-full" style={{ width: `${avgColdChain}%` }} />
+          </div>
+        </div>
+
+        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors">
+          <div className="flex items-center justify-between mb-2.5">
+            <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">
+              Managed Active Loads
+            </span>
+            <span className="material-symbols-outlined text-primary text-[18px]">local_shipping</span>
+          </div>
+          <div className="flex items-baseline justify-between mb-2">
+            <span className="font-kpi-val text-kpi-val text-text-primary">{totalShipments}</span>
+            <span className="font-caption text-caption text-primary font-medium">₹99.3 Cr Managed</span>
+          </div>
+          <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+            <div className="bg-primary h-full w-[85%]" />
+          </div>
+        </div>
+
+        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors">
+          <div className="flex items-center justify-between mb-2.5">
+            <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">
+              Under Review / Audit
+            </span>
+            <span className="material-symbols-outlined text-risk-critical text-[18px]">gavel</span>
+          </div>
+          <div className="flex items-baseline justify-between mb-2">
+            <span className="font-kpi-val text-kpi-val text-risk-critical">1 Carrier</span>
+            <span className="font-caption text-caption text-risk-critical font-medium">CMA CGM Probation</span>
+          </div>
+          <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+            <div className="bg-risk-critical h-full w-[20%]" />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Filter Bar ── */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-surface-container-lowest p-3 rounded-xl border border-border-subtle shadow-sm">
+        <div className="relative flex-1 max-w-md">
+          <span className="material-symbols-outlined absolute left-3 top-2.5 text-text-muted text-[18px]">search</span>
+          <input
+            type="text"
+            placeholder="Search carrier name, code (e.g. MAEU) or contact..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-bg-surface border border-border-subtle text-text-primary placeholder:text-text-disabled text-caption font-caption outline-none focus:border-primary"
+          />
+        </div>
+
+        <div className="flex items-center flex-wrap gap-2">
+          <select
+            value={tierFilter}
+            onChange={(e) => setTierFilter(e.target.value as CarrierTier | 'all')}
+            className="px-2.5 py-1.5 rounded-lg bg-bg-surface border border-border-subtle text-text-secondary text-caption font-caption outline-none focus:border-primary"
           >
-            + Onboard Carrier
-          </button>
+            <option value="all">All Tiers</option>
+            <option value="STRATEGIC_TIER_1">Tier 1 Strategic</option>
+            <option value="STANDARD_TIER_2">Tier 2 Secondary</option>
+            <option value="PROBATION">Probationary Audit</option>
+          </select>
+
+          <select
+            value={modeFilter}
+            onChange={(e) => setModeFilter(e.target.value as TransportMode | 'all')}
+            className="px-2.5 py-1.5 rounded-lg bg-bg-surface border border-border-subtle text-text-secondary text-caption font-caption outline-none focus:border-primary"
+          >
+            <option value="all">All Modes</option>
+            <option value="OCEAN">Ocean</option>
+            <option value="AIR">Air Cargo</option>
+            <option value="ROAD">Overland Road</option>
+            <option value="INTERMODAL">Intermodal</option>
+          </select>
+
+          <span className="font-caption text-caption text-text-disabled ml-1">
+            {filteredCarriers.length} of {carriers.length}
+          </span>
         </div>
       </div>
 
-      {/* ── KPI Row ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Network On-Time Rate</div>
-          <div className="text-3xl font-extrabold text-green-400">{avgOtd}%</div>
-          <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Target: ≥ 92.0%</div>
-        </div>
-        <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Cold Chain Compliance</div>
-          <div className="text-3xl font-extrabold text-teal-400">{avgColdChain}%</div>
-          <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>MKT Excursion Rate: 0.8%</div>
-        </div>
-        <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Managed In-Transit</div>
-          <div className="text-3xl font-extrabold text-blue-400">{totalActiveShipments}</div>
-          <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Across 6 Global Carriers</div>
-        </div>
-        <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Under Review / Probation</div>
-          <div className="text-3xl font-extrabold text-red-400">1</div>
-          <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>CMA CGM SLA Review Active</div>
-        </div>
-      </div>
-
-      {/* ── Filters ── */}
-      <div className="flex flex-wrap gap-3 items-center p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <input
-          type="text"
-          placeholder="🔍 Search carrier by name or code (e.g., MAEU)..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="text-sm px-3 py-2 rounded-xl outline-none w-72"
-          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'white' }}
-        />
-        <select
-          value={tierFilter}
-          onChange={(e) => setTierFilter(e.target.value as CarrierTier | 'ALL')}
-          className="text-sm px-3 py-2 rounded-xl outline-none"
-          style={{ background: 'rgba(25,27,40,0.95)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' }}
-        >
-          <option value="ALL">All Tiers</option>
-          <option value="STRATEGIC_TIER_1">Tier 1 Strategic</option>
-          <option value="STANDARD_TIER_2">Tier 2 Secondary</option>
-          <option value="PROBATION">Probation / Audit</option>
-        </select>
-        <select
-          value={modeFilter}
-          onChange={(e) => setModeFilter(e.target.value as Mode | 'ALL')}
-          className="text-sm px-3 py-2 rounded-xl outline-none"
-          style={{ background: 'rgba(25,27,40,0.95)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' }}
-        >
-          <option value="ALL">All Transport Modes</option>
-          <option value="OCEAN">Ocean Freight</option>
-          <option value="AIR">Air Cargo</option>
-          <option value="ROAD">Overland Road</option>
-          <option value="INTERMODAL">Intermodal</option>
-        </select>
-        <span className="text-xs ml-auto" style={{ color: 'rgba(255,255,255,0.35)' }}>
-          Showing {filteredCarriers.length} of {carriers.length} carriers
-        </span>
-      </div>
-
-      {/* ── Split Layout: Grid & Details Panel ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Carrier Cards Grid */}
-        <div className="lg:col-span-2 space-y-3">
+      {/* ── Split Layout: Carrier List & Detailed Workbench ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Left Carrier Cards */}
+        <div className="lg:col-span-5 flex flex-col gap-2.5">
           {filteredCarriers.map((carrier) => {
-            const isSelected = selectedCarrier?.id === carrier.id;
-            const tierStyle = TIER_STYLES[carrier.tier];
+            const isSelected = activeCarrier.id === carrier.id;
+            const isTier1 = carrier.tier === 'STRATEGIC_TIER_1';
+            const isProbation = carrier.tier === 'PROBATION';
 
             return (
               <div
                 key={carrier.id}
-                onClick={() => setSelectedCarrier(carrier)}
-                className="p-5 rounded-2xl cursor-pointer transition-all duration-200 hover:brightness-110"
-                style={{
-                  background: isSelected ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.025)',
-                  border: isSelected ? '1.5px solid rgba(99,102,241,0.5)' : '1px solid rgba(255,255,255,0.07)',
-                }}
+                onClick={() => setActiveId(carrier.id)}
+                className={`p-4 rounded-xl cursor-pointer transition-all border ${
+                  isSelected
+                    ? 'bg-surface-container-low border-primary shadow-md'
+                    : 'bg-bg-surface border-border-subtle hover:border-border-strong hover:bg-surface-container-lowest'
+                }`}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl p-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                      {carrier.logoIcon}
-                    </span>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-base font-bold text-white">{carrier.name}</h3>
-                        <span className="text-xs font-mono font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)' }}>
-                          {carrier.code}
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-mono text-xs font-bold text-text-primary px-1.5 py-0.5 rounded bg-surface-container-high">
+                        {carrier.code}
+                      </span>
+                      <h3 className="font-card-title text-card-title text-text-primary">{carrier.name}</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${
+                        isTier1 ? 'bg-risk-low/15 text-risk-low' : isProbation ? 'bg-risk-critical/15 text-risk-critical' : 'bg-primary-soft text-primary'
+                      }`}>
+                        {isTier1 ? 'Tier 1 Strategic' : isProbation ? 'Probation Review' : 'Tier 2 Secondary'}
+                      </span>
+                      {carrier.modes.map((m) => (
+                        <span key={m} className="font-badge-label text-badge-label px-1.5 py-0.5 rounded bg-surface-container-high text-text-secondary">
+                          {m}
                         </span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: tierStyle.bg, color: tierStyle.text, border: `1px solid ${tierStyle.border}` }}>
-                          {tierStyle.label}
-                        </span>
-                        {carrier.modes.map((m) => (
-                          <span key={m} className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)' }}>
-                            {m}
-                          </span>
-                        ))}
-                      </div>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Right mini stats */}
                   <div className="text-right">
-                    <div className="text-sm font-bold text-white">{carrier.activeShipments} Active Loads</div>
-                    <div className="text-xs font-mono" style={{ color: carrier.onTimeRate >= 92 ? '#4ade80' : '#f87171' }}>
-                      {carrier.onTimeRate}% On-Time
+                    <div className="font-card-title text-card-title text-text-primary">{carrier.activeShipments} Active</div>
+                    <div className={`font-mono text-caption font-bold ${carrier.onTimeRate >= 92 ? 'text-risk-low' : 'text-risk-critical'}`}>
+                      {carrier.onTimeRate}% OTD
                     </div>
                   </div>
                 </div>
 
-                {/* Performance progress bars */}
-                <div className="grid grid-cols-2 gap-4 mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className="grid grid-cols-2 gap-3 mt-3 pt-2.5 border-t border-border-subtle text-caption font-caption text-text-muted">
                   <div>
-                    <div className="flex justify-between text-xs mb-1" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                      <span>SLA On-Time Delivery</span>
-                      <span className="font-bold text-white">{carrier.onTimeRate}%</span>
-                    </div>
-                    <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${carrier.onTimeRate}%`, background: carrier.onTimeRate >= 92 ? '#22c55e' : '#ef4444' }} />
-                    </div>
+                    <span>Cold Chain: </span>
+                    <strong className="text-text-primary">{carrier.coldChainCompliance}%</strong>
                   </div>
-                  <div>
-                    <div className="flex justify-between text-xs mb-1" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                      <span>Cold Chain Integrity</span>
-                      <span className="font-bold text-white">{carrier.coldChainCompliance}%</span>
-                    </div>
-                    <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
-                      <div className="h-full rounded-full bg-teal-400" style={{ width: `${carrier.coldChainCompliance}%` }} />
-                    </div>
+                  <div className="text-right">
+                    <span>Managed: </span>
+                    <strong className="text-text-primary">{carrier.cargoValueManaged}</strong>
                   </div>
                 </div>
               </div>
@@ -429,81 +426,100 @@ export default function CarriersPage() {
           })}
         </div>
 
-        {/* Selected Carrier Deep-Dive Panel */}
-        {selectedCarrier && (
-          <div className="p-6 rounded-2xl flex flex-col gap-5" style={{ background: 'rgba(10,12,20,0.97)', border: '1.5px solid rgba(255,255,255,0.1)' }}>
+        {/* Right Detail Workbench */}
+        <div className="lg:col-span-7 bg-surface-container-lowest p-6 rounded-xl border border-border-subtle shadow-md space-y-6 sticky top-20">
+          <div className="flex items-start justify-between gap-4 pb-4 border-b border-border-subtle">
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{selectedCarrier.logoIcon}</span>
-                  <h2 className="text-lg font-extrabold text-white">{selectedCarrier.name}</h2>
-                </div>
-                <span className="text-xs font-mono px-2 py-0.5 rounded bg-white/10 text-white/70">{selectedCarrier.code}</span>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="font-mono text-sm font-bold text-primary">{activeCarrier.code}</span>
+                <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${
+                  activeCarrier.tier === 'STRATEGIC_TIER_1' ? 'bg-risk-low/15 text-risk-low' : 'bg-risk-critical/15 text-risk-critical'
+                }`}>
+                  {activeCarrier.tier.replace(/_/g, ' ')}
+                </span>
+                <span className="font-caption text-caption text-text-muted">Status: {activeCarrier.status}</span>
               </div>
-              <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                Primary global carrier agreement · ISO 9001 & GDP certified pharma transport network.
-              </p>
+              <h2 className="font-section-title text-section-title text-text-primary">
+                {activeCarrier.name}
+              </h2>
             </div>
 
-            {/* SLA Governance Details */}
-            <div className="p-4 rounded-xl space-y-2.5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <div className="text-xs font-bold uppercase tracking-wider text-purple-300">Contractual SLA Benchmarks</div>
-              <div className="flex justify-between text-xs">
-                <span style={{ color: 'rgba(255,255,255,0.45)' }}>Incident Max MTTA:</span>
-                <span className="font-bold text-white">&le; {selectedCarrier.slaTerms.maxResponseTimeHours} Hour</span>
+            <div className="text-right">
+              <div className="font-caption text-caption text-text-muted">Managed Volume</div>
+              <div className="font-section-title text-section-title text-primary font-bold">
+                {activeCarrier.cargoValueManaged}
               </div>
-              <div className="flex justify-between text-xs">
-                <span style={{ color: 'rgba(255,255,255,0.45)' }}>Delay Penalty Trigger:</span>
-                <span className="font-bold text-white">&gt; {selectedCarrier.slaTerms.delayPenaltyThresholdHours}h Unplanned</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span style={{ color: 'rgba(255,255,255,0.45)' }}>Temp Excursion Penalty:</span>
-                <span className="font-bold text-amber-400">${selectedCarrier.slaTerms.temperatureExcursionPenaltyUsd.toLocaleString()} / Event</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span style={{ color: 'rgba(255,255,255,0.45)' }}>Claims Rate YTD:</span>
-                <span className="font-bold text-white">{selectedCarrier.claimsRate}%</span>
-              </div>
-            </div>
-
-            {/* Active Lanes */}
-            <div>
-              <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>Allocated Trade Lanes</div>
-              <div className="space-y-1.5">
-                {selectedCarrier.activeLanes.map((lane, idx) => (
-                  <div key={idx} className="text-xs p-2.5 rounded-lg flex items-center gap-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.75)' }}>
-                    <span>🛤️</span>
-                    <span className="truncate">{lane}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Emergency Escalation Contacts */}
-            <div className="p-4 rounded-xl space-y-2" style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.2)' }}>
-              <div className="text-xs font-bold uppercase tracking-wider text-red-400">🚨 Incident War-Room Dispatch</div>
-              <div className="text-xs font-bold text-white">{selectedCarrier.primaryContact.name} ({selectedCarrier.primaryContact.role})</div>
-              <div className="text-xs font-mono text-red-300">📞 {selectedCarrier.emergencyHotline}</div>
-              <div className="text-xs text-white/50">✉️ {selectedCarrier.primaryContact.email}</div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={() => alert(`Initiating priority dispatch bridge with ${selectedCarrier.name} operations control.`)}
-                className="flex-1 py-2.5 rounded-xl font-bold text-xs bg-purple-600 hover:bg-purple-500 text-white transition-colors"
-              >
-                📞 Open Dispatch Bridge
-              </button>
-              <button
-                onClick={() => alert(`Triggering annual GDP/GxP performance audit for ${selectedCarrier.name}.`)}
-                className="py-2.5 px-4 rounded-xl font-bold text-xs bg-white/10 hover:bg-white/15 text-white/80 transition-colors"
-              >
-                Audit
-              </button>
             </div>
           </div>
-        )}
+
+          {/* Contractual SLA Parameters Box */}
+          <div className="p-4 rounded-lg bg-bg-surface border border-border-subtle space-y-2.5">
+            <div className="flex items-center gap-2 font-caption text-caption uppercase tracking-wider text-primary font-bold">
+              <span className="material-symbols-outlined text-[18px]">verified_user</span>
+              Contractual SLA Governance &amp; Penalty Clauses
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-caption font-caption pt-1">
+              <div>
+                <div className="text-text-muted">Incident Response MTTA:</div>
+                <div className="font-bold text-text-primary">&le; {activeCarrier.slaTerms.maxResponseTimeHours} Hour</div>
+              </div>
+              <div>
+                <div className="text-text-muted">Delay Penalty Trigger:</div>
+                <div className="font-bold text-text-primary">&gt; {activeCarrier.slaTerms.delayPenaltyThresholdHours}h Unplanned</div>
+              </div>
+              <div>
+                <div className="text-text-muted">Temp Excursion Penalty:</div>
+                <div className="font-bold text-risk-high">{activeCarrier.slaTerms.temperatureExcursionPenalty}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Active Corridors */}
+          <div className="space-y-2">
+            <div className="font-caption text-caption uppercase tracking-wider text-text-muted font-bold">
+              Allocated Commercial Corridors
+            </div>
+            <div className="space-y-1.5">
+              {activeCarrier.activeLanes.map((lane, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg bg-bg-surface border border-border-subtle flex items-center gap-2 text-caption font-caption text-text-secondary">
+                  <span className="material-symbols-outlined text-[16px] text-primary">route</span>
+                  <span>{lane}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Emergency Dispatch Bridge */}
+          <div className="p-4 rounded-lg bg-risk-critical/5 border border-risk-critical/20 space-y-1.5">
+            <div className="flex items-center gap-2 font-caption text-caption uppercase tracking-wider text-risk-critical font-bold">
+              <span className="material-symbols-outlined text-[16px]">phone_in_talk</span>
+              Emergency Crisis War-Room Dispatch
+            </div>
+            <div className="font-card-title text-card-title text-text-primary">{activeCarrier.primaryContact.name} ({activeCarrier.primaryContact.role})</div>
+            <div className="font-mono text-caption text-risk-critical font-bold">📞 {activeCarrier.emergencyHotline}</div>
+            <div className="font-caption text-caption text-text-muted">✉️ {activeCarrier.primaryContact.email}</div>
+          </div>
+
+          {/* Action Row */}
+          <div className="flex gap-2.5 pt-2 border-t border-border-subtle">
+            <button
+              onClick={() => alert(`Opening emergency direct teleconference bridge with ${activeCarrier.name} operations tower.`)}
+              className="px-4 py-2 rounded-lg bg-primary text-white font-badge-label text-badge-label font-semibold shadow-sm hover:brightness-110 flex items-center gap-1.5 transition-all"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[18px]">support_agent</span>
+              Open Dispatch Bridge
+            </button>
+            <button
+              onClick={() => alert(`Initiating formal annual GDP compliance audit for ${activeCarrier.name}.`)}
+              className="px-4 py-2 rounded-lg bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover border border-border-subtle font-badge-label text-badge-label flex items-center gap-1.5 transition-colors"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[18px]">fact_check</span>
+              Trigger GDP Audit
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

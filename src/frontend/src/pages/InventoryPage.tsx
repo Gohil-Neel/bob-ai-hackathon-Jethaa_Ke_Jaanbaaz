@@ -1,20 +1,20 @@
 /**
  * SupplyShield AI — Inventory & Buffer Stock Intelligence
  *
- * Real-time warehouse inventory pools, buffer stock forecasting & stockout triage:
- * - Days of Supply (DOS) countdowns across global regional distribution centers (RDC)
- * - Inbound shipment pipeline linkage (auto-adjusting safety stock with in-transit delays)
- * - Critical pharmaceutical batch allocation & stockout risk indices
- * - Automated cross-depot emergency rebalancing recommendations
+ * Warehouse buffer stock & stockout runway modeling matching Stitch Design System:
+ * - Days of Supply (DOS) run-out projections
+ * - Inbound shipment disruption delay linkage
+ * - Emergency cross-depot stock rebalancing authorization
+ * - Stitch tokens: bg-bg-surface, bg-surface-container-lowest, material-symbols-outlined
  */
 
 import { useState, useMemo } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type StockStatus = 'HEALTHY' | 'LOW_BUFFER' | 'CRITICAL_STOCKOUT_RISK' | 'OVERSTOCKED';
+type StockStatus = 'HEALTHY' | 'LOW_BUFFER' | 'CRITICAL_STOCKOUT_RISK';
 
-interface InventoryItem {
+interface InventorySKU {
   id: string;
   sku: string;
   productName: string;
@@ -35,14 +35,14 @@ interface InventoryItem {
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
-const MOCK_INVENTORY: InventoryItem[] = [
+const MOCK_INVENTORY: InventorySKU[] = [
   {
     id: 'inv-001',
     sku: 'SKU-INSU-100',
     productName: 'Humalog Recombinant Insulin (10ml)',
     category: 'Biologics (2-8°C)',
-    warehouse: 'Chicago RDC (ORD-01)',
-    location: 'Chicago, USA',
+    warehouse: 'JNPT / Pune Central Pharma Hub (PNQ-01)',
+    location: 'Pune, Maharashtra',
     onHandUnits: 1420,
     safetyStockUnits: 3000,
     dailyBurnRateUnits: 450,
@@ -51,7 +51,7 @@ const MOCK_INVENTORY: InventoryItem[] = [
     inboundPipelineUnits: 5000,
     inboundShipmentCode: 'SS-2024-0001',
     inboundDelayHours: 87,
-    recommendedTransferFrom: 'Frankfurt Central Hub (FRA-02)',
+    recommendedTransferFrom: 'Hyderabad Bio Hub (HYD-02)',
     recommendedTransferUnits: 1500,
   },
   {
@@ -73,7 +73,7 @@ const MOCK_INVENTORY: InventoryItem[] = [
   {
     id: 'inv-003',
     sku: 'SKU-MRNA-900',
-    productName: 'Respiratory Bivalent Vaccine Batches',
+    productName: 'mRNA Bivalent Vaccine Batches',
     category: 'Deep Freeze (-20°C)',
     warehouse: 'Tokyo Kanto Medical Hub (TYO-01)',
     location: 'Tokyo, Japan',
@@ -104,57 +104,32 @@ const MOCK_INVENTORY: InventoryItem[] = [
     inboundShipmentCode: 'SS-2024-0004',
     inboundDelayHours: 12,
   },
-  {
-    id: 'inv-005',
-    sku: 'SKU-EPIN-050',
-    productName: 'Auto-Injector Epinephrine 0.3mg',
-    category: 'Emergency Therapeutics',
-    warehouse: 'Basel Distribution Center (BSL-01)',
-    location: 'Basel, Switzerland',
-    onHandUnits: 2100,
-    safetyStockUnits: 2500,
-    dailyBurnRateUnits: 190,
-    daysOfSupplyRemaining: 11.0,
-    status: 'LOW_BUFFER',
-    inboundPipelineUnits: 2500,
-    inboundShipmentCode: 'SS-2024-0006',
-    inboundDelayHours: 0,
-  },
 ];
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
-const STATUS_CONFIG: Record<StockStatus, { label: string; bg: string; text: string; border: string }> = {
-  HEALTHY:                  { label: '🟢 Healthy Buffer', bg: 'rgba(34,197,94,0.12)', text: '#4ade80', border: 'rgba(34,197,94,0.35)' },
-  LOW_BUFFER:               { label: '🟡 Low Safety Stock', bg: 'rgba(234,179,8,0.12)', text: '#facc15', border: 'rgba(234,179,8,0.35)' },
-  CRITICAL_STOCKOUT_RISK:   { label: '🔴 Immediate Stockout Risk', bg: 'rgba(239,68,68,0.12)', text: '#f87171', border: 'rgba(239,68,68,0.35)' },
-  OVERSTOCKED:              { label: '🔵 High Inventory Level', bg: 'rgba(59,130,246,0.12)', text: '#60a5fa', border: 'rgba(59,130,246,0.35)' },
-};
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function InventoryPage() {
-  const [items, setItems] = useState<InventoryItem[]>(MOCK_INVENTORY);
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(MOCK_INVENTORY[0]);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StockStatus | 'ALL'>('ALL');
+  const [items, setItems] = useState<InventorySKU[]>(MOCK_INVENTORY);
+  const [activeId, setActiveId] = useState<string>(MOCK_INVENTORY[0].id);
+  const [statusFilter, setStatusFilter] = useState<StockStatus | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredItems = useMemo(() => {
+  const activeItem = items.find((i) => i.id === activeId) || items[0];
+
+  const filtered = useMemo(() => {
     return items.filter((item) => {
-      if (statusFilter !== 'ALL' && item.status !== statusFilter) return false;
-      if (
-        search &&
-        !item.productName.toLowerCase().includes(search.toLowerCase()) &&
-        !item.sku.toLowerCase().includes(search.toLowerCase()) &&
-        !item.warehouse.toLowerCase().includes(search.toLowerCase())
-      )
-        return false;
+      if (statusFilter !== 'all' && item.status !== statusFilter) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        return (
+          item.productName.toLowerCase().includes(q) ||
+          item.sku.toLowerCase().includes(q) ||
+          item.warehouse.toLowerCase().includes(q)
+        );
+      }
       return true;
     });
-  }, [items, statusFilter, search]);
-
-  const stockoutRiskCount = items.filter((i) => i.status === 'CRITICAL_STOCKOUT_RISK').length;
-  const totalUnits = items.reduce((acc, i) => acc + i.onHandUnits, 0);
+  }, [items, statusFilter, searchQuery]);
 
   const handleExecuteTransfer = (id: string) => {
     setItems((prev) =>
@@ -175,211 +150,208 @@ export default function InventoryPage() {
     alert('Emergency cross-depot stock transfer authorized! Air charter flight booking queued.');
   };
 
+  const stockoutRiskCount = items.filter((i) => i.status === 'CRITICAL_STOCKOUT_RISK').length;
+
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }} className="space-y-6">
-      {/* ── Page Header ── */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <span className="text-2xl">📦</span>
-            <h1 className="text-2xl font-extrabold text-white">Inventory & Buffer Stock Intelligence</h1>
-            {stockoutRiskCount > 0 && (
-              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse">
-                {stockoutRiskCount} Depots at Stockout Risk
-              </span>
-            )}
+    <div className="flex flex-col w-full gap-5 pb-12">
+      {/* ── Top Header Bar ── */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-md border border-border-subtle">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-primary-soft flex items-center justify-center text-primary border border-primary/20">
+            <span className="material-symbols-outlined text-[24px]">inventory_2</span>
           </div>
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
-            Days-of-supply projections tied dynamically to active in-transit logistics disruptions
-          </p>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-section-title text-section-title text-text-primary">
+                Inventory &amp; Buffer Stock Intelligence
+              </span>
+              {stockoutRiskCount > 0 && (
+                <span className="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-critical/15 text-risk-critical font-semibold animate-pulse">
+                  {stockoutRiskCount} DEPOTS AT STOCKOUT RISK
+                </span>
+              )}
+            </div>
+            <span className="font-caption text-caption text-text-secondary">
+              Days-of-supply (DOS) run-out projections linked directly to active in-transit logistics delays
+            </span>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => alert('Calculating global stock reallocation across all 5 regional distribution centers.')}
-            className="text-sm px-4 py-2 rounded-xl font-bold bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/20 transition-all"
-          >
-            ⚡ Rebalance Global Buffer Stocks
-          </button>
-        </div>
-      </div>
 
-      {/* ── Metrics ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Total On-Hand Inventory</div>
-          <div className="text-3xl font-extrabold text-white">{totalUnits.toLocaleString()}</div>
-          <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Across 5 Global Distribution Depots</div>
-        </div>
-        <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Stockout Threat Depots</div>
-          <div className="text-3xl font-extrabold text-red-400">{stockoutRiskCount}</div>
-          <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Chicago & Tokyo Depots (&lt; 3.5 DOS)</div>
-        </div>
-        <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Inbound Pipeline Units</div>
-          <div className="text-3xl font-extrabold text-teal-400">22,500</div>
-          <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Currently In-Transit Across Sea/Air</div>
-        </div>
-        <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Avg Network DOS</div>
-          <div className="text-3xl font-extrabold text-purple-400">14.2 Days</div>
-          <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Safety Target: ≥ 15 Days</div>
-        </div>
-      </div>
-
-      {/* ── Filters ── */}
-      <div className="flex flex-wrap gap-3 items-center p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <input
-          type="text"
-          placeholder="🔍 Search by SKU, product name or warehouse..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="text-sm px-3 py-2 rounded-xl outline-none w-80"
-          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'white' }}
-        />
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as StockStatus | 'ALL')}
-          className="text-sm px-3 py-2 rounded-xl outline-none"
-          style={{ background: 'rgba(25,27,40,0.95)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' }}
+        <button
+          onClick={() => alert('Calculating global inventory rebalance across all regional pharma hubs.')}
+          type="button"
+          className="px-3.5 py-2 rounded-lg bg-primary text-white font-badge-label text-badge-label font-semibold shadow-sm hover:brightness-110 flex items-center gap-1.5 transition-all self-start xl:self-auto"
         >
-          <option value="ALL">All Stock Levels</option>
-          <option value="CRITICAL_STOCKOUT_RISK">Immediate Stockout Risk</option>
-          <option value="LOW_BUFFER">Low Safety Stock</option>
-          <option value="HEALTHY">Healthy Buffer</option>
-        </select>
-        <span className="text-xs ml-auto" style={{ color: 'rgba(255,255,255,0.35)' }}>
-          {filteredItems.length} of {items.length} SKUs monitored
-        </span>
+          <span className="material-symbols-outlined text-[16px]">sync_alt</span>
+          Rebalance Regional Stocks
+        </button>
+      </div>
+
+      {/* ── Filter Bar ── */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-surface-container-lowest p-3 rounded-xl border border-border-subtle shadow-sm">
+        <div className="relative flex-1 max-w-md">
+          <span className="material-symbols-outlined absolute left-3 top-2.5 text-text-muted text-[18px]">search</span>
+          <input
+            type="text"
+            placeholder="Search SKU, product name, or warehouse..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-bg-surface border border-border-subtle text-text-primary placeholder:text-text-disabled text-caption font-caption outline-none focus:border-primary"
+          />
+        </div>
+
+        <div className="flex items-center flex-wrap gap-2">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as StockStatus | 'all')}
+            className="px-2.5 py-1.5 rounded-lg bg-bg-surface border border-border-subtle text-text-secondary text-caption font-caption outline-none focus:border-primary"
+          >
+            <option value="all">All Buffer Levels</option>
+            <option value="CRITICAL_STOCKOUT_RISK">Immediate Stockout Risk</option>
+            <option value="LOW_BUFFER">Low Safety Buffer</option>
+            <option value="HEALTHY">Healthy Buffer</option>
+          </select>
+
+          <span className="font-caption text-caption text-text-disabled ml-1">
+            {filtered.length} of {items.length}
+          </span>
+        </div>
       </div>
 
       {/* ── Split Layout ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* SKU List */}
-        <div className="lg:col-span-2 space-y-3">
-          {filteredItems.map((item) => {
-            const isSelected = selectedItem?.id === item.id;
-            const statusStyle = STATUS_CONFIG[item.status];
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Left SKU List */}
+        <div className="lg:col-span-5 flex flex-col gap-2.5">
+          {filtered.map((item) => {
+            const isSelected = activeItem.id === item.id;
+            const isCritical = item.status === 'CRITICAL_STOCKOUT_RISK';
 
             return (
               <div
                 key={item.id}
-                onClick={() => setSelectedItem(item)}
-                className="p-5 rounded-2xl cursor-pointer transition-all duration-200 hover:brightness-110"
-                style={{
-                  background: isSelected ? 'rgba(168,85,247,0.08)' : 'rgba(255,255,255,0.025)',
-                  border: isSelected ? '1.5px solid rgba(168,85,247,0.5)' : '1px solid rgba(255,255,255,0.07)',
-                }}
+                onClick={() => setActiveId(item.id)}
+                className={`p-4 rounded-xl cursor-pointer transition-all border ${
+                  isSelected
+                    ? 'bg-surface-container-low border-primary shadow-md'
+                    : 'bg-bg-surface border-border-subtle hover:border-border-strong hover:bg-surface-container-lowest'
+                }`}
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-white/10 text-white/80">
+                      <span className="font-mono text-xs font-bold text-text-primary px-1.5 py-0.5 rounded bg-surface-container-high">
                         {item.sku}
                       </span>
-                      <span className="text-xs px-2 py-0.5 rounded bg-white/5 text-purple-300">
-                        {item.category}
+                      <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${
+                        isCritical ? 'bg-risk-critical/15 text-risk-critical' : 'bg-risk-low/15 text-risk-low'
+                      }`}>
+                        {item.daysOfSupplyRemaining} DOS
                       </span>
                     </div>
-                    <h3 className="text-sm font-bold text-white leading-snug">{item.productName}</h3>
-                    <div className="text-xs mt-1 text-white/50">
-                      🏢 {item.warehouse} ({item.location})
-                    </div>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <span className="text-xs px-2.5 py-1 rounded-full font-bold inline-block" style={{ background: statusStyle.bg, color: statusStyle.text, border: `1px solid ${statusStyle.border}` }}>
-                      {statusStyle.label}
-                    </span>
-                    <div className="text-xs font-mono font-bold mt-1.5" style={{ color: item.daysOfSupplyRemaining < 5 ? '#ef4444' : '#4ade80' }}>
-                      {item.daysOfSupplyRemaining} Days of Supply
+                    <h3 className="font-card-title text-card-title text-text-primary leading-tight">{item.productName}</h3>
+                    <div className="font-caption text-caption text-text-muted mt-1">
+                      🏢 {item.warehouse.split('(')[0]}
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 mt-3 pt-3 text-xs" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div>
-                    <span className="text-white/40">On Hand:</span>{' '}
-                    <span className="font-bold text-white">{item.onHandUnits.toLocaleString()}</span>
-                  </div>
-                  <div>
-                    <span className="text-white/40">Safety Target:</span>{' '}
-                    <span className="font-bold text-white">{item.safetyStockUnits.toLocaleString()}</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-white/40">Inbound:</span>{' '}
-                    <span className="font-mono text-teal-300">+{item.inboundPipelineUnits.toLocaleString()} ({item.inboundShipmentCode})</span>
-                  </div>
+                <div className="grid grid-cols-2 gap-2 text-caption font-caption text-text-muted mt-3 pt-2.5 border-t border-border-subtle">
+                  <div>On Hand: <strong className="text-text-primary">{item.onHandUnits.toLocaleString()} units</strong></div>
+                  <div className="text-right">Inbound: <strong className="text-primary font-mono">+{item.inboundPipelineUnits.toLocaleString()}</strong></div>
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* Selected SKU Deep-Dive & Emergency Transfer Panel */}
-        {selectedItem && (
-          <div className="p-6 rounded-2xl flex flex-col gap-5" style={{ background: 'rgba(10,12,20,0.97)', border: '1.5px solid rgba(255,255,255,0.1)' }}>
+        {/* Right SKU Workbench */}
+        <div className="lg:col-span-7 bg-surface-container-lowest p-6 rounded-xl border border-border-subtle shadow-md space-y-6 sticky top-20">
+          <div className="flex items-start justify-between gap-4 pb-4 border-b border-border-subtle">
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-mono font-bold text-purple-400">{selectedItem.sku}</span>
-                <span className="text-xs px-2 py-0.5 rounded bg-white/10 text-white/70">{selectedItem.category}</span>
-              </div>
-              <h2 className="text-base font-extrabold text-white">{selectedItem.productName}</h2>
-              <div className="text-xs mt-1 text-white/50">{selectedItem.warehouse}</div>
-            </div>
-
-            {/* DOS Runway Gauge */}
-            <div className="p-4 rounded-xl space-y-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <div className="text-xs font-bold uppercase tracking-wider text-purple-300">Depot Stockout Runway</div>
-              <div className="flex justify-between text-xs">
-                <span className="text-white/50">Daily Burn Rate:</span>
-                <span className="font-bold text-white">{selectedItem.dailyBurnRateUnits} units / day</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-white/50">Days Remaining:</span>
-                <span className={`font-bold font-mono text-sm ${selectedItem.daysOfSupplyRemaining < 5 ? 'text-red-400' : 'text-green-400'}`}>
-                  {selectedItem.daysOfSupplyRemaining} Days
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="font-mono text-sm font-bold text-primary">{activeItem.sku}</span>
+                <span className="font-badge-label text-badge-label px-2 py-0.5 rounded bg-surface-container-high text-text-secondary">
+                  {activeItem.category}
                 </span>
               </div>
+              <h2 className="font-section-title text-section-title text-text-primary leading-tight">
+                {activeItem.productName}
+              </h2>
             </div>
-
-            {/* Inbound Shipment Linkage */}
-            {selectedItem.inboundShipmentCode && (
-              <div className="p-4 rounded-xl space-y-1.5" style={{ background: selectedItem.inboundDelayHours > 0 ? 'rgba(239,68,68,0.06)' : 'rgba(34,197,94,0.06)', border: `1px solid ${selectedItem.inboundDelayHours > 0 ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.2)'}` }}>
-                <div className="text-xs font-bold uppercase tracking-wider" style={{ color: selectedItem.inboundDelayHours > 0 ? '#f87171' : '#4ade80' }}>
-                  🚢 Inbound Shipment Linkage
-                </div>
-                <div className="text-xs font-semibold text-white">
-                  Load: {selectedItem.inboundShipmentCode} (+{selectedItem.inboundPipelineUnits.toLocaleString()} units)
-                </div>
-                <div className="text-xs" style={{ color: selectedItem.inboundDelayHours > 0 ? '#fca5a5' : '#86efac' }}>
-                  {selectedItem.inboundDelayHours > 0 ? `⚠️ Active Disruption Delay: +${selectedItem.inboundDelayHours} hours` : '✓ On-Time in transit'}
-                </div>
-              </div>
-            )}
-
-            {/* Emergency Rebalance Recommendation */}
-            {selectedItem.recommendedTransferFrom && (
-              <div className="p-4 rounded-xl space-y-2" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)' }}>
-                <div className="text-xs font-bold uppercase tracking-wider text-purple-300">💡 AI Stock Transfer Action</div>
-                <div className="text-xs text-white/80">
-                  Transfer <strong className="text-white">+{selectedItem.recommendedTransferUnits?.toLocaleString()} units</strong> from <strong className="text-white">{selectedItem.recommendedTransferFrom}</strong> via expedited air courier.
-                </div>
-              </div>
-            )}
-
-            {/* Action buttons */}
-            <div className="space-y-2 pt-2">
-              {selectedItem.recommendedTransferFrom && (
-                <button
-                  onClick={() => handleExecuteTransfer(selectedItem.id)}
-                  className="w-full py-2.5 rounded-xl font-bold text-xs bg-purple-600 hover:bg-purple-500 text-white transition-colors"
-                >
-                  ⚡ Authorize Emergency Cross-Depot Transfer
-                </button>
-              )}
+            <div className="text-right">
+              <div className="font-caption text-caption text-text-muted">Hub Location</div>
+              <div className="font-card-title text-card-title text-text-primary">{activeItem.location}</div>
             </div>
           </div>
-        )}
+
+          {/* Runway Card */}
+          <div className="p-4 rounded-lg bg-bg-surface border border-border-subtle space-y-2.5">
+            <div className="flex items-center gap-2 font-caption text-caption uppercase tracking-wider text-primary font-bold">
+              <span className="material-symbols-outlined text-[18px]">timer</span>
+              Depot Stockout Runway Analysis
+            </div>
+            <div className="grid grid-cols-3 gap-3 text-caption font-caption pt-1">
+              <div>
+                <div className="text-text-muted">Daily Burn Rate:</div>
+                <div className="font-bold text-text-primary">{activeItem.dailyBurnRateUnits} units / day</div>
+              </div>
+              <div>
+                <div className="text-text-muted">Safety Target:</div>
+                <div className="font-bold text-text-primary">{activeItem.safetyStockUnits.toLocaleString()} units</div>
+              </div>
+              <div>
+                <div className="text-text-muted">Days of Supply Remaining:</div>
+                <div className={`font-bold font-mono text-sm ${activeItem.daysOfSupplyRemaining < 5 ? 'text-risk-critical' : 'text-risk-low'}`}>
+                  {activeItem.daysOfSupplyRemaining} Days
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Inbound Shipment Linkage */}
+          {activeItem.inboundShipmentCode && (
+            <div className={`p-4 rounded-lg border space-y-1.5 ${
+              activeItem.inboundDelayHours > 0 ? 'bg-risk-critical/5 border-risk-critical/20' : 'bg-risk-low/5 border-risk-low/20'
+            }`}>
+              <div className="flex items-center gap-2 font-caption text-caption uppercase tracking-wider font-bold" style={{ color: activeItem.inboundDelayHours > 0 ? 'var(--risk-critical)' : 'var(--risk-low)' }}>
+                <span className="material-symbols-outlined text-[16px]">local_shipping</span>
+                Inbound Shipment Pipeline Linkage
+              </div>
+              <div className="font-card-title text-card-title text-text-primary">
+                Shipment {activeItem.inboundShipmentCode} (+{activeItem.inboundPipelineUnits.toLocaleString()} units)
+              </div>
+              <div className="font-caption text-caption text-text-secondary">
+                {activeItem.inboundDelayHours > 0 ? `⚠️ Active Corridor Disruption Delay: +${activeItem.inboundDelayHours} hours` : '✓ On-Time in transit'}
+              </div>
+            </div>
+          )}
+
+          {/* AI Rebalance Directive */}
+          {activeItem.recommendedTransferFrom && (
+            <div className="p-4 rounded-lg bg-primary-soft/30 border border-primary/30 space-y-1.5">
+              <div className="flex items-center gap-2 font-caption text-caption uppercase tracking-wider text-primary font-bold">
+                <span className="material-symbols-outlined text-[16px]">swap_horiz</span>
+                AI Prescriptive Stock Transfer Directive
+              </div>
+              <p className="font-caption text-caption text-text-secondary">
+                Execute emergency cross-depot air transfer of <strong className="text-text-primary">+{activeItem.recommendedTransferUnits?.toLocaleString()} units</strong> from <strong className="text-text-primary">{activeItem.recommendedTransferFrom}</strong>.
+              </p>
+            </div>
+          )}
+
+          <div className="flex gap-2.5 pt-2 border-t border-border-subtle">
+            {activeItem.recommendedTransferFrom && (
+              <button
+                onClick={() => handleExecuteTransfer(activeItem.id)}
+                className="px-4 py-2 rounded-lg bg-primary text-white font-badge-label text-badge-label font-semibold shadow-sm hover:brightness-110 flex items-center gap-1.5 transition-all"
+                type="button"
+              >
+                <span className="material-symbols-outlined text-[18px]">flight_takeoff</span>
+                Authorize Emergency Stock Transfer
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

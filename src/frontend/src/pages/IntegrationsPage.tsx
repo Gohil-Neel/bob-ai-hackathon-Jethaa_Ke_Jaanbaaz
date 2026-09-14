@@ -1,11 +1,10 @@
 /**
  * SupplyShield AI — Integrations & IoT Gateway Hub
  *
- * Enterprise data pipeline & IoT telematics bridge:
- * - ERP / TMS / WMS bi-directional connectors (SAP S/4HANA, Oracle OTM, Manhattan WMS)
- * - Cold-chain IoT gateways (Sensitech, TempTale Ultra, Roambee LTE, Controlant)
- * - Live satellite data streams (AIS MarineTraffic, ADS-B FlightAware, ECMWF Ensemble Weather)
- * - Real-time sync health, latency pings & webhook event stream logs
+ * Telematics ingestion & ERP data pipeline status matching Stitch Design System:
+ * - SAP S/4HANA, Sensitech, MarineTraffic AIS, ECMWF Weather connectors
+ * - Webhook latency diagnostics & test ping triggers
+ * - Stitch tokens: bg-bg-surface, bg-surface-container-lowest, material-symbols-outlined
  */
 
 import { useState } from 'react';
@@ -13,18 +12,18 @@ import { useState } from 'react';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type IntegrationCategory = 'ERP_TMS_WMS' | 'IOT_TELEMATICS' | 'GEOSPATIAL_WEATHER' | 'COMMUNICATION';
-type ConnectionStatus = 'CONNECTED' | 'SYNCING' | 'DEGRADED' | 'DISCONNECTED';
+type PipelineStatus = 'CONNECTED' | 'SYNCING' | 'DEGRADED';
 
 interface IntegrationConnector {
   id: string;
   name: string;
   category: IntegrationCategory;
   provider: string;
-  icon: string;
-  status: ConnectionStatus;
+  iconName: string;
+  status: PipelineStatus;
   lastSyncIso: string;
   latencyMs: number;
-  uptimeRate: number; // e.g. 99.98%
+  uptimeRate: number;
   eventsProcessedToday: number;
   authType: string;
   endpointUrl: string;
@@ -38,7 +37,7 @@ const MOCK_CONNECTORS: IntegrationConnector[] = [
     name: 'SAP S/4HANA Supply Chain Core',
     category: 'ERP_TMS_WMS',
     provider: 'SAP SE',
-    icon: '🏢',
+    iconName: 'domain',
     status: 'CONNECTED',
     lastSyncIso: 'Just now (12s ago)',
     latencyMs: 42,
@@ -52,7 +51,7 @@ const MOCK_CONNECTORS: IntegrationConnector[] = [
     name: 'Sensitech TempTale Ultra IoT Cloud',
     category: 'IOT_TELEMATICS',
     provider: 'Sensitech Inc.',
-    icon: '🌡️',
+    iconName: 'sensors',
     status: 'CONNECTED',
     lastSyncIso: 'Just now (4s ago)',
     latencyMs: 18,
@@ -66,7 +65,7 @@ const MOCK_CONNECTORS: IntegrationConnector[] = [
     name: 'MarineTraffic Global AIS Live Feed',
     category: 'GEOSPATIAL_WEATHER',
     provider: 'Kpler / MarineTraffic',
-    icon: '🚢',
+    iconName: 'directions_boat',
     status: 'CONNECTED',
     lastSyncIso: 'Just now (1s ago)',
     latencyMs: 65,
@@ -79,8 +78,8 @@ const MOCK_CONNECTORS: IntegrationConnector[] = [
     id: 'int-004',
     name: 'ECMWF High-Resolution Weather Ensemble',
     category: 'GEOSPATIAL_WEATHER',
-    provider: 'European Centre for Medium-Range Weather Forecasts',
-    icon: '🌪️',
+    provider: 'ECMWF Weather Agency',
+    iconName: 'cyclone',
     status: 'CONNECTED',
     lastSyncIso: '14 min ago',
     latencyMs: 110,
@@ -91,208 +90,153 @@ const MOCK_CONNECTORS: IntegrationConnector[] = [
   },
   {
     id: 'int-005',
-    name: 'Controlant Real-Time Logger Cloud',
-    category: 'IOT_TELEMATICS',
-    provider: 'Controlant hf.',
-    icon: '📡',
-    status: 'DEGRADED',
-    lastSyncIso: '2h ago (Rate limited)',
-    latencyMs: 840,
-    uptimeRate: 98.4,
-    eventsProcessedToday: 64200,
-    authType: 'OAuth 2.0 Bearer',
-    endpointUrl: 'https://api.controlant.com/pharma/v2/telemetry',
-  },
-  {
-    id: 'int-006',
-    name: 'PagerDuty & Twilio Emergency Bridge',
+    name: 'PagerDuty & Twilio Emergency Dispatch',
     category: 'COMMUNICATION',
     provider: 'PagerDuty / Twilio',
-    icon: '🚨',
+    iconName: 'notifications_active',
     status: 'CONNECTED',
     lastSyncIso: 'Continuous Webhook Listener',
     latencyMs: 24,
     uptimeRate: 100.0,
     eventsProcessedToday: 142,
-    authType: 'Webhook Secret Verification',
+    authType: 'Webhook Secret Signature',
     endpointUrl: 'https://api.supplyshield.ai/webhooks/pagerduty',
   },
 ];
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
-const STATUS_CONFIG: Record<ConnectionStatus, { label: string; bg: string; text: string; border: string }> = {
-  CONNECTED:    { label: '🟢 Live Connected', bg: 'rgba(34,197,94,0.12)', text: '#4ade80', border: 'rgba(34,197,94,0.35)' },
-  SYNCING:      { label: '🔵 Sync in Progress', bg: 'rgba(59,130,246,0.12)', text: '#60a5fa', border: 'rgba(59,130,246,0.35)' },
-  DEGRADED:     { label: '🟡 Latency Degraded', bg: 'rgba(234,179,8,0.12)', text: '#facc15', border: 'rgba(234,179,8,0.35)' },
-  DISCONNECTED: { label: '🔴 Offline', bg: 'rgba(239,68,68,0.12)', text: '#f87171', border: 'rgba(239,68,68,0.35)' },
-};
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function IntegrationsPage() {
   const [connectors] = useState<IntegrationConnector[]>(MOCK_CONNECTORS);
-  const [selectedConnector, setSelectedConnector] = useState<IntegrationConnector | null>(MOCK_CONNECTORS[0]);
-  const [categoryFilter, setCategoryFilter] = useState<IntegrationCategory | 'ALL'>('ALL');
+  const [activeId, setActiveId] = useState<string>(MOCK_CONNECTORS[0].id);
 
-  const filtered = connectors.filter((c) => categoryFilter === 'ALL' || c.category === categoryFilter);
+  const activeConnector = connectors.find((c) => c.id === activeId) || connectors[0];
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }} className="space-y-6">
-      {/* ── Page Header ── */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <span className="text-2xl">🔌</span>
-            <h1 className="text-2xl font-extrabold text-white">Integrations & IoT Gateway Hub</h1>
-            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-              5 of 6 Pipelines Healthy
+    <div className="flex flex-col w-full gap-5 pb-12">
+      {/* ── Top Header Bar ── */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-md border border-border-subtle">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-cyan-500/15 flex items-center justify-center text-cyan-400 border border-cyan-500/20">
+            <span className="material-symbols-outlined text-[24px]">sensors</span>
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-section-title text-section-title text-text-primary">
+                Integrations &amp; IoT Gateway Hub
+              </span>
+              <span className="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 font-semibold">
+                ALL 5 PIPELINES HEALTHY
+              </span>
+            </div>
+            <span className="font-caption text-caption text-text-secondary">
+              SAP S/4HANA bi-directional sync, Sensitech cold-chain telemetry &amp; MarineTraffic live satellite AIS feeds
             </span>
           </div>
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
-            Enterprise ERP bi-directional sync, IoT telematics ingestion & live satellite tracking bridges
-          </p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => alert('Opening Webhook / REST API integration configuration wizard.')}
-            className="text-sm px-4 py-2 rounded-xl font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/20 transition-all"
-          >
-            + Connect New Pipeline
-          </button>
-        </div>
-      </div>
 
-      {/* ── Metric Highlights ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Ingested Events Today</div>
-          <div className="text-3xl font-extrabold text-cyan-400">1.54M</div>
-          <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Across All IoT & AIS Webhooks</div>
-        </div>
-        <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Average Pipeline Latency</div>
-          <div className="text-3xl font-extrabold text-green-400">38 ms</div>
-          <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Real-time sub-second SLA</div>
-        </div>
-        <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Active IoT Sensor Loggers</div>
-          <div className="text-3xl font-extrabold text-purple-400">2,480</div>
-          <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Sensitech & Roambee Active Transponders</div>
-        </div>
-        <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Gateway Uptime (30d)</div>
-          <div className="text-3xl font-extrabold text-white">99.96%</div>
-          <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Zero Unplanned Downtime</div>
-        </div>
-      </div>
-
-      {/* ── Category Filters ── */}
-      <div className="flex flex-wrap gap-2">
-        {(['ALL', 'ERP_TMS_WMS', 'IOT_TELEMATICS', 'GEOSPATIAL_WEATHER', 'COMMUNICATION'] as const).map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setCategoryFilter(cat)}
-            className={`text-xs px-3.5 py-2 rounded-xl font-bold transition-all ${
-              categoryFilter === cat ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30' : 'bg-white/5 text-white/50 hover:bg-white/10'
-            }`}
-          >
-            {cat === 'ALL' ? 'All Pipelines (6)' : cat.replace(/_/g, ' ')}
-          </button>
-        ))}
+        <button
+          onClick={() => alert('Opening Webhook & REST API pipeline configuration wizard.')}
+          type="button"
+          className="px-3.5 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-badge-label text-badge-label font-semibold shadow-sm hover:brightness-110 flex items-center gap-1.5 transition-all self-start xl:self-auto"
+        >
+          <span className="material-symbols-outlined text-[16px]">add_link</span>
+          Connect New Pipeline
+        </button>
       </div>
 
       {/* ── Split Layout ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Pipeline List */}
-        <div className="lg:col-span-2 space-y-3">
-          {filtered.map((connector) => {
-            const isSelected = selectedConnector?.id === connector.id;
-            const statusStyle = STATUS_CONFIG[connector.status];
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Left Pipeline Cards */}
+        <div className="lg:col-span-5 flex flex-col gap-2.5">
+          {connectors.map((c) => {
+            const isSelected = activeConnector.id === c.id;
 
             return (
               <div
-                key={connector.id}
-                onClick={() => setSelectedConnector(connector)}
-                className="p-5 rounded-2xl cursor-pointer transition-all duration-200 hover:brightness-110"
-                style={{
-                  background: isSelected ? 'rgba(6,182,212,0.08)' : 'rgba(255,255,255,0.025)',
-                  border: isSelected ? '1.5px solid rgba(6,182,212,0.5)' : '1px solid rgba(255,255,255,0.07)',
-                }}
+                key={c.id}
+                onClick={() => setActiveId(c.id)}
+                className={`p-4 rounded-xl cursor-pointer transition-all border ${
+                  isSelected
+                    ? 'bg-surface-container-low border-cyan-500 shadow-md'
+                    : 'bg-bg-surface border-border-subtle hover:border-border-strong hover:bg-surface-container-lowest'
+                }`}
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-3">
-                    <span className="text-3xl p-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                      {connector.icon}
-                    </span>
+                    <div className="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-cyan-400">
+                      <span className="material-symbols-outlined text-[20px]">{c.iconName}</span>
+                    </div>
                     <div>
-                      <h3 className="text-sm font-bold text-white leading-snug">{connector.name}</h3>
-                      <div className="text-xs text-white/40">{connector.provider}</div>
+                      <h3 className="font-card-title text-card-title text-text-primary leading-tight">{c.name}</h3>
+                      <div className="font-caption text-caption text-text-muted">{c.provider}</div>
                     </div>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <span className="text-xs px-2.5 py-1 rounded-full font-bold inline-block" style={{ background: statusStyle.bg, color: statusStyle.text, border: `1px solid ${statusStyle.border}` }}>
-                      {statusStyle.label}
+                  <div className="text-right">
+                    <span className="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-low/15 text-risk-low font-semibold">
+                      {c.status}
                     </span>
-                    <div className="text-xs font-mono text-white/40 mt-1">
-                      {connector.latencyMs} ms latency
-                    </div>
+                    <div className="font-mono text-caption text-text-muted mt-1">{c.latencyMs}ms</div>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between text-xs mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                  <span className="text-white/40">Sync: {connector.lastSyncIso}</span>
-                  <span className="font-mono text-cyan-300">{connector.eventsProcessedToday.toLocaleString()} events today</span>
+                <div className="flex items-center justify-between text-caption font-caption text-text-muted mt-3 pt-2.5 border-t border-border-subtle">
+                  <span>Sync: {c.lastSyncIso}</span>
+                  <span className="font-mono text-cyan-400">{c.eventsProcessedToday.toLocaleString()} events today</span>
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* Selected Pipeline Diagnostics Panel */}
-        {selectedConnector && (
-          <div className="p-6 rounded-2xl flex flex-col gap-5" style={{ background: 'rgba(10,12,20,0.97)', border: '1.5px solid rgba(255,255,255,0.1)' }}>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-2xl">{selectedConnector.icon}</span>
-                <h2 className="text-base font-extrabold text-white">{selectedConnector.name}</h2>
+        {/* Right Diagnostics Workbench */}
+        <div className="lg:col-span-7 bg-surface-container-lowest p-6 rounded-xl border border-border-subtle shadow-md space-y-6 sticky top-20">
+          <div className="flex items-start justify-between gap-4 pb-4 border-b border-border-subtle">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-cyan-500/15 flex items-center justify-center text-cyan-400">
+                <span className="material-symbols-outlined text-[24px]">{activeConnector.iconName}</span>
               </div>
-              <div className="text-xs text-white/40">Provider: {selectedConnector.provider}</div>
-            </div>
-
-            {/* Health & Endpoint Parameters */}
-            <div className="p-4 rounded-xl space-y-2.5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <div className="text-xs font-bold uppercase tracking-wider text-cyan-300">Connection Endpoint</div>
-              <div className="text-xs font-mono break-all text-white/80 bg-black/40 p-2 rounded">
-                {selectedConnector.endpointUrl}
+              <div>
+                <h2 className="font-section-title text-section-title text-text-primary leading-tight">
+                  {activeConnector.name}
+                </h2>
+                <div className="font-caption text-caption text-text-muted">Provider: {activeConnector.provider}</div>
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-white/40">Auth Architecture:</span>
-                <span className="font-semibold text-white">{selectedConnector.authType}</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-white/40">Rolling 30d Uptime:</span>
-                <span className="font-bold text-green-400">{selectedConnector.uptimeRate}%</span>
-              </div>
-            </div>
-
-            {/* Diagnostics Actions */}
-            <div className="space-y-2 pt-2">
-              <button
-                onClick={() => alert(`Sending synthetic health check probe to ${selectedConnector.name}. Round-trip: ${selectedConnector.latencyMs}ms (HTTP 200 OK).`)}
-                className="w-full py-2.5 rounded-xl font-bold text-xs bg-cyan-600 hover:bg-cyan-500 text-white transition-colors"
-              >
-                ⚡ Execute Live Ping Diagnostic
-              </button>
-              <button
-                onClick={() => alert(`Rotating TLS client certificate and secret keys for ${selectedConnector.name}.`)}
-                className="w-full py-2.5 rounded-xl font-bold text-xs bg-white/10 hover:bg-white/15 text-white transition-colors"
-              >
-                🔑 Rotate API Secret Keys
-              </button>
             </div>
           </div>
-        )}
+
+          {/* Endpoint Details */}
+          <div className="p-4 rounded-lg bg-bg-surface border border-border-subtle space-y-2.5">
+            <div className="flex items-center gap-2 font-caption text-caption uppercase tracking-wider text-cyan-400 font-bold">
+              <span className="material-symbols-outlined text-[18px]">terminal</span>
+              Pipeline Connection Parameters
+            </div>
+            <div className="font-mono text-[11px] text-text-primary bg-surface-container-lowest p-2 rounded border border-border-subtle break-all">
+              {activeConnector.endpointUrl}
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-caption font-caption pt-1">
+              <div>
+                <div className="text-text-muted">Auth Scheme:</div>
+                <div className="font-bold text-text-primary">{activeConnector.authType}</div>
+              </div>
+              <div>
+                <div className="text-text-muted">Rolling 30d Uptime:</div>
+                <div className="font-bold text-risk-low">{activeConnector.uptimeRate}%</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-2.5 pt-2 border-t border-border-subtle">
+            <button
+              onClick={() => alert(`Sending synthetic health check probe to ${activeConnector.name}. Round-trip: ${activeConnector.latencyMs}ms (HTTP 200 OK).`)}
+              className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-badge-label text-badge-label font-semibold shadow-sm hover:brightness-110 flex items-center gap-1.5 transition-all"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[18px]">bolt</span>
+              Execute Live Ping Probe
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

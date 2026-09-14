@@ -1,17 +1,17 @@
 /**
  * SupplyShield AI — User Management & RBAC
  *
- * Enterprise role-based access control, operator directory & permission governance:
- * - Granular capability enforcement (Reroute Approvals, MKT Threshold Changes, War-Room Invocations)
- * - 2FA / SSO authentication statuses & active session monitors
- * - Cryptographic operator audit trails for sensitive action authorizations
+ * Enterprise operator access control & privilege governance matching Stitch Design System:
+ * - Granular capability enforcement (Reroute Approvals, MKT overrides, Crisis War-Room triggers)
+ * - 2FA / Okta SAML SSO enforcement status
+ * - Stitch tokens: bg-bg-surface, bg-surface-container-lowest, material-symbols-outlined
  */
 
 import { useState } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type UserRole = 'CONTROL_TOWER_ADMIN' | 'OPERATIONS_LEAD' | 'COLD_CHAIN_QA' | 'DISPATCHER' | 'EXECUTIVE_VIEWER';
+type UserRole = 'CONTROL_TOWER_ADMIN' | 'OPERATIONS_LEAD' | 'COLD_CHAIN_QA' | 'DISPATCHER';
 
 interface OperatorUser {
   id: string;
@@ -21,7 +21,7 @@ interface OperatorUser {
   role: UserRole;
   department: string;
   location: string;
-  status: 'ACTIVE' | 'ON_CALL' | 'INACTIVE';
+  status: 'ACTIVE' | 'ON_CALL';
   twoFactorEnabled: boolean;
   lastActiveIso: string;
   authorizedScopes: string[];
@@ -37,7 +37,7 @@ const MOCK_USERS: OperatorUser[] = [
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     role: 'CONTROL_TOWER_ADMIN',
     department: 'Global Logistics Operations',
-    location: 'Frankfurt Control Tower',
+    location: 'Frankfurt / Mumbai Control Tower',
     status: 'ON_CALL',
     twoFactorEnabled: true,
     lastActiveIso: 'Active now',
@@ -49,8 +49,8 @@ const MOCK_USERS: OperatorUser[] = [
     email: 'riya.sharma@supplyshield.ai',
     avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
     role: 'OPERATIONS_LEAD',
-    department: 'Trans-Atlantic Incident Desk',
-    location: 'London Hub',
+    department: 'National Incident Desk',
+    location: 'Mumbai Hub',
     status: 'ACTIVE',
     twoFactorEnabled: true,
     lastActiveIso: '5 min ago',
@@ -63,209 +63,143 @@ const MOCK_USERS: OperatorUser[] = [
     avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
     role: 'COLD_CHAIN_QA',
     department: 'Pharma Quality Assurance & GDP',
-    location: 'Basel HQ',
+    location: 'Basel / Pune Bio Cluster',
     status: 'ACTIVE',
     twoFactorEnabled: true,
     lastActiveIso: '18 min ago',
     authorizedScopes: ['gdp:release', 'mkt:override', 'audit:export'],
   },
-  {
-    id: 'usr-004',
-    name: 'Vikram Rao',
-    email: 'vikram.rao@supplyshield.ai',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    role: 'EXECUTIVE_VIEWER',
-    department: 'VP Supply Chain Strategy',
-    location: 'Singapore Office',
-    status: 'ACTIVE',
-    twoFactorEnabled: true,
-    lastActiveIso: '2h ago',
-    authorizedScopes: ['analytics:view', 'reports:export'],
-  },
-  {
-    id: 'usr-005',
-    name: 'Sanjay Gupta',
-    email: 'sanjay.gupta@supplyshield.ai',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-    role: 'DISPATCHER',
-    department: 'Middle East & Asia Fleet Dispatch',
-    location: 'Dubai Freezone Hub',
-    status: 'ACTIVE',
-    twoFactorEnabled: true,
-    lastActiveIso: '32 min ago',
-    authorizedScopes: ['fleet:reassign', 'customs:file'],
-  },
 ];
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
-const ROLE_CONFIG: Record<UserRole, { label: string; bg: string; text: string; border: string }> = {
-  CONTROL_TOWER_ADMIN: { label: 'Admin / Tower Lead', bg: 'rgba(239,68,68,0.12)', text: '#f87171', border: 'rgba(239,68,68,0.35)' },
-  OPERATIONS_LEAD:     { label: 'Operations Lead', bg: 'rgba(168,85,247,0.12)', text: '#c084fc', border: 'rgba(168,85,247,0.35)' },
-  COLD_CHAIN_QA:       { label: 'GDP / QA Auditor', bg: 'rgba(20,184,166,0.12)', text: '#2dd4bf', border: 'rgba(20,184,166,0.35)' },
-  DISPATCHER:          { label: 'Fleet Dispatcher', bg: 'rgba(59,130,246,0.12)', text: '#60a5fa', border: 'rgba(59,130,246,0.35)' },
-  EXECUTIVE_VIEWER:    { label: 'Executive Viewer', bg: 'rgba(107,114,128,0.12)', text: '#9ca3af', border: 'rgba(107,114,128,0.35)' },
-};
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function UsersPage() {
   const [users] = useState<OperatorUser[]>(MOCK_USERS);
-  const [selectedUser, setSelectedUser] = useState<OperatorUser | null>(MOCK_USERS[0]);
-  const [search, setSearch] = useState('');
+  const [activeId, setActiveId] = useState<string>(MOCK_USERS[0].id);
 
-  const filtered = users.filter((u) =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase()) ||
-    u.department.toLowerCase().includes(search.toLowerCase())
-  );
+  const activeUser = users.find((u) => u.id === activeId) || users[0];
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }} className="space-y-6">
-      {/* ── Page Header ── */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <span className="text-2xl">👥</span>
-            <h1 className="text-2xl font-extrabold text-white">User Management & RBAC</h1>
-            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
-              5 Active Operators · SSO Enforced
+    <div className="flex flex-col w-full gap-5 pb-12">
+      {/* ── Top Header Bar ── */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-md border border-border-subtle">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-purple-500/15 flex items-center justify-center text-purple-400 border border-purple-500/20">
+            <span className="material-symbols-outlined text-[24px]">manage_accounts</span>
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-section-title text-section-title text-text-primary">
+                Operator Directory &amp; RBAC Privileges
+              </span>
+              <span className="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 font-semibold">
+                SAML SSO &amp; 2FA ENFORCED
+              </span>
+            </div>
+            <span className="font-caption text-caption text-text-secondary">
+              Role-based capability matrices • On-call emergency rosters &amp; 21 CFR Part 11 signature authorizations
             </span>
           </div>
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
-            Role-based capability matrices, on-call dispatch rosters & 21 CFR Part 11 digital signature privileges
-          </p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => alert('Opening new operator invitation & SAML / Okta SSO role provisioning modal.')}
-            className="text-sm px-4 py-2 rounded-xl font-bold bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/20 transition-all"
-          >
-            + Invite Operator
-          </button>
-        </div>
+
+        <button
+          onClick={() => alert('Opening operator invite & SAML SSO provisioning modal.')}
+          type="button"
+          className="px-3.5 py-2 rounded-lg bg-primary text-white font-badge-label text-badge-label font-semibold shadow-sm hover:brightness-110 flex items-center gap-1.5 transition-all self-start xl:self-auto"
+        >
+          <span className="material-symbols-outlined text-[16px]">person_add</span>
+          Invite Operator
+        </button>
       </div>
 
       {/* ── Split Layout ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* User Directory */}
-        <div className="lg:col-span-2 space-y-3">
-          <div className="p-4 rounded-2xl mb-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-            <input
-              type="text"
-              placeholder="🔍 Search operator by name, email or department..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full text-sm px-3 py-2 rounded-xl outline-none"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'white' }}
-            />
-          </div>
-
-          {filtered.map((user) => {
-            const isSelected = selectedUser?.id === user.id;
-            const roleStyle = ROLE_CONFIG[user.role];
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Left User Cards */}
+        <div className="lg:col-span-5 flex flex-col gap-2.5">
+          {users.map((u) => {
+            const isSelected = activeUser.id === u.id;
 
             return (
               <div
-                key={user.id}
-                onClick={() => setSelectedUser(user)}
-                className="p-5 rounded-2xl cursor-pointer transition-all duration-200 hover:brightness-110"
-                style={{
-                  background: isSelected ? 'rgba(168,85,247,0.08)' : 'rgba(255,255,255,0.025)',
-                  border: isSelected ? '1.5px solid rgba(168,85,247,0.5)' : '1px solid rgba(255,255,255,0.07)',
-                }}
+                key={u.id}
+                onClick={() => setActiveId(u.id)}
+                className={`p-4 rounded-xl cursor-pointer transition-all border ${
+                  isSelected
+                    ? 'bg-surface-container-low border-primary shadow-md'
+                    : 'bg-bg-surface border-border-subtle hover:border-border-strong hover:bg-surface-container-lowest'
+                }`}
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-3">
-                    <img
-                      src={user.avatarUrl}
-                      alt={user.name}
-                      className="w-11 h-11 rounded-full object-cover ring-2 ring-purple-500/30"
-                    />
+                    <img src={u.avatarUrl} alt={u.name} className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/30" />
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-bold text-white">{user.name}</h3>
-                        <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: roleStyle.bg, color: roleStyle.text, border: `1px solid ${roleStyle.border}` }}>
-                          {roleStyle.label}
-                        </span>
-                        {user.status === 'ON_CALL' && (
-                          <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">
-                            📞 On-Call
+                        <h3 className="font-card-title text-card-title text-text-primary">{u.name}</h3>
+                        {u.status === 'ON_CALL' && (
+                          <span className="font-badge-label text-badge-label px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">
+                            On-Call
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-white/50">{user.email} · {user.department}</div>
+                      <div className="font-caption text-caption text-text-muted">{u.email}</div>
                     </div>
                   </div>
-                  <div className="text-right text-xs font-mono text-white/40">
-                    {user.lastActiveIso}
-                  </div>
+                  <span className="font-mono text-caption text-text-muted">{u.lastActiveIso}</span>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5 mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                  {user.authorizedScopes.map((scope) => (
-                    <span key={scope} className="text-[11px] font-mono px-2 py-0.5 rounded bg-white/5 text-purple-300">
-                      🔒 {scope}
+                <div className="flex flex-wrap gap-1 mt-2.5 pt-2 border-t border-border-subtle">
+                  {u.authorizedScopes.slice(0, 3).map((s) => (
+                    <span key={s} className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high text-primary">
+                      {s}
                     </span>
                   ))}
+                  {u.authorizedScopes.length > 3 && (
+                    <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high text-text-muted">
+                      +{u.authorizedScopes.length - 3} more
+                    </span>
+                  )}
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* Selected User Privileges Panel */}
-        {selectedUser && (
-          <div className="p-6 rounded-2xl flex flex-col gap-5" style={{ background: 'rgba(10,12,20,0.97)', border: '1.5px solid rgba(255,255,255,0.1)' }}>
-            <div className="flex items-center gap-3">
-              <img
-                src={selectedUser.avatarUrl}
-                alt={selectedUser.name}
-                className="w-14 h-14 rounded-full object-cover ring-2 ring-purple-500/40"
-              />
-              <div>
-                <h2 className="text-base font-extrabold text-white">{selectedUser.name}</h2>
-                <div className="text-xs text-white/50">{selectedUser.location}</div>
-              </div>
-            </div>
-
-            {/* SAML / Security Status */}
-            <div className="p-4 rounded-xl space-y-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <div className="text-xs font-bold uppercase tracking-wider text-purple-300">Security & Credentials</div>
-              <div className="flex justify-between text-xs">
-                <span className="text-white/50">2FA Hardware Token:</span>
-                <span className="font-bold text-green-400">✓ Enforced (FIDO2)</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-white/50">SSO Provider:</span>
-                <span className="font-bold text-white">Okta Enterprise SAML</span>
-              </div>
-            </div>
-
-            {/* Scope Permissions List */}
+        {/* Right User Workbench */}
+        <div className="lg:col-span-7 bg-surface-container-lowest p-6 rounded-xl border border-border-subtle shadow-md space-y-6 sticky top-20">
+          <div className="flex items-center gap-3 pb-4 border-b border-border-subtle">
+            <img src={activeUser.avatarUrl} alt={activeUser.name} className="w-14 h-14 rounded-full object-cover ring-2 ring-primary" />
             <div>
-              <div className="text-xs font-bold uppercase tracking-wider mb-2 text-white/40">Granted Action Scopes</div>
-              <div className="space-y-1.5">
-                {selectedUser.authorizedScopes.map((s, idx) => (
-                  <div key={idx} className="text-xs p-2.5 rounded-lg flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span className="font-mono text-purple-300">🔒 {s}</span>
-                    <span className="text-green-400 text-[11px] font-bold">ALLOWED</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="space-y-2 pt-2">
-              <button
-                onClick={() => alert(`Triggering password / session reset for ${selectedUser.name}.`)}
-                className="w-full py-2.5 rounded-xl font-bold text-xs bg-white/10 hover:bg-white/15 text-white transition-colors"
-              >
-                🔄 Revoke Active Sessions
-              </button>
+              <h2 className="font-section-title text-section-title text-text-primary leading-tight">{activeUser.name}</h2>
+              <div className="font-caption text-caption text-text-muted">{activeUser.department} • {activeUser.location}</div>
             </div>
           </div>
-        )}
+
+          {/* Privileges Matrix */}
+          <div className="space-y-2">
+            <div className="font-caption text-caption uppercase tracking-wider text-text-muted font-bold">
+              Granted Capability Scopes
+            </div>
+            <div className="space-y-1.5">
+              {activeUser.authorizedScopes.map((scope, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg bg-bg-surface border border-border-subtle flex items-center justify-between font-caption text-caption">
+                  <span className="font-mono text-primary">🔒 {scope}</span>
+                  <span className="font-bold text-risk-low text-[11px]">AUTHORIZED</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-2.5 pt-2 border-t border-border-subtle">
+            <button
+              onClick={() => alert(`Revoking active sessions for ${activeUser.name}.`)}
+              className="px-4 py-2 rounded-lg bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover border border-border-subtle font-badge-label text-badge-label flex items-center gap-1.5 transition-colors"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[18px]">lock_reset</span>
+              Revoke Active Sessions
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
