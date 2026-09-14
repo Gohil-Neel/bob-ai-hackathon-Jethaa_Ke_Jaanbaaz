@@ -15,8 +15,6 @@
 | **Members** | Vaibhav Chavada - 26msit013@charusat.edu.in |
 | **Members** | Jaimeen Gondaliya - 26msit030@charusat.edu.in |
 
-> ⚠️ Update team names and emails before final submission.
-
 ---
 
 ## 🎯 Problem Statement
