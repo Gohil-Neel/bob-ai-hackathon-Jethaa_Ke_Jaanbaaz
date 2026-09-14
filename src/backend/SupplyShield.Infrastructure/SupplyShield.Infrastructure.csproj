@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!--
+    Infrastructure references both Domain (for entities) and Application (for interfaces it implements).
+    Contains: EF Core DbContext, repository implementations, external service clients.
+    Phase 2: DbContext and clients are stubs — no real DB connection required.
+    Phase 3+: Add EF Core migrations and real Supabase PostgreSQL connection.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\SupplyShield.Domain\SupplyShield.Domain.csproj" />
+    <ProjectReference Include="..\SupplyShield.Application\SupplyShield.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- EF Core — Phase 3+ will use real migrations. Included now so DbContext compiles. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.5" />
+    <!-- In-memory provider for Phase 2 (no PostgreSQL required) -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.5" />
+    <!-- Microsoft.Extensions.* for DI registration -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.5" />
+  </ItemGroup>
+
+</Project>

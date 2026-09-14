@@ -1,6 +1,6 @@
-# 🚀 [Your Project Title Here]
+# SupplyShield AI
 
-> ⚠️ **Replace everything in `[ ]` brackets with your actual content before submission.**
+> Enterprise supply-chain operations intelligence — ASP.NET Core primary backend, powered by IBM watsonx.ai
 
 ---
 
@@ -8,36 +8,34 @@
 
 | Field | Value |
 |---|---|
-| **Team Name** | [Your Team Name] |
-| **Track** | [AI / DevOps / Sustainability / Open] |
-| **Team Lead** | [Name] — [email@ibm.com] |
-| **Members** | [Name 1], [Name 2], [Name 3] |
+| **Team Name** | Jetha Ke Jaanbaaz |
+| **Track** | AI |
+| **Team Lead** | Team Lead — teamlead@ibm.com |
+| **Members** | Member 1, Member 2, Member 3 |
+
+> ⚠️ Update team names and emails before final submission.
 
 ---
 
 ## 🎯 Problem Statement
 
-> In 2–3 sentences: What problem does your project solve? Who experiences this problem?
-
-[Describe the real-world problem your project addresses. Be specific about who the user is and what pain point they face.]
+Supply chain operations teams face fragmented, reactive intelligence. When disruptions hit — storms, port congestion, customs delays — operators must manually cross-reference carrier data, route maps, and cargo sensitivity to determine which shipments are at risk. This takes 30–60 minutes per incident. Cold-chain excursions often go undetected until delivery when product is already compromised. Idle fleet assets sit unused because no system connects disrupted shipments with available nearby vehicles.
 
 ---
 
 ## 💡 Solution
 
-> In 2–3 sentences: What did you build? How does it solve the problem above?
-
-[Describe your solution clearly. Explain the core mechanism — what makes it work.]
+SupplyShield AI is a supply-chain operations intelligence platform with an ASP.NET Core / C# primary backend. It gives logistics operators a single command center to detect disruptions, score shipment risk, monitor cold-chain sensors, identify idle fleet assets, and receive grounded recommendations from IBM watsonx.ai — where every consequential action requires explicit operator confirmation and creates an audit record.
 
 ---
 
 ## ✨ Key Features
 
-- **Feature 1:** [Brief description — e.g., "Real-time anomaly detection using watsonx.ai"]
-- **Feature 2:** [Brief description]
-- **Feature 3:** [Brief description]
-- **Feature 4:** [Optional]
-- **Feature 5:** [Optional]
+- **Disruption Intelligence:** Active disruption detection with automatic identification of affected shipments and deterministic risk scoring
+- **Cold-Chain Monitoring:** Temperature sensor tracking with excursion severity classification (MEDIUM/HIGH/CRITICAL) using configurable per-sensor policy thresholds
+- **Fleet Redeployment:** Idle vehicle identification with redeployment candidates ranked by capacity, proximity, and compatibility
+- **Grounded AI (watsonx.ai):** IBM Granite model receives only verified ASP.NET Core backend facts — never invents operational data
+- **What-If Simulation:** Compare route/carrier alternatives (ETA, cost, risk) without mutating live operational state
 
 ---
 
@@ -45,51 +43,67 @@
 
 | Category | Technologies |
 |---|---|
-| **Languages** | [e.g., Python, TypeScript] |
-| **Frameworks** | [e.g., FastAPI, React] |
-| **IBM Technologies** | [e.g., watsonx.ai, IBM Bob, IBM Cloud] |
-| **Databases** | [e.g., PostgreSQL, Redis] |
-| **Other** | [e.g., Docker, GitHub Actions] |
+| **Languages** | C#, TypeScript, Python |
+| **Primary Backend** | ASP.NET Core 10 / C# / Entity Framework Core |
+| **AI/ML Service** | Python 3.11, FastAPI, scikit-learn |
+| **Generative AI** | IBM watsonx.ai, IBM Granite |
+| **IBM Tools** | IBM Bob |
+| **Database** | Supabase PostgreSQL |
+| **Frontend** | React 18, Vite, TypeScript, CSS Modules |
+| **Other** | React Router v6, Recharts, xUnit, SignalR (Phase 15+) |
 
 ---
 
 ## 📁 Repository Structure
 
 ```
-├── src/                  # All source code
-├── docs/                 # Written documentation
-│   ├── problem-statement.md
-│   ├── solution-overview.md
-│   ├── architecture.md
-│   └── setup-guide.md
-├── demo/                 # Demo artifacts
-│   ├── screenshots/      # App screenshots
-│   └── demo-video-link.txt  # Link to demo video
-├── presentation/         # Slide deck
-└── submission.yaml       # Structured submission metadata
+src/
+├── frontend/                    ← React + TypeScript + Vite
+├── backend/                     ← PRIMARY backend (ASP.NET Core / C#)
+│   ├── SupplyShield.slnx
+│   ├── SupplyShield.Api/
+│   ├── SupplyShield.Application/
+│   ├── SupplyShield.Domain/
+│   ├── SupplyShield.Infrastructure/
+│   └── tests/SupplyShield.Api.Tests/
+└── ai-service/                  ← Python AI/ML service (FastAPI)
 ```
 
 ---
 
 ## ⚡ How to Run
 
-> **Copy these exact steps from your [`docs/setup-guide.md`](docs/setup-guide.md)**
+### Primary Backend (ASP.NET Core)
 
 ```bash
-# 1. Clone the repo
-git clone https://github.com/[your-repo].git
-cd [your-repo]
-
-# 2. Install dependencies
-[your install command here]
-
-# 3. Configure environment
-cp .env.example .env
-# Edit .env with your values
-
-# 4. Run the project
-[your run command here]
+cd src/backend
+dotnet restore SupplyShield.slnx
+dotnet run --project SupplyShield.Api
 ```
+
+Backend: `http://localhost:5000/api`  
+Health: `http://localhost:5000/api/health`  
+Swagger: `http://localhost:5000/swagger`
+
+### Frontend
+
+```bash
+cd src/frontend
+npm install && npm run dev
+```
+
+Frontend: `http://localhost:5173` (proxies `/api` → `localhost:5000`)
+
+### AI Service (Python)
+
+```bash
+cd src/ai-service
+python -m venv .venv && .venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8001
+```
+
+> Full instructions in [`docs/setup-guide.md`](docs/setup-guide.md)
 
 ---
 
@@ -100,22 +114,22 @@ cp .env.example .env
 | 📹 Demo Video | [See demo/demo-video-link.txt](demo/demo-video-link.txt) |
 | 🌐 Live Demo | [See demo/live-demo-url.txt](demo/live-demo-url.txt) |
 | 🖼️ Screenshots | [See demo/screenshots/](demo/screenshots/) |
-| 📊 Presentation | [See presentation/slides.pdf](presentation/) |
+| 📊 Presentation | [See presentation/](presentation/) |
 
 ---
 
 ## ⚠️ Known Limitations
 
-> Be honest — judges appreciate transparency over overclaiming.
-
-- [Limitation 1: e.g., "Authentication is mocked — not production-ready"]
-- [Limitation 2: e.g., "Only tested on Chrome"]
-- [Limitation 3: e.g., "Feature X is scaffolded but not fully implemented"]
+- Phase 2 skeleton only — frontend uses mock data, backend returns placeholder responses
+- Supabase database schema not yet implemented (Phase 3+)
+- IBM watsonx.ai integration is a stub (Phase 13+)
+- ASP.NET Core service implementations deferred (Phase 6+)
+- ML predictions (scikit-learn) deferred (Phase 12+)
+- SignalR realtime updates deferred (Phase 15+)
+- Authentication and authorization not yet implemented
 
 ---
 
 ## 🏅 What We're Most Proud Of
 
-[Tell the judges what part of your submission is strongest and worth paying close attention to.]
-
----
+The clean architectural separation between the primary ASP.NET Core backend, the isolated Python AI service, and the IBM watsonx.ai grounding rules. The ASP.NET Core backend never imports IBM SDK dependencies — all AI calls flow through verified structured facts to the Python service. This prevents hallucinated recommendations in an enterprise operations context where incorrect advice could cause major supply-chain or cold-chain failures.

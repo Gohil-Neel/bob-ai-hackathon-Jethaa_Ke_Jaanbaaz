@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/SupplyShield.Api.Tests/SupplyShield.Api.Tests.csproj" />
+  </Folder>
+  <Project Path="SupplyShield.Api/SupplyShield.Api.csproj" />
+  <Project Path="SupplyShield.Application/SupplyShield.Application.csproj" />
+  <Project Path="SupplyShield.Domain/SupplyShield.Domain.csproj" />
+  <Project Path="SupplyShield.Infrastructure/SupplyShield.Infrastructure.csproj" />
+</Solution>

@@ -1,0 +1,47 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.critical {
+  color: var(--color-status-critical);
+  background-color: var(--color-status-critical-bg);
+  border-color: var(--color-status-critical-border);
+}
+
+.high {
+  color: var(--color-status-high);
+  background-color: var(--color-status-high-bg);
+  border-color: var(--color-status-high-border);
+}
+
+.medium {
+  color: var(--color-status-medium);
+  background-color: var(--color-status-medium-bg);
+  border-color: var(--color-status-medium-border);
+}
+
+.low {
+  color: var(--color-status-low);
+  background-color: var(--color-status-low-bg);
+  border-color: var(--color-status-low-border);
+}
+
+.normal {
+  color: var(--color-status-normal);
+  background-color: var(--color-status-low-bg);
+  border-color: var(--color-status-low-border);
+}
+
+.dataGap {
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-elevated);
+  border-color: var(--color-border);
+}

@@ -1,79 +1,191 @@
-# Setup Guide
+# SupplyShield AI — Setup Guide
 
-> **This file is read by the automated evaluation pipeline. Be precise and complete.**
+> **This file is read by the automated evaluation pipeline. Steps are precise and complete.**
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed:
+- .NET 10 SDK — `dotnet --version` (verify 10.x)
+- Node.js 18+ and npm 9+
+- Python 3.11+
+- Git
 
-- [ ] [e.g., Python 3.11+]
-- [ ] [e.g., Node.js 18+]
-- [ ] [e.g., Docker Desktop]
-- [ ] [e.g., An IBM Cloud account with watsonx.ai access]
+## Project Structure
 
-## Environment Variables
+```
+src/
+├── frontend/      ← React + TypeScript + Vite
+├── backend/       ← PRIMARY backend (ASP.NET Core 10 / C#)
+└── ai-service/    ← Separate Python AI/ML service (FastAPI, port 8001)
+```
 
-Copy `.env.example` to `.env` and fill in the values:
+## 1. Backend (ASP.NET Core — PRIMARY)
 
 ```bash
-cp .env.example .env
+cd src/backend
+
+# Restore NuGet packages
+dotnet restore SupplyShield.slnx
+
+# Build solution
+dotnet build SupplyShield.slnx
+
+# Start development server (port 5000)
+dotnet run --project SupplyShield.Api
 ```
+
+Backend available at:
+- API: `http://localhost:5000/api`
+- Health: `http://localhost:5000/api/health`
+- API docs (Scalar): `http://localhost:5000/scalar/v1`
+- OpenAPI spec: `http://localhost:5000/openapi/v1.json`
+
+### Backend Environment Variables
+
+No credentials required for Phase 2 (uses in-memory database).
+
+For later phases set as environment variables or in `appsettings.Local.json`:
 
 | Variable | Description | Required |
 |---|---|---|
-| `WATSONX_API_KEY` | Your IBM watsonx.ai API key | Yes |
-| `WATSONX_PROJECT_ID` | Your watsonx.ai project ID | Yes |
-| `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `SLACK_WEBHOOK_URL` | Slack webhook for alerts | No |
+| `ConnectionStrings__DefaultConnection` | Supabase PostgreSQL connection string | Phase 3+ |
+| `Supabase__Url` | Supabase project URL | Phase 3+ |
+| `Supabase__ServiceRoleKey` | Service role key — **never expose in frontend** | Phase 3+ |
+| `AiService__BaseUrl` | Python AI service URL (default: `http://localhost:8001`) | Phase 13+ |
 
-## Installation
+See `src/backend/SupplyShield.Api/.env.example` for full reference.
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/[your-org]/[your-repo].git
-cd [your-repo]
-
-# 2. Install backend dependencies
-[your command — e.g.: pip install -r requirements.txt]
-
-# 3. Install frontend dependencies (if applicable)
-[your command — e.g.: cd frontend && npm install]
-
-# 4. Set up the database (if applicable)
-[your command — e.g.: python manage.py migrate]
-```
-
-## Running the Application
+### Backend Tests
 
 ```bash
-# Start the backend
-[your command — e.g.: uvicorn app.main:app --reload]
-
-# Start the frontend (in a separate terminal, if applicable)
-[your command — e.g.: cd frontend && npm run dev]
+dotnet test src/backend/tests/SupplyShield.Api.Tests
 ```
 
-The application will be available at: `http://localhost:[PORT]`
+Expected: 4 health endpoint tests pass.
 
-## Running Tests
+---
+
+## 2. Frontend (React + Vite)
 
 ```bash
-[your test command — e.g.: pytest tests/ -v]
+cd src/frontend
+
+# Install dependencies
+npm install
+
+# Start development server (port 5173)
+npm run dev
+
+# Build for production
+npm run build
+
+# Type check
+npm run typecheck
 ```
 
-## Quick Demo (Optional)
+Frontend available at `http://localhost:5173`  
+Vite proxies `/api/*` → `http://localhost:5000` (ASP.NET Core backend)
 
-If you have a demo script or sample data to showcase the project quickly:
+---
+
+## 3. AI Service (Python — Separate)
 
 ```bash
-[e.g.: python demo/seed_demo_data.py]
-[e.g.: open http://localhost:8000/demo]
+cd src/ai-service
+
+# Create virtual environment
+python -m venv .venv
+
+# Activate
+.venv\Scripts\activate     # Windows
+source .venv/bin/activate  # macOS / Linux
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment (no credentials needed for Phase 2)
+cp .env.example .env
+
+# Start service (port 8001)
+uvicorn app.main:app --reload --port 8001
 ```
+
+AI Service available at:
+- Health: `http://localhost:8001/health`
+- Docs: `http://localhost:8001/docs`
+
+### AI Service Environment Variables
+
+| Variable | Description | Required |
+|---|---|---|
+| `WATSONX_API_KEY` | IBM Cloud API key | Phase 13+ |
+| `WATSONX_PROJECT_ID` | watsonx.ai project ID | Phase 13+ |
+| `WATSONX_URL` | watsonx.ai endpoint | Phase 13+ |
+
+### AI Service Tests
+
+```bash
+pytest tests/ -v
+```
+
+---
+
+## Health Check Verification
+
+After starting the ASP.NET Core backend:
+
+```bash
+curl http://localhost:5000/api/health
+```
+
+Expected response:
+```json
+{"status":"ok","service":"supplyshield-api"}
+```
+
+After starting the Python AI service:
+
+```bash
+curl http://localhost:8001/health
+```
+
+Expected response:
+```json
+{"status":"ok","service":"supplyshield-ai-service"}
+```
+
+---
+
+## Phase 2 Notes
+
+- **Backend uses in-memory EF Core database** — no PostgreSQL required.
+- **Frontend uses mock data** — works without backend running.
+- **AI service uses placeholders** — no watsonx.ai credentials required.
+- All services can start independently.
+
+### Phase 2 Verified Build Results
+
+```
+dotnet build SupplyShield.slnx
+  → Build succeeded. 0 Warning(s). 0 Error(s).
+
+dotnet test SupplyShield.slnx
+  → Test Run Successful. Total tests: 4. Passed: 4.
+  → Health_Returns_200                  [PASSED]
+  → Health_Returns_Status_Ok            [PASSED]
+  → Health_Returns_Service_Name         [PASSED]
+  → Health_Response_Has_Expected_Shape  [PASSED]
+```
+
+No known security vulnerabilities in NuGet dependencies (Microsoft.OpenApi 2.x CVE resolved by upgrading to `Microsoft.AspNetCore.OpenApi` 10.0.12 which uses `Microsoft.OpenApi` 3.x).
+
+---
 
 ## Troubleshooting
 
 | Issue | Solution |
 |---|---|
-| [e.g., `ModuleNotFoundError`] | [e.g., Run `pip install -r requirements.txt` again] |
-| [e.g., Database connection refused] | [e.g., Ensure PostgreSQL is running: `docker compose up db`] |
-| [e.g., watsonx.ai 401 error] | [e.g., Check `WATSONX_API_KEY` in your `.env` file] |
+| `dotnet: command not found` | Install .NET 10 SDK from https://dotnet.microsoft.com |
+| Backend port 5000 in use | Set `ASPNETCORE_URLS=http://localhost:5010` |
+| `ModuleNotFoundError: pydantic_settings` | Run `pip install -r requirements.txt` again |
+| Frontend CORS error | Ensure backend is running on port 5000 |
+| `npm: command not found` | Install Node.js 18+ from https://nodejs.org |

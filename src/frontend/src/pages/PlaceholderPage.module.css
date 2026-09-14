@@ -1,0 +1,68 @@
+.placeholderPanel {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-10) var(--space-8);
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.icon {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.description {
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+}
+
+.featureList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.featureList li {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  padding-left: var(--space-4);
+  position: relative;
+}
+
+.featureList li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--color-accent);
+}
+
+.phaseBadge {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 3px 8px;
+  background-color: var(--color-status-info-bg);
+  border: 1px solid var(--color-status-info-border);
+  color: var(--color-status-info);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.note {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-base);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
+}

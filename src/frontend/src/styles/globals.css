@@ -1,0 +1,138 @@
+/* SupplyShield AI — Global Styles
+   Dark operations-command-center visual direction.
+   All design tokens are defined as CSS custom properties.
+*/
+
+/* ── Reset ────────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Design Tokens ────────────────────────────────────────────────────────── */
+:root {
+  /* Background */
+  --color-bg-base:        #0a0d12;
+  --color-bg-surface:     #0f1318;
+  --color-bg-elevated:    #161b22;
+  --color-bg-overlay:     #1c2330;
+
+  /* Borders */
+  --color-border:         #21262d;
+  --color-border-subtle:  #161b22;
+
+  /* Text */
+  --color-text-primary:   #e6edf3;
+  --color-text-secondary: #8b949e;
+  --color-text-muted:     #484f58;
+  --color-text-inverse:   #0a0d12;
+
+  /* Status — always paired with a text label, never color alone */
+  --color-status-critical:        #f85149;
+  --color-status-critical-bg:     #3d1212;
+  --color-status-critical-border: #6e2222;
+
+  --color-status-high:        #e3773a;
+  --color-status-high-bg:     #3d2212;
+  --color-status-high-border: #6e3c22;
+
+  --color-status-medium:        #d4a72c;
+  --color-status-medium-bg:     #3d3012;
+  --color-status-medium-border: #6e5522;
+
+  --color-status-low:        #3fb950;
+  --color-status-low-bg:     #12371c;
+  --color-status-low-border: #225e2a;
+
+  --color-status-normal:        #3fb950;
+  --color-status-info:          #388bfd;
+  --color-status-info-bg:       #121c3d;
+  --color-status-info-border:   #1d3a6e;
+
+  /* Accent */
+  --color-accent:         #388bfd;
+  --color-accent-hover:   #4d97ff;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Typography */
+  --font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "SF Mono", "Cascadia Code", "Consolas", monospace;
+  --font-size-xs:  11px;
+  --font-size-sm:  12px;
+  --font-size-base: 13px;
+  --font-size-md:  14px;
+  --font-size-lg:  16px;
+  --font-size-xl:  20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --line-height-base: 1.5;
+  --line-height-tight: 1.25;
+
+  /* Radius */
+  --radius-sm:  4px;
+  --radius-md:  6px;
+  --radius-lg:  8px;
+  --radius-xl:  12px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+
+  /* Layout */
+  --sidebar-width: 220px;
+  --topbar-height: 52px;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+html, body, #root {
+  height: 100%;
+  min-height: 100vh;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-base);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-surface);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ── Utility ──────────────────────────────────────────────────────────────── */
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}

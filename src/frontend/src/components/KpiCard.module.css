@@ -1,0 +1,36 @@
+.card {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.value {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.02em;
+}
+
+.subLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.valueNormal  { color: var(--color-text-primary); }
+.valueCritical { color: var(--color-status-critical); }
+.valueHigh    { color: var(--color-status-high); }
+.valueMedium  { color: var(--color-status-medium); }
+.valueLow     { color: var(--color-status-low); }
