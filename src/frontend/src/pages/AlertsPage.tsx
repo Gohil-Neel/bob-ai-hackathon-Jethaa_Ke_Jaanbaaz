@@ -11,6 +11,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { getAlerts, acknowledgeAlert } from '../services/api';
+import { callGeminiLive } from '../services/aiService';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -157,6 +158,9 @@ const MOCK_INCIDENTS: TriageIncident[] = [
 export default function AlertsPage() {
   const [incidents, setIncidents] = useState<TriageIncident[]>(MOCK_INCIDENTS);
   const [activeId, setActiveId] = useState<string>(MOCK_INCIDENTS[0].id);
+  const [aiRca, setAiRca] = useState<string>('');
+  const [aiActions, setAiActions] = useState<string[]>([]);
+  const [loadingAi, setLoadingAi] = useState<boolean>(false);
   const [severityFilter, setSeverityFilter] = useState<SeverityLevel | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<IncidentStatus | 'all'>('all');
   const [categoryFilter, setCategoryFilter] = useState<IncidentCategory | 'all'>('all');
@@ -164,26 +168,27 @@ export default function AlertsPage() {
   const [showAuditLedger, setShowAuditLedger] = useState(false);
 
   useEffect(() => {
-    getAlerts().then((liveAlerts) => {
-      if (liveAlerts && liveAlerts.length > 0) {
-        const mapped: TriageIncident[] = liveAlerts.map((a, idx) => {
-          const isAck = a.isAcknowledged;
+    getAlerts().then((data) => {
+      if (data && data.length > 0) {
+        const mapped: TriageIncident[] = data.map((a: any, idx: number) => {
+          const isAck = !!a.isAcknowledged;
+          const sev = (a.severity || 'HIGH').toUpperCase() as SeverityLevel;
           return {
-            id: a.id,
-            incidentCode: `INC-2024-${890 + idx}`,
-            title: a.title,
-            description: a.description,
-            severity: a.severity as SeverityLevel,
-            category: 'COLD_CHAIN',
-            corridor: 'NH-48 Western Corridor / Global Multi-Modal',
-            shipmentCode: a.shipmentTrackingNumber || (a.shipmentId ? `SHP-${a.shipmentId.slice(0, 6)}` : 'SS-2024-0001'),
+            id: a.id || `inc-${idx}`,
+            incidentCode: `INC-${a.id?.slice(0, 8) || '2024-891'}`,
+            title: a.title || 'Cold Chain Excursion / Disruption',
+            description: a.description || 'Threshold anomaly detected in multimodal corridor telemetry.',
+            severity: sev,
+            category: (a.alertType || 'COLD_CHAIN') as IncidentCategory,
+            corridor: a.affectedCorridor || 'NH-48 Western Pharma Expressway',
+            shipmentCode: a.shipmentTrackingNumber || a.shipmentId || 'SS-2024-0001',
             cargoDescription: 'Vaccines & Cold-Chain Biopharma (2°C – 8°C)',
             cargoValue: '₹2.40 Cr',
             status: isAck ? 'ACKNOWLEDGED' : 'NEW',
             isAcknowledged: isAck,
             acknowledgedBy: isAck ? 'Control Tower Lead' : null,
             acknowledgedAt: a.acknowledgedAt ? new Date(a.acknowledgedAt).toLocaleTimeString() : null,
-            createdAt: new Date(a.createdAt).toLocaleTimeString(),
+            createdAt: new Date(a.createdAt || Date.now()).toLocaleTimeString(),
             slaDeadline: 'T-15m',
             slaBreached: false,
             rootCause: 'Primary cold-chain refrigeration anomaly. Temperature threshold variance detected.',
@@ -209,6 +214,23 @@ export default function AlertsPage() {
   }, []);
 
   const activeIncident = incidents.find((i) => i.id === activeId) || incidents[0] || MOCK_INCIDENTS[0];
+
+  useEffect(() => {
+    if (activeIncident) {
+      setLoadingAi(true);
+      callGeminiLive(
+        `Provide an operational root-cause analysis (RCA) and 3 specific prescriptive decision directives for incident ${activeIncident.incidentCode}: "${activeIncident.title}". Description: ${activeIncident.description}. Corridor: ${activeIncident.corridor}. Value: ${activeIncident.cargoValue}.`,
+        { contextType: 'chat', targetEntity: activeIncident }
+      ).then((res: any) => {
+        setAiRca(res.text);
+        if (res.bulletPoints && res.bulletPoints.length > 0) {
+          setAiActions(res.bulletPoints);
+        }
+      }).finally(() => {
+        setLoadingAi(false);
+      });
+    }
+  }, [activeIncident.id]);
 
   const filteredIncidents = useMemo(() => {
     return incidents.filter((i) => {
@@ -559,29 +581,44 @@ export default function AlertsPage() {
           </div>
 
           {/* Root Cause Analysis Box */}
-          <div className="p-4 rounded-lg bg-risk-critical/5 border border-risk-critical/20 space-y-1.5">
-            <div className="flex items-center gap-2 font-caption text-caption uppercase tracking-wider text-risk-critical font-bold">
-              <span className="material-symbols-outlined text-[16px]">biotech</span>
-              AI Root Cause Analysis (RCA)
+          <div className="p-4 rounded-lg bg-risk-critical/5 border border-risk-critical/20 space-y-2 relative">
+            <div className="flex items-center justify-between flex-wrap gap-1">
+              <div className="flex items-center gap-2 font-caption text-caption uppercase tracking-wider text-risk-critical font-bold">
+                <span className="material-symbols-outlined text-[16px]">biotech</span>
+                AI Root Cause Analysis (RCA)
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold font-mono">
+                ✨ Powered by Google Gemini API
+              </span>
             </div>
-            <p className="font-caption text-caption text-text-secondary leading-relaxed">
-              {activeIncident.rootCause}
-            </p>
+            {loadingAi ? (
+              <div className="flex items-center gap-2 py-2 text-xs text-text-muted animate-pulse font-mono">
+                <span className="material-symbols-outlined text-[16px] text-emerald-400 animate-spin">sync</span>
+                <span>Generating operational RCA diagnostics with Google Gemini...</span>
+              </div>
+            ) : (
+              <p className="font-caption text-caption text-text-secondary leading-relaxed bg-surface-container-lowest/50 p-2.5 rounded border border-border-subtle">
+                {aiRca || activeIncident.rootCause}
+              </p>
+            )}
           </div>
 
           {/* Prescriptive Decisions */}
           <div className="space-y-2">
-            <div className="font-caption text-caption uppercase tracking-wider text-text-muted font-bold flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px] text-primary">psychology</span>
-              Prescriptive Decision Directives
+            <div className="flex items-center justify-between">
+              <div className="font-caption text-caption uppercase tracking-wider text-text-muted font-bold flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-primary">psychology</span>
+                Prescriptive Decision Directives
+              </div>
+              <span className="text-[10px] text-text-muted font-mono">Real-time Prescriptive Engine</span>
             </div>
             <div className="space-y-1.5">
-              {activeIncident.recommendedActions.map((act, idx) => (
-                <div key={idx} className="p-2.5 rounded-lg bg-bg-surface border border-border-subtle flex items-start gap-2.5 text-caption font-caption text-text-secondary">
-                  <span className="w-5 h-5 rounded-full bg-primary-soft text-primary font-bold flex items-center justify-center flex-shrink-0 text-xs mt-0.5">
+              {(aiActions.length > 0 ? aiActions : activeIncident.recommendedActions).map((act, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg bg-bg-surface border border-border-subtle flex items-start gap-2.5 text-caption font-caption text-text-secondary hover:border-border-strong transition-colors">
+                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center flex-shrink-0 text-xs mt-0.5">
                     {idx + 1}
                   </span>
-                  <span>{act}</span>
+                  <span className="text-text-primary">{act}</span>
                 </div>
               ))}
             </div>

@@ -804,19 +804,24 @@ export default function ShipmentsPage() {
               ) : null}
 
               {/* Risk Score & AI Prediction */}
-              <div className="p-3 bg-surface-container-low rounded-lg border border-border-subtle flex flex-col gap-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-text-primary">AI Risk Score</span>
-                  <span
-                    className={`font-bold text-sm ${
-                      selectedShipment.riskScore && selectedShipment.riskScore >= 0.7
-                        ? 'text-risk-critical'
-                        : selectedShipment.riskScore && selectedShipment.riskScore >= 0.4
-                        ? 'text-risk-medium'
-                        : 'text-risk-low'
-                    }`}
-                  >
-                    {selectedShipment.riskScore !== null ? `${(selectedShipment.riskScore * 100).toFixed(0)}%` : '0%'}
+              <div className="p-3 bg-surface-container-low rounded-lg border border-border-subtle flex flex-col gap-2 relative">
+                <div className="flex items-center justify-between text-xs flex-wrap gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-text-primary">AI Risk Score</span>
+                    <span
+                      className={`font-bold text-sm ${
+                        selectedShipment.riskScore && selectedShipment.riskScore >= 0.7
+                          ? 'text-risk-critical'
+                          : selectedShipment.riskScore && selectedShipment.riskScore >= 0.4
+                          ? 'text-risk-medium'
+                          : 'text-risk-low'
+                      }`}
+                    >
+                      {selectedShipment.riskScore !== null ? `${(selectedShipment.riskScore * 100).toFixed(0)}%` : '0%'}
+                    </span>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold font-mono">
+                    ✨ Powered by Google Gemini API
                   </span>
                 </div>
                 <div className="w-full bg-surface-container-high rounded-full h-1.5 overflow-hidden">

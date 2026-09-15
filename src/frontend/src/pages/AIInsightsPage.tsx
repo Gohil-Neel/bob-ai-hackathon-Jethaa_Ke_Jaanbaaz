@@ -1,5 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { callGeminiLive } from '../services/aiService'
+import { getShipments, getDisruptions, getColdChainSensors, getAllRecommendations } from '../services/api'
+import type { Shipment, Disruption, ColdChainSensor, Recommendation } from '../types/domain'
 
 interface ChatMessage {
   id: string
@@ -14,24 +17,45 @@ export default function AIInsightsPage() {
   const [activeView, setActiveView] = useState<'insights' | 'approval'>('insights')
   const [insightSubTab, setInsightSubTab] = useState<'priority' | 'recommendations' | 'root_cause' | 'queries'>('priority')
   
+  // Live Supabase Context
+  const [shipments, setShipments] = useState<Shipment[]>([])
+  const [disruptions, setDisruptions] = useState<Disruption[]>([])
+  const [sensors, setSensors] = useState<ColdChainSensor[]>([])
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([])
+
+  useEffect(() => {
+    Promise.all([
+      getShipments(),
+      getDisruptions(),
+      getColdChainSensors(),
+      getAllRecommendations(),
+    ]).then(([s, d, sen, recs]) => {
+      setShipments(s || [])
+      setDisruptions(d || [])
+      setSensors(sen || [])
+      setRecommendations(recs || [])
+    })
+  }, [])
+
   // Interactive Chat State
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       id: '1',
       sender: 'user',
       time: '14:28',
-      text: 'What is the single biggest operational risk right now?'
+      text: 'What is the single biggest operational risk right now and what is the recommended mitigation?'
     },
     {
       id: '2',
       sender: 'ai',
       time: 'Just now',
-      text: 'The biggest immediate operational risk is NH-48 Solapur-Pune Inundation (Km 194.2):',
+      text: 'Based on live Supabase telemetry and weather radars, here is the primary operational risk analysis:',
       bulletPoints: [
-        'Affects 17 transit shipments, including 4 critical pharma/cryo units.',
-        'Total ₹2.40 Cr cargo value in imminent danger of SLA and thermal rupture.',
-        'Primary critical target: SHP-0117 (Vaccines) has 42 minutes of MKT thermal buffer remaining before irreversible spoilage.'
-      ]
+        'Critical Disruption: Typhoon Saola in East China Sea / Taiwan Strait impacting 6 maritime loads.',
+        'Thermal Risk: Biologic Consignment TRK-BIO-90412 experiencing thermal breach (+9.8°C against 8°C ceiling).',
+        'Recommended Action: Authorize Bashi Channel south passage for container vessel and dispatch reserve cold pod RESERVE-REEFER-DE-01.'
+      ],
+      badge: 'Google Gemini API'
     }
   ])
   const [chatInput, setChatInput] = useState('')
@@ -46,7 +70,7 @@ export default function AIInsightsPage() {
   const [toastMessage, setToastMessage] = useState<{ title: string; desc: string; type: 'success' | 'info' } | null>(null)
   const [showThresholdModal, setShowThresholdModal] = useState(false)
 
-  const handleSendMessage = (e?: React.FormEvent) => {
+  const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     if (!chatInput.trim()) return
 
@@ -61,45 +85,32 @@ export default function AIInsightsPage() {
     setChatInput('')
     setIsTyping(true)
 
-    setTimeout(() => {
-      setIsTyping(false)
-      let aiResponseText = `Analysis regarding "${userText}":`
-      let aiBullets: string[] = []
+    try {
+      // Direct call to Google Gemini with full live operational context
+      const response = await callGeminiLive(userText, {
+        contextType: 'chat',
+        shipments,
+        disruptions,
+        sensors,
+      })
 
-      if (userText.toLowerCase().includes('solapur') || userText.toLowerCase().includes('nh-48') || userText.toLowerCase().includes('flood')) {
-        aiResponseText = 'NH-48 Solapur-Pune corridor status:'
-        aiBullets = [
-          'Water depth at Km 194.2 measured at 1.2m over tarmac. Standstill speed: 0 km/h.',
-          'Recommended bypass via SH-142 Solapur Ridge (+42 km) preserves on-time delivery with 94.8% confidence.',
-          'FASTag automated pre-clearance is armed at Plaza 02 for 17 license plates.'
-        ]
-      } else if (userText.toLowerCase().includes('cold') || userText.toLowerCase().includes('temp') || userText.toLowerCase().includes('cryo') || userText.toLowerCase().includes('vaccine')) {
-        aiResponseText = 'Cold Chain Telemetry Synthesis:'
-        aiBullets = [
-          'Vehicle TRK-203 rear door gasket micro-fracture detected; probe P3 reads +10.4°C.',
-          'MKT kinetic buffer: 42 minutes remaining before batch excursion.',
-          'Dry-ice intercept van DRY-ICE-VAN-04 is stationed at Toll 4 (14km away) ready for immediate deployment.'
-        ]
-      } else {
-        aiResponseText = 'Operations Copilot synthesized analysis:'
-        aiBullets = [
-          'Multimodal inference engine scanned 1,248 live nodes across the Western freight grid.',
-          'Value under algorithmic guard: ₹4.82 Cr (94.2% protected).',
-          'All active prescriptive actions conform to ISO 17025 compliance policies.'
-        ]
-      }
+      setIsTyping(false)
 
       setChatMessages(prev => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           sender: 'ai',
-          time: 'Just now',
-          text: aiResponseText,
-          bulletPoints: aiBullets
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          text: response.text,
+          bulletPoints: response.bulletPoints && response.bulletPoints.length > 0 ? response.bulletPoints : undefined,
+          badge: 'Google Gemini API'
         }
       ])
-    }, 800)
+    } catch (err) {
+      console.error('Failed to generate Gemini response:', err)
+      setIsTyping(false)
+    }
   }
 
   const handleAuthorizeDispatch = () => {
@@ -147,19 +158,22 @@ export default function AIInsightsPage() {
             AI Insights & Operations Copilot
           </h1>
           <p className="font-body-default text-body-default text-text-secondary">
-            Proactive disruption synthesis, multimodal risk prioritization, and decision rationale copiloting powered by watsonx.ai
+            Proactive disruption synthesis, multimodal risk prioritization, and decision rationale copiloting powered by Google Gemini API
           </p>
         </div>
 
         {/* Global Controls & Mode Switcher */}
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-surface-container border border-border-subtle">
-            <span className="w-2 h-2 rounded-full bg-risk-low animate-pulse"></span>
-            <span className="font-table-cell text-table-cell text-text-primary font-medium">Inference Engine v4.2 Active</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 shadow-sm">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="font-table-cell text-table-cell text-emerald-400 font-semibold tracking-wide flex items-center gap-1.5">
+              <span>✨ Powered by Google Gemini API</span>
+              <span className="text-[10px] px-1.5 py-0.2 bg-emerald-500/20 rounded font-mono text-emerald-300">gemini-3.6-flash</span>
+            </span>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container-lowest border border-border-subtle text-text-muted font-table-cell text-table-cell">
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-container-lowest border border-border-subtle text-text-muted font-table-cell text-table-cell">
             <span className="material-symbols-outlined text-[15px] text-primary">bolt</span>
-            <span>128ms • Multi-Modal RAG</span>
+            <span>Live Context Ingested</span>
           </div>
 
           <div className="flex items-center bg-surface-container rounded-lg p-0.5 border border-border-subtle">
@@ -659,8 +673,9 @@ export default function AIInsightsPage() {
                     <h4 className="font-card-title text-card-title text-text-primary">Automated Prescriptive Actions Queue</h4>
                     <span className="font-caption text-caption text-primary font-semibold">4 Actionable Policies</span>
                   </div>
-                  <p className="font-body-default text-body-default text-text-secondary mb-4">
-                    The watsonx.ai algorithmic engine has scored 4 non-conflicting routing detours for instant batch confirmation.
+                  <p className="font-body-default text-body-default text-text-secondary mb-4 flex items-center justify-between">
+                    <span>Google Gemini operational engine has evaluated non-conflicting routing detours for instant batch confirmation:</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 font-semibold">✨ Powered by Google Gemini API</span>
                   </p>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 rounded-lg bg-surface-container border border-border-subtle">
@@ -755,46 +770,57 @@ export default function AIInsightsPage() {
           {/* Right Column: Interactive Context-Aware AI Copilot Chat Assistant */}
           <div className="lg:col-span-4 flex flex-col rounded-xl bg-bg-surface-raised border border-border-strong overflow-hidden shadow-lg sticky top-20">
             {/* Assistant Header */}
-            <div className="p-3.5 bg-bg-surface border-b border-border-subtle flex items-center justify-between">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="relative w-7 h-7 rounded-lg bg-primary-container/20 border border-primary/40 flex items-center justify-center text-primary shrink-0">
-                  <span className="material-symbols-outlined text-[18px]">neurology</span>
-                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-risk-low ring-2 ring-bg-surface"></span>
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-card-title text-card-title text-text-primary truncate">SupplyShield AI</span>
-                    <span className="font-caption text-caption px-1.5 py-0.2 rounded bg-primary-soft text-primary font-medium">Copilot</span>
+            <div className="p-3.5 bg-bg-surface border-b border-border-subtle flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="relative w-7 h-7 rounded-lg bg-primary-container/20 border border-primary/40 flex items-center justify-center text-primary shrink-0">
+                    <span className="material-symbols-outlined text-[18px]">neurology</span>
+                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-risk-low ring-2 ring-bg-surface"></span>
                   </div>
-                  <span className="font-caption text-caption text-text-muted truncate">Live Context: 17 Blocked Units • NH-48 Active</span>
+                  <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-card-title text-card-title text-text-primary truncate">SupplyShield AI</span>
+                      <span className="font-caption text-caption px-1.5 py-0.2 rounded bg-primary-soft text-primary font-medium">Copilot</span>
+                    </div>
+                    <span className="font-caption text-caption text-text-muted truncate">Live Telemetry Ingested</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 text-text-secondary">
+                  <button
+                    onClick={() => setChatMessages([
+                      {
+                        id: '1',
+                        sender: 'user',
+                        time: '14:28',
+                        text: 'What is the single biggest operational risk right now and what is the recommended mitigation?'
+                      },
+                      {
+                        id: '2',
+                        sender: 'ai',
+                        time: 'Just now',
+                        text: 'Based on live Supabase telemetry, here is the primary operational risk analysis:',
+                        bulletPoints: [
+                          'Critical Disruption: Typhoon Saola in East China Sea impacting maritime loads.',
+                          'Thermal Risk: Biologic Consignment TRK-BIO-90412 experiencing thermal breach (+9.8°C).',
+                          'Recommended Action: Authorize Bashi Channel detour and dispatch reserve cold pod.'
+                        ],
+                        badge: 'Google Gemini API'
+                      }
+                    ])}
+                    className="p-1 hover:text-text-primary rounded hover:bg-bg-surface-hover transition-colors cursor-pointer"
+                    title="Reset conversation"
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-[17px]">restart_alt</span>
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-text-secondary">
-                <button
-                  onClick={() => setChatMessages([
-                    {
-                      id: '1',
-                      sender: 'user',
-                      time: '14:28',
-                      text: 'What is the single biggest operational risk right now?'
-                    },
-                    {
-                      id: '2',
-                      sender: 'ai',
-                      time: 'Just now',
-                      text: 'The biggest immediate operational risk is NH-48 Solapur-Pune Inundation (Km 194.2):',
-                      bulletPoints: [
-                        'Affects 17 transit shipments, including 4 critical pharma/cryo units.',
-                        'Total ₹2.40 Cr cargo value in imminent danger of SLA and thermal rupture.'
-                      ]
-                    }
-                  ])}
-                  className="p-1 hover:text-text-primary rounded hover:bg-bg-surface-hover transition-colors cursor-pointer"
-                  title="Reset conversation"
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[17px]">restart_alt</span>
-                </button>
+              <div className="flex items-center justify-between px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-medium text-emerald-400">
+                <span className="flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>✨ Powered by Google Gemini API</span>
+                </span>
+                <span className="font-mono text-[10px] text-emerald-300">gemini-3.6-flash</span>
               </div>
             </div>
 
@@ -808,18 +834,23 @@ export default function AIInsightsPage() {
                     </div>
                   ) : (
                     <div className="flex flex-col gap-1.5 max-w-[95%]">
-                      <div className="flex items-center gap-1.5 text-text-muted font-caption text-caption">
-                        <span className="material-symbols-outlined text-[14px] text-primary">auto_awesome</span>
-                        <span>SupplyShield Operations Engine</span>
-                        <span>• {msg.time}</span>
+                      <div className="flex items-center justify-between text-text-muted font-caption text-caption w-full">
+                        <div className="flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-[14px] text-primary">auto_awesome</span>
+                          <span>SupplyShield Operations Engine</span>
+                          <span>• {msg.time}</span>
+                        </div>
+                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono">
+                          Google Gemini
+                        </span>
                       </div>
-                      <div className="p-3 rounded-lg rounded-tl-xs bg-bg-surface border-l-2 border-l-primary border-t border-r border-b border-border-subtle text-text-secondary text-xs leading-relaxed flex flex-col gap-2">
+                      <div className="p-3 rounded-lg rounded-tl-xs bg-bg-surface border-l-2 border-l-primary border-t border-r border-b border-border-subtle text-text-secondary text-xs leading-relaxed flex flex-col gap-2 shadow-sm">
                         <p className="text-text-primary font-medium">{msg.text}</p>
                         {msg.bulletPoints && (
                           <ul className="space-y-1 pl-1">
                             {msg.bulletPoints.map((bp, i) => (
                               <li key={i} className="flex items-start gap-1.5">
-                                <span className="text-risk-critical leading-none mt-1">•</span>
+                                <span className="text-emerald-400 leading-none mt-1">▸</span>
                                 <span>{bp}</span>
                               </li>
                             ))}
@@ -832,9 +863,9 @@ export default function AIInsightsPage() {
               ))}
 
               {isTyping && (
-                <div className="flex items-center gap-2 text-xs text-text-muted p-2">
-                  <span className="material-symbols-outlined text-[16px] text-primary animate-spin">sync</span>
-                  <span>Synthesizing corridor telemetry...</span>
+                <div className="flex items-center gap-2 text-xs text-emerald-400 p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 animate-pulse">
+                  <span className="material-symbols-outlined text-[16px] text-emerald-400 animate-spin">sync</span>
+                  <span>Generating dynamic reasoning via Google Gemini API...</span>
                 </div>
               )}
             </div>
@@ -842,20 +873,68 @@ export default function AIInsightsPage() {
             {/* Quick Prompt Chips */}
             <div className="p-2 border-t border-border-subtle bg-surface-container-lowest flex items-center gap-1.5 overflow-x-auto">
               <button
-                onClick={() => { setChatInput('What is the cold chain status for TRK-203?'); }}
-                className="px-2 py-1 rounded bg-surface-container text-[11px] text-text-secondary hover:text-text-primary whitespace-nowrap border border-border-subtle cursor-pointer"
+                onClick={() => {
+                  setChatInput('What is the cold chain status for TRK-203?')
+                  setTimeout(() => {
+                    callGeminiLive('What is the cold chain status for TRK-203 and how to mitigate thermal drift?', {
+                      contextType: 'chat',
+                      shipments,
+                      disruptions,
+                      sensors
+                    }).then(res => {
+                      setChatMessages(prev => [
+                        ...prev,
+                        { id: Date.now().toString(), sender: 'user', time: 'Just now', text: 'What is the cold chain status for TRK-203?' },
+                        { id: (Date.now() + 1).toString(), sender: 'ai', time: 'Just now', text: res.text, bulletPoints: res.bulletPoints, badge: 'Google Gemini API' }
+                      ])
+                    })
+                  }, 50)
+                }}
+                className="px-2 py-1 rounded bg-surface-container text-[11px] text-text-secondary hover:text-text-primary whitespace-nowrap border border-border-subtle cursor-pointer hover:border-primary/50 transition-colors"
               >
                 ❄ TRK-203 Cold Status
               </button>
               <button
-                onClick={() => { setChatInput('Explain bypass route SH-142'); }}
-                className="px-2 py-1 rounded bg-surface-container text-[11px] text-text-secondary hover:text-text-primary whitespace-nowrap border border-border-subtle cursor-pointer"
+                onClick={() => {
+                  setChatInput('Explain bypass route SH-142 for Solapur flood')
+                  setTimeout(() => {
+                    callGeminiLive('Explain bypass route SH-142 for Solapur flood delay mitigation and ROI calculation', {
+                      contextType: 'chat',
+                      shipments,
+                      disruptions,
+                      sensors
+                    }).then(res => {
+                      setChatMessages(prev => [
+                        ...prev,
+                        { id: Date.now().toString(), sender: 'user', time: 'Just now', text: 'Explain bypass route SH-142 for Solapur flood' },
+                        { id: (Date.now() + 1).toString(), sender: 'ai', time: 'Just now', text: res.text, bulletPoints: res.bulletPoints, badge: 'Google Gemini API' }
+                      ])
+                    })
+                  }, 50)
+                }}
+                className="px-2 py-1 rounded bg-surface-container text-[11px] text-text-secondary hover:text-text-primary whitespace-nowrap border border-border-subtle cursor-pointer hover:border-primary/50 transition-colors"
               >
                 🗺 SH-142 Bypass
               </button>
               <button
-                onClick={() => { setChatInput('Show carrier demurrage costs'); }}
-                className="px-2 py-1 rounded bg-surface-container text-[11px] text-text-secondary hover:text-text-primary whitespace-nowrap border border-border-subtle cursor-pointer"
+                onClick={() => {
+                  setChatInput('Show carrier demurrage and penalty risks')
+                  setTimeout(() => {
+                    callGeminiLive('Show carrier demurrage and penalty risks across active corridor bottlenecks', {
+                      contextType: 'chat',
+                      shipments,
+                      disruptions,
+                      sensors
+                    }).then(res => {
+                      setChatMessages(prev => [
+                        ...prev,
+                        { id: Date.now().toString(), sender: 'user', time: 'Just now', text: 'Show carrier demurrage and penalty risks' },
+                        { id: (Date.now() + 1).toString(), sender: 'ai', time: 'Just now', text: res.text, bulletPoints: res.bulletPoints, badge: 'Google Gemini API' }
+                      ])
+                    })
+                  }, 50)
+                }}
+                className="px-2 py-1 rounded bg-surface-container text-[11px] text-text-secondary hover:text-text-primary whitespace-nowrap border border-border-subtle cursor-pointer hover:border-primary/50 transition-colors"
               >
                 💰 Penalty Costs
               </button>
@@ -866,12 +945,13 @@ export default function AIInsightsPage() {
               <input
                 value={chatInput}
                 onChange={e => setChatInput(e.target.value)}
-                placeholder="Ask operations copilot..."
+                placeholder="Ask operations copilot (Gemini API)..."
                 className="flex-1 bg-surface-container-lowest border border-border-subtle rounded-lg px-3 py-1.5 text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-primary"
               />
               <button
                 type="submit"
-                className="p-1.5 rounded-lg bg-primary-container hover:bg-primary-hover text-on-primary-container transition-colors cursor-pointer"
+                disabled={isTyping || !chatInput.trim()}
+                className="p-1.5 rounded-lg bg-primary-container hover:bg-primary-hover text-on-primary-container transition-colors cursor-pointer disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-[18px]">send</span>
               </button>
@@ -1401,7 +1481,7 @@ export default function AIInsightsPage() {
                   setShowThresholdModal(false)
                   setToastMessage({
                     title: 'Thresholds Updated',
-                    desc: 'watsonx.ai inference engine weights recalibrated successfully.',
+                    desc: 'Google Gemini anomaly inference engine parameters recalibrated successfully.',
                     type: 'info'
                   })
                   setTimeout(() => setToastMessage(null), 4000)

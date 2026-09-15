@@ -6,6 +6,7 @@ import {
   getDisruptions,
   getAllRecommendations,
 } from '../services/api';
+import { requestWatsonxExplanation } from '../services/aiService';
 import type {
   Shipment,
   ColdChainSensor,
@@ -23,6 +24,30 @@ export default function ShipmentDetailPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [activeSensorProbe, setActiveSensorProbe] = useState<'all' | 'core' | 'aft' | 'ambient'>('all');
   const [detourAuthorized, setDetourAuthorized] = useState<boolean>(false);
+  const [aiExplanation, setAiExplanation] = useState<string>('');
+  const [aiProvider, setAiProvider] = useState<string>('Google Gemini / AI Engine');
+  const [loadingAi, setLoadingAi] = useState<boolean>(false);
+
+  const fetchLiveAiInsight = (targetShipment: Shipment) => {
+    setLoadingAi(true);
+    requestWatsonxExplanation('shipment', targetShipment.trackingNumber, {
+      tracking_number: targetShipment.trackingNumber,
+      origin: targetShipment.origin,
+      destination: targetShipment.destination,
+      carrier: targetShipment.carrier,
+      priority: targetShipment.priority,
+      status: targetShipment.status,
+      risk_score: targetShipment.riskScore,
+      is_cold_chain: targetShipment.isColdChain,
+    })
+      .then((res) => {
+        setAiExplanation(res.explanation);
+        setAiProvider(res.provider);
+      })
+      .finally(() => {
+        setLoadingAi(false);
+      });
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -46,6 +71,9 @@ export default function ShipmentDetailPage() {
 
           const matchingRecs = allRecs?.filter((r) => r.shipmentId === found.id);
           setRecommendations(matchingRecs || []);
+
+          // Fetch Live AI Insight
+          fetchLiveAiInsight(found);
         }
         setDisruptions(allDisruptions || []);
       })
@@ -311,7 +339,76 @@ export default function ShipmentDetailPage() {
         </div>
       </div>
 
-      {/* Multi-Sensor Thermal Excursion & MKT Curve Analysis */}
+      {/* Live AI Reasoning & Multimodal Risk Assessment Box */}
+      <div className="rounded-xl bg-gradient-to-r from-bg-surface via-bg-surface-raised to-bg-surface border border-primary/30 p-4 shadow-lg flex flex-col gap-3 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-subtle pb-2.5">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container shadow-sm">
+              <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+            </div>
+            <div>
+              <h2 className="font-section-title text-section-title text-text-primary flex items-center gap-2">
+                Live AI Risk &amp; Corridor Reasoning
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold font-mono">
+                  {aiProvider}
+                </span>
+              </h2>
+              <p className="font-caption text-caption text-text-muted">
+                Real-time grounding across active weather radars, telemetry sensors, and corridor chokepoints
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => shipment && fetchLiveAiInsight(shipment)}
+            disabled={loadingAi}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-bg-surface-raised hover:bg-primary-hover text-text-secondary hover:text-text-primary border border-border-subtle text-xs font-medium transition-colors cursor-pointer self-start sm:self-auto"
+            type="button"
+          >
+            <span className={`material-symbols-outlined text-[15px] ${loadingAi ? 'animate-spin text-primary' : ''}`}>
+              refresh
+            </span>
+            <span>{loadingAi ? 'Synthesizing with AI…' : 'Re-analyze with AI'}</span>
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          {loadingAi ? (
+            <div className="flex items-center gap-3 py-4 text-text-secondary font-caption text-caption animate-pulse">
+              <span className="material-symbols-outlined text-primary text-[20px] animate-spin">progress_activity</span>
+              <span>Evaluating multimodal risk vectors with live AI model…</span>
+            </div>
+          ) : (
+            <p className="font-body-default text-body-default text-text-primary leading-relaxed bg-surface-container-lowest/60 p-3 rounded-lg border border-border-subtle/70">
+              {aiExplanation || 'AI analysis ready. Click Re-analyze to pull live generative synthesis.'}
+            </p>
+          )}
+
+          {/* Quick AI Prescriptive Recovery Action */}
+          {recommendations.length > 0 && (
+            <div className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-primary/10 border border-primary/25 mt-1">
+              <div className="flex items-center gap-2 text-xs text-text-primary">
+                <span className="material-symbols-outlined text-[18px] text-primary">verified_user</span>
+                <span>
+                  <strong className="text-primary font-semibold">Recommended Mitigation:</strong>{' '}
+                  {recommendations[0].title}
+                </span>
+              </div>
+              <button
+                onClick={() => setDetourAuthorized(!detourAuthorized)}
+                className={`px-3 py-1 rounded text-xs font-medium transition-all shadow-sm cursor-pointer whitespace-nowrap ${
+                  detourAuthorized
+                    ? 'bg-risk-low text-white'
+                    : 'bg-primary-container hover:bg-primary-hover text-on-primary-container'
+                }`}
+                type="button"
+              >
+                {detourAuthorized ? '✓ Action Authorized' : 'Authorize Mitigation'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
       {shipment?.isColdChain && (
         <div className="rounded-xl bg-bg-surface border border-border-subtle p-4 flex flex-col gap-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between pb-3 gap-3 border-b border-border-subtle">

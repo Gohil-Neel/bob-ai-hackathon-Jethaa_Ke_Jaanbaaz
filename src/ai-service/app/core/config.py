@@ -21,13 +21,28 @@ class Settings(BaseSettings):
     app_env: str = "development"
     app_port: int = 8001   # AI service runs on 8001; ASP.NET Core runs on 5000
 
-    # ── CORS (allow ASP.NET Core backend to call this service) ───────────────
+    # ── CORS (allow ASP.NET Core backend & React frontend to call this service)
     allowed_origins: List[str] = [
         "http://localhost:5000",
         "http://localhost:5001",
         "http://127.0.0.1:5000",
         "http://127.0.0.1:5001",
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:5175",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        "http://127.0.0.1:5175",
+        "http://localhost:3000",
     ]
+
+    # ── Google Gemini API (100% Free Tier via Google AI Studio) ───────────────
+    gemini_api_key: str = ""
+    gemini_model_id: str = "gemini-1.5-flash"
+
+    # ── OpenAI API ────────────────────────────────────────────────────────────
+    openai_api_key: str = ""
+    openai_model_id: str = "gpt-4o-mini"
 
     # ── IBM watsonx.ai (Phase 13+) ────────────────────────────────────────────
     watsonx_api_key: str = ""
@@ -40,8 +55,26 @@ class Settings(BaseSettings):
         return self.app_env == "development"
 
     @property
+    def gemini_configured(self) -> bool:
+        return bool(self.gemini_api_key and self.gemini_api_key.strip())
+
+    @property
+    def openai_configured(self) -> bool:
+        return bool(self.openai_api_key and self.openai_api_key.strip())
+
+    @property
     def watsonx_configured(self) -> bool:
         return bool(self.watsonx_api_key and self.watsonx_project_id)
+
+    @property
+    def active_llm_provider(self) -> str:
+        if self.gemini_configured:
+            return "gemini"
+        if self.openai_configured:
+            return "openai"
+        if self.watsonx_configured:
+            return "watsonx"
+        return "grounded_synthesizer"
 
 
 settings = Settings()

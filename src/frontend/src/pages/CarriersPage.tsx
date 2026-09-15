@@ -10,6 +10,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { getCarriers } from '../services/api';
+import { callGeminiLive } from '../services/aiService';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -233,7 +234,24 @@ export default function CarriersPage() {
     }).catch(() => {});
   }, []);
 
+  const [aiCarrierAnalysis, setAiCarrierAnalysis] = useState<string>('');
+  const [loadingAi, setLoadingAi] = useState<boolean>(false);
+
   const activeCarrier = carriers.find((c) => c.id === activeId) || carriers[0] || MOCK_CARRIERS[0];
+
+  useEffect(() => {
+    if (activeCarrier) {
+      setLoadingAi(true);
+      callGeminiLive(
+        `Provide an executive carrier SLA performance analysis and risk scorecard for ${activeCarrier.name} (Code: ${activeCarrier.code}). On-time rate: ${activeCarrier.onTimeRate}%, Cold-Chain compliance: ${activeCarrier.coldChainCompliance}%, Tier: ${activeCarrier.tier}, Active shipments: ${activeCarrier.activeShipments}.`,
+        { contextType: 'chat', targetEntity: activeCarrier }
+      ).then(res => {
+        setAiCarrierAnalysis(res.text);
+      }).finally(() => {
+        setLoadingAi(false);
+      });
+    }
+  }, [activeCarrier.id]);
 
   const filteredCarriers = useMemo(() => {
     return carriers.filter((c) => {
@@ -525,6 +543,29 @@ export default function CarriersPage() {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* AI Carrier Performance & SLA Reasoning Box */}
+          <div className="p-4 rounded-lg bg-primary-soft/30 border border-primary/30 space-y-2 relative">
+            <div className="flex items-center justify-between flex-wrap gap-1">
+              <div className="flex items-center gap-2 font-caption text-caption uppercase tracking-wider text-primary font-bold">
+                <span className="material-symbols-outlined text-[16px]">psychology</span>
+                AI SLA &amp; Reliability Scorecard
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold font-mono">
+                ✨ Powered by Google Gemini API
+              </span>
+            </div>
+            {loadingAi ? (
+              <div className="flex items-center gap-2 py-2 text-xs text-text-muted animate-pulse font-mono">
+                <span className="material-symbols-outlined text-[16px] text-emerald-400 animate-spin">sync</span>
+                <span>Evaluating carrier SLA risk factors with Google Gemini...</span>
+              </div>
+            ) : (
+              <p className="font-caption text-caption text-text-secondary leading-relaxed bg-surface-container-lowest/50 p-2.5 rounded border border-border-subtle">
+                {aiCarrierAnalysis || `${activeCarrier.name} demonstrates a ${activeCarrier.onTimeRate}% on-time fulfillment rate across ${activeCarrier.activeLanes.length} allocated lanes with zero unresolved claims.`}
+              </p>
+            )}
           </div>
 
           {/* Emergency Dispatch Bridge */}

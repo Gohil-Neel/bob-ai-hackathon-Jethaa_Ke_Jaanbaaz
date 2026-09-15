@@ -7,6 +7,7 @@ import {
   getAllRecommendations,
   getFleetAssets,
 } from '../services/api';
+import { requestWatsonxExplanation } from '../services/aiService';
 import type {
   ColdChainSensor,
   Alert,
@@ -40,6 +41,9 @@ export default function ColdChainPage() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [fleetAssets, setFleetAssets] = useState<FleetAsset[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [aiThermalTriage, setAiThermalTriage] = useState<string>('');
+  const [aiProvider, setAiProvider] = useState<string>('Google Gemini Live');
+  const [loadingAi, setLoadingAi] = useState<boolean>(false);
 
   // Filters & State
   const [activeTab, setActiveTab] = useState<'all' | 'excursions' | 'approaching' | 'safe'>('all');
@@ -47,6 +51,27 @@ export default function ColdChainPage() {
   const [transferAuthorized, setTransferAuthorized] = useState<boolean>(false);
   const [cabAlarmTriggered, setCabAlarmTriggered] = useState<boolean>(false);
   const [timerSeconds, setTimerSeconds] = useState<number>(2538); // 42m 18s
+
+  const fetchLiveThermalTriage = (activeSensors: ColdChainSensor[]) => {
+    setLoadingAi(true);
+    const excursionSensor = activeSensors.find(s => s.status === 'EXCURSION') || activeSensors[0];
+
+    requestWatsonxExplanation('cold_chain', excursionSensor?.sensorCode || 'SEN-01', {
+      sensor_code: excursionSensor?.sensorCode || 'SEN-BIO-EUR-01',
+      current_temp: excursionSensor?.lastReadingCelsius ?? 9.8,
+      min_temp: excursionSensor?.minTempCelsius ?? 2.0,
+      max_temp: excursionSensor?.maxTempCelsius ?? 8.0,
+      status: excursionSensor?.status || 'EXCURSION',
+      mkt_buffer_minutes: Math.round(timerSeconds / 60),
+    })
+      .then((res) => {
+        setAiThermalTriage(res.explanation);
+        setAiProvider(res.provider);
+      })
+      .finally(() => {
+        setLoadingAi(false);
+      });
+  };
 
   // MKT Kinetic Buffer Countdown Timer
   useEffect(() => {
@@ -77,6 +102,8 @@ export default function ColdChainPage() {
           const firstId = sensorsData[0].shipmentTrackingNumber || sensorsData[0].sensorCode;
           setSelectedShipmentId(firstId);
         }
+
+        fetchLiveThermalTriage(sensorsData || []);
       })
       .catch((err) => {
         console.error('Failed to load cold chain telemetry from Supabase:', err);
@@ -302,6 +329,51 @@ export default function ColdChainPage() {
             <span className="material-symbols-outlined text-[16px]">local_shipping</span>
             <span>View All Shipments</span>
           </button>
+        </div>
+      </div>
+
+      {/* Live AI Thermal Excursion & MKT Triage Copilot */}
+      <div className="rounded-xl bg-gradient-to-r from-bg-surface via-bg-surface-raised to-bg-surface border border-sky-500/30 p-3.5 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-3 relative overflow-hidden">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0 shadow-sm">
+            <span className="material-symbols-outlined text-[18px]">device_thermostat</span>
+          </div>
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-card-title text-card-title text-text-primary font-semibold">
+                Live AI Cold-Chain Thermal Triage Copilot
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold font-mono">
+                {aiProvider}
+              </span>
+            </div>
+            <p className="font-body-default text-xs text-text-secondary line-clamp-2 mt-0.5">
+              {loadingAi
+                ? 'Synthesizing kinetic buffer rates and USP <1079> MKT thermal curve projections…'
+                : aiThermalTriage || 'Real-time cryogenic monitoring active across all cold-chain pods.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">
+          <button
+            onClick={() => fetchLiveThermalTriage(sensors)}
+            disabled={loadingAi}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bg-surface-raised hover:bg-primary-hover text-text-secondary hover:text-text-primary border border-border-subtle text-xs font-medium transition-colors cursor-pointer"
+            type="button"
+          >
+            <span className={`material-symbols-outlined text-[15px] ${loadingAi ? 'animate-spin text-primary' : ''}`}>
+              refresh
+            </span>
+            <span>{loadingAi ? 'Evaluating…' : 'Re-triage with AI'}</span>
+          </button>
+          <a
+            href="/ai-insights"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container hover:bg-primary-hover text-on-primary-container text-xs font-medium transition-colors shadow-sm"
+          >
+            <span>Triage Chamber</span>
+            <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+          </a>
         </div>
       </div>
 
@@ -995,19 +1067,30 @@ export default function ColdChainPage() {
             </div>
 
             {/* AI Diagnostic Box */}
-            <div className="p-3 rounded-lg bg-bg-surface-raised border-l-2 border-primary flex flex-col gap-2 border border-border-subtle">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-primary text-xs font-semibold">
-                  <span className="material-symbols-outlined text-[16px]">neurology</span>
-                  AI Severity Assessment
+            <div className="p-3.5 rounded-lg bg-bg-surface-raised border-l-2 border-emerald-500 flex flex-col gap-2.5 border border-border-subtle shadow-md">
+              <div className="flex items-center justify-between flex-wrap gap-1">
+                <span className="flex items-center gap-1.5 text-text-primary text-xs font-semibold">
+                  <span className="material-symbols-outlined text-[16px] text-emerald-400">neurology</span>
+                  AI Thermal Severity &amp; MKT Triage
                 </span>
-                <span className="px-2 py-0.5 rounded text-[10px] bg-surface-container-lowest text-primary font-medium border border-border-subtle">
-                  Confidence: 93.8%
+                <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/15 text-emerald-400 font-semibold border border-emerald-500/30 font-mono">
+                  ✨ Powered by Google Gemini API
                 </span>
               </div>
-              <p className="text-xs text-text-primary leading-relaxed font-body-default">
-                <strong className="text-risk-critical">Root Cause Diagnosis:</strong> Active temperature excursion (+{selectedConsignment.currentTemp.toFixed(1)}°C) exceeding WHO 2°C–8°C threshold. Mobile reefer intercept protocol ready.
-              </p>
+              {loadingAi ? (
+                <div className="flex items-center gap-2 py-2 text-xs text-text-muted animate-pulse font-mono">
+                  <span className="material-symbols-outlined text-[16px] text-emerald-400 animate-spin">sync</span>
+                  <span>Synthesizing kinetic MKT buffer with Google Gemini...</span>
+                </div>
+              ) : (
+                <p className="text-xs text-text-primary leading-relaxed font-body-default bg-surface-container-lowest/60 p-2.5 rounded border border-border-subtle">
+                  {aiThermalTriage || (
+                    <>
+                      <strong className="text-risk-critical">Root Cause Diagnosis:</strong> Active temperature excursion (+{selectedConsignment.currentTemp.toFixed(1)}°C) exceeding WHO 2°C–8°C threshold. Intercept reefer pod staging initiated.
+                    </>
+                  )}
+                </p>
+              )}
 
               {/* Critical Countdown */}
               <div className="p-2.5 rounded-lg bg-risk-critical/10 border border-risk-critical/30 flex items-center justify-between mt-1">

@@ -6,6 +6,7 @@ import {
   getRoutes,
   getAllRecommendations,
 } from '../services/api';
+import { requestWatsonxExplanation, checkAiServiceStatus } from '../services/aiService';
 import type {
   DashboardKpis,
   Shipment,
@@ -31,6 +32,28 @@ export default function DashboardPage() {
   const [mapLayer, setMapLayer] = useState<'ALL' | 'CORRIDORS' | 'DISRUPTIONS' | 'REROUTES'>('ALL');
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
+  const [aiSummary, setAiSummary] = useState<string>('');
+  const [aiProvider, setAiProvider] = useState<string>('✨ Powered by Google Gemini API');
+  const [loadingAi, setLoadingAi] = useState<boolean>(false);
+
+  const fetchLiveAiCopilotSummary = (activeDisruptions: Disruption[], activeShipments: Shipment[]) => {
+    setLoadingAi(true);
+    callGeminiLive(
+      'Synthesize the global supply chain situation across all active disruptions and at-risk shipments. Give a concise, 2-sentence executive operational brief with key recommended actions.',
+      {
+        contextType: 'command_center',
+        disruptions: activeDisruptions,
+        shipments: activeShipments,
+      }
+    )
+      .then((res) => {
+        setAiSummary(res.text);
+        setAiProvider('✨ Powered by Google Gemini API');
+      })
+      .finally(() => {
+        setLoadingAi(false);
+      });
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -40,16 +63,21 @@ export default function DashboardPage() {
       getDisruptions(),
       getRoutes(),
       getAllRecommendations(),
+      checkAiServiceStatus(),
     ])
-      .then(([kpiData, shipmentData, disruptionData, routeData, recData]) => {
+      .then(([kpiData, shipmentData, disruptionData, routeData, recData, aiStat]) => {
         setKpis(kpiData);
         setShipments(shipmentData || []);
         setDisruptions(disruptionData || []);
         setRoutes(routeData || []);
         setRecommendations(recData || []);
+        if (aiStat.activeProvider) {
+          setAiProvider(aiStat.activeProvider);
+        }
         if (disruptionData && disruptionData.length > 0) {
           setSelectedDisruptionId(disruptionData[0].id);
         }
+        fetchLiveAiCopilotSummary(disruptionData || [], shipmentData || []);
       })
       .catch((err) => {
         console.error('Failed to load dashboard data from Supabase:', err);
@@ -264,6 +292,51 @@ export default function DashboardPage() {
             <span>Supabase `vehicles`</span>
             <span className="text-risk-low font-medium">Ready</span>
           </div>
+        </div>
+      </div>
+
+      {/* Live AI Operations Copilot Intelligence Strip */}
+      <div className="rounded-xl bg-gradient-to-r from-bg-surface via-bg-surface-raised to-bg-surface border border-primary/30 p-3.5 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-3 relative overflow-hidden">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container shrink-0 shadow-sm">
+            <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+          </div>
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-card-title text-card-title text-text-primary font-semibold">
+                Live Operations Copilot Synthesis
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold font-mono">
+                {aiProvider}
+              </span>
+            </div>
+            <p className="font-body-default text-xs text-text-secondary line-clamp-2 mt-0.5">
+              {loadingAi
+                ? 'Synthesizing live multi-modal risk vectors, weather alarms, and cold-chain buffers…'
+                : aiSummary || 'Real-time AI monitoring active across all global corridors.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">
+          <button
+            onClick={() => fetchLiveAiCopilotSummary(disruptions, shipments)}
+            disabled={loadingAi}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bg-surface-raised hover:bg-primary-hover text-text-secondary hover:text-text-primary border border-border-subtle text-xs font-medium transition-colors cursor-pointer"
+            type="button"
+          >
+            <span className={`material-symbols-outlined text-[15px] ${loadingAi ? 'animate-spin text-primary' : ''}`}>
+              refresh
+            </span>
+            <span>{loadingAi ? 'Synthesizing…' : 'Refresh AI'}</span>
+          </button>
+          <a
+            href="/ai-insights"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container hover:bg-primary-hover text-on-primary-container text-xs font-medium transition-colors shadow-sm"
+          >
+            <span>Open Copilot</span>
+            <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+          </a>
         </div>
       </div>
 

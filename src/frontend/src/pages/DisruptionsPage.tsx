@@ -623,15 +623,15 @@ export default function DisruptionsPage() {
         <div className="xl:col-span-4 flex flex-col gap-3 min-w-0">
           <div className="flex flex-col rounded-xl bg-bg-surface-raised shadow-md overflow-hidden border border-border-strong">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-surface-container-lowest border-b border-border-subtle">
+            <div className="flex items-center justify-between px-4 py-3 bg-surface-container-lowest border-b border-border-subtle flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-[20px]">psychology</span>
                 <span className="font-section-title text-section-title text-text-primary">
                   AI Detour &amp; Mitigation
                 </span>
               </div>
-              <span className="font-caption text-caption px-2 py-0.5 rounded-full bg-primary-soft text-primary font-medium border border-primary-container/30">
-                Supabase Engine
+              <span className="font-caption text-caption px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-semibold border border-emerald-500/30 font-mono">
+                ✨ Powered by Google Gemini API
               </span>
             </div>
 

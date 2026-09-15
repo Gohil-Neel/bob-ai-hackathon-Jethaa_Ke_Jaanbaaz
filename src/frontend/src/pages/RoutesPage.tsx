@@ -10,6 +10,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { getRoutes } from '../services/api';
+import { callGeminiLive } from '../services/aiService';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -165,7 +166,24 @@ export default function RoutesPage() {
     }).catch(() => {});
   }, []);
 
+  const [aiCorridorAnalysis, setAiCorridorAnalysis] = useState<string>('');
+  const [loadingAi, setLoadingAi] = useState<boolean>(false);
+
   const activeRoute = routes.find((r) => r.id === activeId) || routes[0] || MOCK_ROUTES[0];
+
+  useEffect(() => {
+    if (activeRoute) {
+      setLoadingAi(true);
+      callGeminiLive(
+        `Provide an operational corridor risk analysis and prescriptive reroute optimization for trade lane ${activeRoute.corridorCode} (${activeRoute.name}). Origin: ${activeRoute.origin} -> Destination: ${activeRoute.destination}. Mode: ${activeRoute.primaryMode}. Distance: ${activeRoute.distanceKm}km.`,
+        { contextType: 'chat', targetEntity: activeRoute }
+      ).then(res => {
+        setAiCorridorAnalysis(res.text);
+      }).finally(() => {
+        setLoadingAi(false);
+      });
+    }
+  }, [activeRoute.id]);
 
   const filteredRoutes = useMemo(() => {
     return routes.filter((r) => {
@@ -359,18 +377,29 @@ export default function RoutesPage() {
           </div>
 
           {/* AI Detour Recommendation */}
-          {activeRoute.alternativeRouteName && (
-            <div className="p-4 rounded-lg bg-primary-soft/40 border border-primary/30 space-y-1.5">
+          <div className="p-4 rounded-lg bg-primary-soft/30 border border-primary/30 space-y-2 relative">
+            <div className="flex items-center justify-between flex-wrap gap-1">
               <div className="flex items-center gap-2 font-caption text-caption uppercase tracking-wider text-primary font-bold">
                 <span className="material-symbols-outlined text-[16px]">alt_route</span>
-                AI Prescriptive Bypass Recommendation
+                AI Prescriptive Bypass &amp; Corridor Reasoning
               </div>
-              <div className="font-card-title text-card-title text-text-primary">{activeRoute.alternativeRouteName}</div>
-              <div className="font-caption text-caption text-primary">
-                Transit Impact: +{activeRoute.alternativeTransitDeltaDays} days (Saves ₹2.40 Cr from quality degradation)
-              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold font-mono">
+                ✨ Powered by Google Gemini API
+              </span>
             </div>
-          )}
+            {loadingAi ? (
+              <div className="flex items-center gap-2 py-2 text-xs text-text-muted animate-pulse font-mono">
+                <span className="material-symbols-outlined text-[16px] text-emerald-400 animate-spin">sync</span>
+                <span>Synthesizing corridor optimization with Google Gemini...</span>
+              </div>
+            ) : (
+              <p className="font-caption text-caption text-text-secondary leading-relaxed bg-surface-container-lowest/50 p-2.5 rounded border border-border-subtle">
+                {aiCorridorAnalysis || (activeRoute.alternativeRouteName
+                  ? `${activeRoute.alternativeRouteName} — Transit Impact: +${activeRoute.alternativeTransitDeltaDays} days (Saves ₹2.40 Cr from quality degradation).`
+                  : 'Corridor telemetry nominal. Continuous AI optimization active.')}
+              </p>
+            )}
+          </div>
 
           <div className="flex gap-2.5 pt-2 border-t border-border-subtle">
             <button
