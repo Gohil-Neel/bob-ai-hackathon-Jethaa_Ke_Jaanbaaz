@@ -1,278 +1,135 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getShipments } from '../services/api';
-
-interface ShipmentRow {
-  id: string;
-  route: string;
-  cargo: string;
-  cargoValue: string;
-  valueNumeric: number;
-  carrier: string;
-  unit: string;
-  driver: string;
-  priority: 'P1 Critical' | 'P2 High' | 'P3 Medium' | 'P4 Low';
-  eta: string;
-  delayEst: string;
-  telemetryType: 'temp' | 'flood' | 'mechanical' | 'nominal' | 'halt';
-  telemetryBadge: string;
-  isColdChain: boolean;
-  isDisrupted: boolean;
-  currentTemp?: string;
-  corridor: string;
-  carrierKey: string;
-  status: 'at-risk' | 'delayed' | 'in-transit' | 'delivered';
-}
-
-const shipmentsData: ShipmentRow[] = [
-  {
-    id: 'SHP-0117',
-    route: 'Hyderabad → Chennai DC',
-    cargo: 'HPV Vaccines (Biopharma)',
-    cargoValue: '₹1.85 Cr',
-    valueNumeric: 18500000,
-    carrier: 'ColdTrans Logistics Ltd',
-    carrierKey: 'coldtrans',
-    unit: 'REF-104',
-    driver: 'Rajesh K.',
-    priority: 'P1 Critical',
-    eta: '18:15 Today',
-    delayEst: '+3.2h Delay',
-    telemetryType: 'temp',
-    telemetryBadge: 'Temp 9.4°C (>8°C)',
-    isColdChain: true,
-    isDisrupted: true,
-    currentTemp: '9.4°C',
-    corridor: 'hyderabad-chennai',
-    status: 'at-risk',
-  },
-  {
-    id: 'SHP-0102',
-    route: 'Mumbai → Bangalore Hub',
-    cargo: 'Auto Components',
-    cargoValue: '₹64 Lakhs',
-    valueNumeric: 6400000,
-    carrier: 'Blue Dart Express',
-    carrierKey: 'bluedart',
-    unit: 'TRK-882',
-    driver: 'Sunil P.',
-    priority: 'P2 High',
-    eta: '22:30 Today',
-    delayEst: '+4.5h Delay',
-    telemetryType: 'flood',
-    telemetryBadge: 'Flooding Alert',
-    isColdChain: false,
-    isDisrupted: true,
-    corridor: 'mumbai-bangalore',
-    status: 'delayed',
-  },
-  {
-    id: 'SHP-0123',
-    route: 'Pune → Hyderabad Junction',
-    cargo: 'Consumer Electronics',
-    cargoValue: '₹85 Lakhs',
-    valueNumeric: 8500000,
-    carrier: 'SafeXpress Heavy',
-    carrierKey: 'safexpress',
-    unit: 'TRK-203',
-    driver: 'Amar V.',
-    priority: 'P3 Medium',
-    eta: 'Tomorrow 06:00',
-    delayEst: '+1.8h Delay',
-    telemetryType: 'mechanical',
-    telemetryBadge: 'Mechanical Halt',
-    isColdChain: false,
-    isDisrupted: false,
-    corridor: 'pune-hyderabad',
-    status: 'delayed',
-  },
-  {
-    id: 'SHP-0145',
-    route: 'Delhi IGI → Bangalore BLR',
-    cargo: 'High Precision Optics',
-    cargoValue: '₹2.10 Cr',
-    valueNumeric: 21000000,
-    carrier: 'DHL Global Forwarding',
-    carrierKey: 'dhl',
-    unit: 'FLT-8802',
-    driver: 'Air Freight Crew',
-    priority: 'P4 Low',
-    eta: 'Tomorrow 09:30',
-    delayEst: 'On Track',
-    telemetryType: 'nominal',
-    telemetryBadge: 'Nominal 21.0°C',
-    isColdChain: true,
-    isDisrupted: false,
-    corridor: 'delhi-ahmedabad',
-    status: 'in-transit',
-  },
-  {
-    id: 'SHP-0188',
-    route: 'Coimbatore → Chennai Port',
-    cargo: 'Textile Machinery',
-    cargoValue: '₹42 Lakhs',
-    valueNumeric: 4200000,
-    carrier: 'TCI Freight Line',
-    carrierKey: 'tci',
-    unit: 'TRK-552',
-    driver: 'Murugan S.',
-    priority: 'P2 High',
-    eta: 'Tonight 23:45',
-    delayEst: '+5.1h Delay',
-    telemetryType: 'halt',
-    telemetryBadge: 'Terminal Halt',
-    isColdChain: false,
-    isDisrupted: true,
-    corridor: 'hyderabad-chennai',
-    status: 'delayed',
-  },
-  {
-    id: 'SHP-0204',
-    route: 'Ahmedabad → Navi Mumbai',
-    cargo: 'Industrial Chemicals',
-    cargoValue: '₹78 Lakhs',
-    valueNumeric: 7800000,
-    carrier: 'TransChem Cargo',
-    carrierKey: 'transchem',
-    unit: 'TNK-401',
-    driver: 'Farhan K.',
-    priority: 'P3 Medium',
-    eta: 'Tomorrow 04:15',
-    delayEst: '+1.4h Delay',
-    telemetryType: 'nominal',
-    telemetryBadge: 'Pressure Stable',
-    isColdChain: false,
-    isDisrupted: false,
-    corridor: 'delhi-ahmedabad',
-    status: 'in-transit',
-  },
-  {
-    id: 'SHP-0233',
-    route: 'Anand → Mumbai Super Hub',
-    cargo: 'Enzymes & Cultures',
-    cargoValue: '₹55 Lakhs',
-    valueNumeric: 5500000,
-    carrier: 'ColdTrans Logistics Ltd',
-    carrierKey: 'coldtrans',
-    unit: 'REF-088',
-    driver: 'Deepak N.',
-    priority: 'P1 Critical',
-    eta: 'Today 20:00',
-    delayEst: '+2.8h Delay',
-    telemetryType: 'temp',
-    telemetryBadge: 'Temp 7.8°C (Edge)',
-    isColdChain: true,
-    isDisrupted: true,
-    currentTemp: '7.8°C',
-    corridor: 'mumbai-bangalore',
-    status: 'at-risk',
-  },
-];
+import {
+  getShipments,
+  getRoutes,
+  getCarriers,
+  getDisruptions,
+  getColdChainSensors,
+} from '../services/api';
+import type {
+  Shipment,
+  Route,
+  Carrier,
+  Disruption,
+  ColdChainSensor,
+} from '../types/domain';
 
 export default function ShipmentsPage() {
   const navigate = useNavigate();
-  const [shipments, setShipments] = useState<ShipmentRow[]>(shipmentsData);
+  const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [routes, setRoutes] = useState<Route[]>([]);
+  const [carriers, setCarriers] = useState<Carrier[]>([]);
+  const [disruptions, setDisruptions] = useState<Disruption[]>([]);
+  const [sensors, setSensors] = useState<ColdChainSensor[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Filters
   const [activeTab, setActiveTab] = useState<'all' | 'at-risk' | 'delayed' | 'cold-chain' | 'in-transit' | 'delivered'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [corridorFilter, setCorridorFilter] = useState<string>('all');
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [carrierFilter, setCarrierFilter] = useState<string>('all');
   const [filterDisruptedOnly, setFilterDisruptedOnly] = useState<boolean>(false);
-  const [filterHighValueOnly, setFilterHighValueOnly] = useState<boolean>(false);
   const [filterStrictColdChain, setFilterStrictColdChain] = useState<boolean>(false);
-  const [selectedShipmentId, setSelectedShipmentId] = useState<string>('SHP-0117');
-  const [emergencyActionAuthorized, setEmergencyActionAuthorized] = useState<boolean>(false);
+  const [selectedShipmentId, setSelectedShipmentId] = useState<string | null>(null);
   const [isIngestModalOpen, setIsIngestModalOpen] = useState<boolean>(false);
 
+  // Fetch live Supabase data on mount
   useEffect(() => {
-    getShipments().then((liveData) => {
-      if (liveData && liveData.length > 0) {
-        const mapped: ShipmentRow[] = liveData.map((s, idx) => {
-          const isAtRisk = s.status === 'AT_RISK' || (s.riskScore !== null && s.riskScore >= 0.7);
-          const isDelayed = s.status === 'DELAYED';
-          const isDelivered = s.status === 'DELIVERED';
-          const uiStatus: 'at-risk' | 'delayed' | 'in-transit' | 'delivered' =
-            isAtRisk ? 'at-risk' : isDelayed ? 'delayed' : isDelivered ? 'delivered' : 'in-transit';
-
-          const priorityMap: Record<string, 'P1 Critical' | 'P2 High' | 'P3 Medium' | 'P4 Low'> = {
-            CRITICAL: 'P1 Critical',
-            HIGH: 'P2 High',
-            MEDIUM: 'P3 Medium',
-            LOW: 'P4 Low',
-          };
-
-          return {
-            id: s.trackingNumber || s.id,
-            route: `${s.origin} → ${s.destination}`,
-            cargo: s.isColdChain ? 'Cold-Chain Biopharma / Vaccines' : 'Industrial Freight Cargo',
-            cargoValue: s.riskScore && s.riskScore > 0.8 ? '₹1.85 Cr' : '₹75 Lakhs',
-            valueNumeric: s.riskScore && s.riskScore > 0.8 ? 18500000 : 7500000,
-            carrier: s.carrier || 'Global Logistics',
-            carrierKey: (s.carrier || 'carrier').toLowerCase().replace(/[^a-z0-9]/g, ''),
-            unit: `UNIT-${(idx + 101).toString()}`,
-            driver: 'Assigned Driver',
-            priority: priorityMap[s.priority] || 'P2 High',
-            eta: s.estimatedArrival ? new Date(s.estimatedArrival).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Pending',
-            delayEst: isAtRisk ? '+3.5h Delay' : isDelayed ? '+2.0h Delay' : 'On Track',
-            telemetryType: s.isColdChain ? 'temp' : isAtRisk ? 'flood' : 'nominal',
-            telemetryBadge: s.isColdChain ? 'Temp Monitored' : isAtRisk ? 'Risk Excursion' : 'Nominal Stream',
-            isColdChain: s.isColdChain,
-            isDisrupted: isAtRisk || isDelayed,
-            currentTemp: s.isColdChain ? (isAtRisk ? '9.8°C' : '4.2°C') : undefined,
-            corridor: s.origin.toLowerCase().includes('shanghai') ? 'asia-eu' : 'transpacific',
-            status: uiStatus,
-          };
-        });
-        setShipments(mapped);
-        if (mapped.length > 0) {
-          setSelectedShipmentId(mapped[0].id);
+    setLoading(true);
+    Promise.all([
+      getShipments(),
+      getRoutes(),
+      getCarriers(),
+      getDisruptions(),
+      getColdChainSensors(),
+    ])
+      .then(([shipmentData, routeData, carrierData, disruptionData, sensorData]) => {
+        setShipments(shipmentData || []);
+        setRoutes(routeData || []);
+        setCarriers(carrierData || []);
+        setDisruptions(disruptionData || []);
+        setSensors(sensorData || []);
+        if (shipmentData && shipmentData.length > 0) {
+          setSelectedShipmentId(shipmentData[0].id);
         }
-      }
-    }).catch(() => {});
+      })
+      .catch((err) => {
+        console.error('Failed to load live shipments from Supabase:', err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
-  const selectedShipment = shipments.find((s) => s.id === selectedShipmentId) || shipments[0] || shipmentsData[0];
+  // Compute live analytical counts
+  const atRiskCount = shipments.filter(
+    (s) => s.status === 'AT_RISK' || (s.riskScore !== null && s.riskScore >= 0.7)
+  ).length;
+  const delayedCount = shipments.filter((s) => s.status === 'DELAYED').length;
+  const coldChainCount = shipments.filter((s) => s.isColdChain).length;
+  const inTransitCount = shipments.filter((s) => s.status === 'IN_TRANSIT').length;
+  const deliveredCount = shipments.filter((s) => s.status === 'DELIVERED').length;
 
+  const onTimePercent =
+    shipments.length > 0
+      ? Math.round(((shipments.length - atRiskCount - delayedCount) / shipments.length) * 100)
+      : 100;
+
+  const coldChainExcursions = sensors.filter(
+    (s) => s.status === 'EXCURSION' || (s.lastReadingCelsius !== null && s.lastReadingCelsius > s.maxTempCelsius)
+  ).length;
+
+  // Filtered dataset
   const filteredShipments = shipments.filter((s) => {
-    if (activeTab === 'at-risk' && s.status !== 'at-risk') return false;
-    if (activeTab === 'delayed' && s.status !== 'delayed') return false;
+    // Tabs
+    if (activeTab === 'at-risk' && !(s.status === 'AT_RISK' || (s.riskScore !== null && s.riskScore >= 0.7))) return false;
+    if (activeTab === 'delayed' && s.status !== 'DELAYED') return false;
     if (activeTab === 'cold-chain' && !s.isColdChain) return false;
-    if (activeTab === 'in-transit' && s.status !== 'in-transit') return false;
-    if (activeTab === 'delivered' && s.status !== 'delivered') return false;
+    if (activeTab === 'in-transit' && s.status !== 'IN_TRANSIT') return false;
+    if (activeTab === 'delivered' && s.status !== 'DELIVERED') return false;
 
-    if (corridorFilter !== 'all' && s.corridor !== corridorFilter) return false;
-    if (severityFilter !== 'all') {
-      if (severityFilter === 'p1' && s.priority !== 'P1 Critical') return false;
-      if (severityFilter === 'p2' && s.priority !== 'P2 High') return false;
-      if (severityFilter === 'p3' && s.priority !== 'P3 Medium') return false;
-      if (severityFilter === 'p4' && s.priority !== 'P4 Low') return false;
+    // Dropdowns
+    if (corridorFilter !== 'all') {
+      const matchRoute = routes.find((r) => r.id === corridorFilter);
+      if (matchRoute && s.routeId !== matchRoute.id) return false;
     }
-    if (carrierFilter !== 'all' && s.carrierKey !== carrierFilter) return false;
 
-    if (filterDisruptedOnly && !s.isDisrupted) return false;
-    if (filterHighValueOnly && s.valueNumeric < 5000000) return false;
+    if (severityFilter !== 'all' && s.priority !== severityFilter) return false;
+    if (carrierFilter !== 'all' && s.carrier.toUpperCase() !== carrierFilter.toUpperCase()) return false;
+
+    // Micro toggles
+    if (filterDisruptedOnly && !(s.status === 'AT_RISK' || s.status === 'DELAYED')) return false;
     if (filterStrictColdChain && !s.isColdChain) return false;
 
+    // Search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       return (
-        s.id.toLowerCase().includes(q) ||
-        s.cargo.toLowerCase().includes(q) ||
+        s.trackingNumber.toLowerCase().includes(q) ||
+        s.origin.toLowerCase().includes(q) ||
+        s.destination.toLowerCase().includes(q) ||
         s.carrier.toLowerCase().includes(q) ||
-        s.unit.toLowerCase().includes(q) ||
-        s.driver.toLowerCase().includes(q) ||
-        s.route.toLowerCase().includes(q)
+        s.status.toLowerCase().includes(q)
       );
     }
+
     return true;
   });
+
+  const selectedShipment: Shipment | null =
+    shipments.find((s) => s.id === selectedShipmentId) || shipments[0] || null;
+
+  const selectedSensor: ColdChainSensor | undefined = selectedShipment
+    ? sensors.find((sen) => sen.shipmentId === selectedShipment.id)
+    : undefined;
 
   const activeFiltersCount =
     (corridorFilter !== 'all' ? 1 : 0) +
     (severityFilter !== 'all' ? 1 : 0) +
     (carrierFilter !== 'all' ? 1 : 0) +
     (filterDisruptedOnly ? 1 : 0) +
-    (filterHighValueOnly ? 1 : 0) +
     (filterStrictColdChain ? 1 : 0) +
     (searchQuery.trim() ? 1 : 0);
 
@@ -282,57 +139,61 @@ export default function ShipmentsPage() {
     setSeverityFilter('all');
     setCarrierFilter('all');
     setFilterDisruptedOnly(false);
-    setFilterHighValueOnly(false);
     setFilterStrictColdChain(false);
     setActiveTab('all');
   };
 
+  const handleExportCsv = () => {
+    const headers = ['Tracking #', 'Origin', 'Destination', 'Carrier', 'Priority', 'Status', 'Risk Score', 'Cold Chain', 'ETA UTC'];
+    const rows = shipments.map((s) => [
+      `"${s.trackingNumber}"`,
+      `"${s.origin}"`,
+      `"${s.destination}"`,
+      `"${s.carrier}"`,
+      s.priority,
+      s.status,
+      s.riskScore !== null ? `${(s.riskScore * 100).toFixed(0)}%` : 'N/A',
+      s.isColdChain ? 'Yes (2-8C)' : 'No',
+      `"${s.estimatedArrival || 'N/A'}"`,
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `supplyshield_shipments_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
-    <div className="flex flex-col w-full pb-12">
-      {/* Page Header & Action Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4">
+    <div className="flex flex-col w-full pb-12 gap-4">
+      {/* Top Header & Supabase Connection Status */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-3">
             <h1 className="font-page-title text-page-title text-text-primary tracking-tight">Shipments Management</h1>
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-surface-container-high text-caption font-caption text-text-secondary">
-              <span className="w-1.5 h-1.5 rounded-full bg-status-info animate-pulse"></span>
-              Telemetry Synced 12s ago
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-risk-low/10 border border-risk-low/30 text-caption font-caption text-risk-low font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-ping"></span>
+              Live Supabase `shipments`
             </span>
           </div>
           <p className="font-body-default text-body-default text-text-muted mt-0.5">
-            Real-time active freight tracking, multivariable risk classification, and carrier cold-chain telemetry
+            Active multi-modal freight tracking, AI risk scoring, and real-time cold-chain sensor telemetry
           </p>
         </div>
 
+        {/* Global Page Action Buttons */}
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
-            onClick={() => {
-              const headers = ['ID', 'Route', 'Cargo', 'Value', 'Carrier', 'Priority', 'ETA', 'Telemetry'];
-              const rows = shipmentsData.map((s) => [
-                s.id,
-                `"${s.route}"`,
-                `"${s.cargo}"`,
-                s.cargoValue,
-                `"${s.carrier}"`,
-                s.priority,
-                `"${s.eta}"`,
-                `"${s.telemetryBadge}"`,
-              ]);
-              const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-              const encodedUri = encodeURI(csvContent);
-              const link = document.createElement('a');
-              link.setAttribute('href', encodedUri);
-              link.setAttribute('download', 'supplyshield_shipments.csv');
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-            }}
+            onClick={handleExportCsv}
             className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover font-card-title text-card-title shadow-sm transition-colors border border-border-subtle"
             type="button"
           >
             <span className="material-symbols-outlined text-[16px] text-text-muted">download</span>
-            <span>Export CSV</span>
+            <span>Export CSV ({shipments.length})</span>
           </button>
+          
           <button
             onClick={() => setIsIngestModalOpen(true)}
             className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg bg-primary-container text-on-primary-container hover:bg-primary-hover font-card-title text-card-title shadow-sm transition-all duration-150 active:scale-[0.98]"
@@ -345,176 +206,197 @@ export default function ShipmentsPage() {
       </div>
 
       {/* Operational Filter Tabs Bar */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-3 -mx-1 px-1 scrollbar-none">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         <button
           onClick={() => setActiveTab('all')}
-          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap shadow-sm transition-colors ${activeTab === 'all'
-              ? 'bg-primary-soft text-primary border border-primary-container/30 font-medium'
+          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap shadow-sm transition-colors ${
+            activeTab === 'all'
+              ? 'bg-primary-soft text-primary border border-primary-container/30 font-semibold'
               : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-            }`}
+          }`}
           type="button"
         >
           <span>All Shipments</span>
           <span className="font-caption text-caption px-1.5 py-0.2 rounded-full bg-primary-container/20 text-primary">
-            1,248
+            {loading ? '…' : shipments.length}
           </span>
         </button>
         <button
           onClick={() => setActiveTab('at-risk')}
-          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${activeTab === 'at-risk'
-              ? 'bg-error-container/30 text-error border border-error/30 font-medium'
+          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${
+            activeTab === 'at-risk'
+              ? 'bg-risk-critical/15 text-risk-critical border border-risk-critical/30 font-semibold'
               : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-            }`}
+          }`}
           type="button"
         >
           <span className="w-2 h-2 rounded-full bg-risk-critical"></span>
           <span>At-Risk</span>
-          <span className="font-caption text-caption px-1.5 py-0.2 rounded-full bg-error-container/30 text-error">23</span>
+          <span className="font-caption text-caption px-1.5 py-0.2 rounded-full bg-risk-critical/20 text-risk-critical font-bold">
+            {loading ? '…' : atRiskCount}
+          </span>
         </button>
         <button
           onClick={() => setActiveTab('delayed')}
-          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${activeTab === 'delayed'
-              ? 'bg-risk-medium/20 text-risk-medium border border-risk-medium/40 font-medium'
+          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${
+            activeTab === 'delayed'
+              ? 'bg-risk-medium/20 text-risk-medium border border-risk-medium/40 font-semibold'
               : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-            }`}
+          }`}
           type="button"
         >
           <span className="w-2 h-2 rounded-full bg-risk-medium"></span>
           <span>Delayed</span>
-          <span className="font-caption text-caption px-1.5 py-0.2 rounded-full bg-risk-medium/20 text-risk-medium">212</span>
+          <span className="font-caption text-caption px-1.5 py-0.2 rounded-full bg-risk-medium/20 text-risk-medium">
+            {loading ? '…' : delayedCount}
+          </span>
         </button>
         <button
           onClick={() => setActiveTab('cold-chain')}
-          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${activeTab === 'cold-chain'
-              ? 'bg-status-info/20 text-status-info border border-status-info/40 font-medium'
+          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${
+            activeTab === 'cold-chain'
+              ? 'bg-sky-500/20 text-sky-400 border border-sky-500/40 font-semibold'
               : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-            }`}
+          }`}
           type="button"
         >
-          <span className="material-symbols-outlined text-[14px] text-status-info">ac_unit</span>
+          <span className="material-symbols-outlined text-[14px] text-sky-400">ac_unit</span>
           <span>Cold Chain Monitored</span>
           <span className="font-caption text-caption px-1.5 py-0.2 rounded-full bg-surface-container-high text-text-secondary">
-            184
+            {loading ? '…' : coldChainCount}
           </span>
         </button>
         <button
           onClick={() => setActiveTab('in-transit')}
-          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${activeTab === 'in-transit'
-              ? 'bg-primary-soft text-primary font-medium'
+          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${
+            activeTab === 'in-transit'
+              ? 'bg-primary-soft text-primary font-semibold'
               : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-            }`}
+          }`}
           type="button"
         >
           <span>In Transit</span>
           <span className="font-caption text-caption px-1.5 py-0.2 rounded-full bg-surface-container-high text-text-secondary">
-            820
+            {loading ? '…' : inTransitCount}
           </span>
         </button>
         <button
           onClick={() => setActiveTab('delivered')}
-          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${activeTab === 'delivered'
-              ? 'bg-risk-low/20 text-risk-low font-medium'
+          className={`px-3 py-1.5 rounded-lg font-card-title text-card-title flex items-center gap-2 whitespace-nowrap transition-colors ${
+            activeTab === 'delivered'
+              ? 'bg-risk-low/20 text-risk-low font-semibold'
               : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
-            }`}
+          }`}
           type="button"
         >
-          <span>Delivered Today</span>
+          <span>Delivered</span>
           <span className="font-caption text-caption px-1.5 py-0.2 rounded-full bg-surface-container-high text-text-secondary">
-            193
+            {loading ? '…' : deliveredCount}
           </span>
         </button>
       </div>
 
-      {/* Top KPI Metrics Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        {/* KPI 1 */}
-        <div className="p-4 rounded-xl bg-bg-surface shadow-sm relative overflow-hidden flex flex-col justify-between gap-2.5 border border-border-subtle hover:border-border-strong transition-colors">
+      {/* Top Analytical KPI Metric Cards Grid (100% Live DB Computed) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* KPI 1: Active Loads */}
+        <div className="p-3.5 rounded-xl bg-bg-surface shadow-sm flex flex-col justify-between gap-2 border border-border-subtle hover:border-border-strong transition-colors">
           <div className="flex items-center justify-between">
-            <span className="font-card-title text-card-title text-text-secondary">Total In-Transit</span>
+            <span className="font-card-title text-card-title text-text-secondary">Tracked Consignments</span>
             <div className="p-1.5 rounded-md bg-surface-container text-text-muted flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">local_shipping</span>
             </div>
           </div>
-          <div className="flex items-baseline gap-2.5 flex-wrap">
-            <span className="font-kpi-val text-kpi-val text-text-primary font-semibold tracking-tight">1,248</span>
+          <div className="flex items-baseline justify-between">
+            <span className="font-kpi-val text-kpi-val text-text-primary font-semibold tracking-tight">
+              {loading ? '…' : shipments.length}
+            </span>
             <span className="inline-flex items-center text-risk-low font-caption text-caption font-medium">
-              <span className="material-symbols-outlined text-[14px] leading-none mr-0.5">arrow_upward</span>
-              12% vs yesterday
+              <span className="material-symbols-outlined text-[14px] leading-none mr-0.5">check_circle</span>
+              Supabase Live
             </span>
           </div>
           <div className="flex items-center justify-between font-caption text-caption text-text-muted pt-2 border-t border-border-subtle/40">
-            <span>Fleet Utilization</span>
-            <span className="text-text-primary font-medium">98.2% service rate</span>
+            <span>Active Carriers</span>
+            <span className="text-text-primary font-medium">{carriers.length || 6} Registered</span>
           </div>
         </div>
 
-        {/* KPI 2 */}
-        <div className="p-4 rounded-xl bg-bg-surface shadow-sm relative overflow-hidden flex flex-col justify-between gap-2.5 border border-border-subtle hover:border-border-strong transition-colors">
-          <div className="flex items-center justify-between">
+        {/* KPI 2: High Risk */}
+        <div className="p-3.5 rounded-xl bg-bg-surface shadow-sm flex flex-col justify-between gap-2 border border-border-subtle hover:border-border-strong transition-colors relative overflow-hidden">
+          <div className="absolute top-0 left-0 bottom-0 w-1 bg-risk-critical"></div>
+          <div className="flex items-center justify-between pl-1">
             <div className="flex items-center gap-2">
-              <span className="font-card-title text-card-title text-text-secondary">High Risk Shipments</span>
+              <span className="font-card-title text-card-title text-text-secondary">High Risk Loads</span>
               <span className="w-2 h-2 rounded-full bg-risk-critical animate-ping flex-shrink-0"></span>
             </div>
-            <div className="p-1.5 rounded-md bg-error-container/20 text-error flex items-center justify-center">
+            <div className="p-1.5 rounded-md bg-risk-critical/15 text-risk-critical flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">warning</span>
             </div>
           </div>
-          <div className="flex items-baseline gap-2.5 flex-wrap">
-            <span className="font-kpi-val text-kpi-val text-error font-semibold tracking-tight">23</span>
-            <span className="inline-flex items-center text-error font-caption text-caption font-medium">
-              Requires immediate triage
+          <div className="flex items-baseline justify-between pl-1">
+            <span className="font-kpi-val text-kpi-val text-risk-critical font-semibold tracking-tight">
+              {loading ? '…' : atRiskCount}
+            </span>
+            <span className="text-risk-critical font-caption text-caption font-medium">
+              Score &ge; 0.70
             </span>
           </div>
-          <div className="flex items-center justify-between font-caption text-caption text-text-muted pt-2 border-t border-border-subtle/40">
-            <span>Value at Hazard</span>
-            <span className="text-error font-medium">₹3.82 Cr at stake</span>
+          <div className="flex items-center justify-between font-caption text-caption text-text-muted pt-2 border-t border-border-subtle/40 pl-1">
+            <span>Disruptions Active</span>
+            <span className="text-risk-critical font-medium">{disruptions.length} Ongoing</span>
           </div>
         </div>
 
-        {/* KPI 3 */}
-        <div className="p-4 rounded-xl bg-bg-surface shadow-sm relative overflow-hidden flex flex-col justify-between gap-2.5 border border-border-subtle hover:border-border-strong transition-colors">
+        {/* KPI 3: On-Time Integrity */}
+        <div className="p-3.5 rounded-xl bg-bg-surface shadow-sm flex flex-col justify-between gap-2 border border-border-subtle hover:border-border-strong transition-colors">
           <div className="flex items-center justify-between">
             <span className="font-card-title text-card-title text-text-secondary">On-Time Integrity</span>
             <div className="p-1.5 rounded-md bg-surface-container text-text-muted flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">timelapse</span>
             </div>
           </div>
-          <div className="flex items-baseline gap-2.5 flex-wrap">
-            <span className="font-kpi-val text-kpi-val text-text-primary font-semibold tracking-tight">83.2%</span>
-            <span className="inline-flex items-center text-risk-high font-caption text-caption font-medium">
-              <span className="material-symbols-outlined text-[14px] leading-none mr-0.5">arrow_downward</span>
-              2.4% corridor shock
+          <div className="flex items-baseline justify-between">
+            <span className="font-kpi-val text-kpi-val text-text-primary font-semibold tracking-tight">
+              {loading ? '…' : `${onTimePercent}%`}
+            </span>
+            <span className="inline-flex items-center text-risk-low font-caption text-caption font-medium">
+              {onTimePercent >= 80 ? 'Nominal' : 'Delayed'}
             </span>
           </div>
           <div className="flex items-center justify-between font-caption text-caption text-text-muted pt-2 border-t border-border-subtle/40">
-            <span>Main Blocker</span>
-            <span className="text-text-secondary font-medium truncate max-w-[170px]">NH-48 Monsoon</span>
+            <span>Tracked Corridors</span>
+            <span className="text-text-secondary font-medium">{routes.length || 5} Active</span>
           </div>
         </div>
 
-        {/* KPI 4 */}
-        <div className="p-4 rounded-xl bg-bg-surface shadow-sm relative overflow-hidden flex flex-col justify-between gap-2.5 border border-border-subtle hover:border-border-strong transition-colors">
-          <div className="flex items-center justify-between">
-            <span className="font-card-title text-card-title text-text-secondary">Cold Chain Excursions</span>
-            <div className="p-1.5 rounded-md bg-surface-container text-status-info flex items-center justify-center">
+        {/* KPI 4: Cold Chain */}
+        <div className="p-3.5 rounded-xl bg-bg-surface shadow-sm flex flex-col justify-between gap-2 border border-border-subtle hover:border-border-strong transition-colors relative overflow-hidden">
+          <div className="absolute top-0 left-0 bottom-0 w-1 bg-sky-500"></div>
+          <div className="flex items-center justify-between pl-1">
+            <span className="font-card-title text-card-title text-text-secondary">Cold Chain Sensors</span>
+            <div className="p-1.5 rounded-md bg-sky-500/15 text-sky-400 flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">ac_unit</span>
             </div>
           </div>
-          <div className="flex items-baseline gap-2.5 flex-wrap">
-            <span className="font-kpi-val text-kpi-val text-risk-high font-semibold tracking-tight">5</span>
-            <span className="inline-flex items-center text-risk-high font-caption text-caption font-medium">
-              Sensor alert active
+          <div className="flex items-baseline justify-between pl-1">
+            <span className="font-kpi-val text-kpi-val text-text-primary font-semibold tracking-tight">
+              {loading ? '…' : coldChainCount}
+            </span>
+            <span className="px-1.5 py-0.5 rounded text-[10px] bg-sky-500/15 text-sky-400 font-medium">
+              WHO 2°C–8°C
             </span>
           </div>
-          <div className="flex items-center justify-between font-caption text-caption text-text-muted pt-2 border-t border-border-subtle/40">
-            <span>Cryo Safe Rate</span>
-            <span className="text-risk-low font-medium">97.3% optimal thermal</span>
+          <div className="flex items-center justify-between font-caption text-caption text-text-muted pt-2 border-t border-border-subtle/40 pl-1">
+            <span>Thermal Excursions</span>
+            <span className={coldChainExcursions > 0 ? 'text-risk-critical font-medium' : 'text-risk-low font-medium'}>
+              {coldChainExcursions} Active Excursion
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Advanced Filtering and Query Matrix */}
-      <div className="p-3 bg-bg-surface rounded-xl shadow-sm mb-4 flex flex-col gap-3 border border-border-subtle">
+      {/* Advanced Filtering Matrix (Dynamic Database Filters) */}
+      <div className="p-3 bg-bg-surface rounded-xl shadow-sm flex flex-col gap-3 border border-border-subtle">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5">
           {/* Search Input */}
           <div className="md:col-span-4 relative">
@@ -523,7 +405,7 @@ export default function ShipmentsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-8 pl-8 pr-8 rounded-lg bg-bg-app text-body-default font-body-default text-text-primary placeholder:text-text-disabled outline-none focus:ring-1 focus:ring-primary transition-colors border border-border-subtle"
-              placeholder="Search Shipment ID, Cargo, Carrier, Chassis..."
+              placeholder="Search Tracking #, Port, Carrier, Status..."
               type="text"
             />
             {searchQuery && (
@@ -537,59 +419,60 @@ export default function ShipmentsPage() {
             )}
           </div>
 
-          {/* Route Corridor Select */}
-          <div className="md:col-span-2">
+          {/* Route Corridor Select (Populated from live routes) */}
+          <div className="md:col-span-3">
             <select
               value={corridorFilter}
               onChange={(e) => setCorridorFilter(e.target.value)}
-              className="w-full h-8 px-2.5 rounded-lg bg-bg-app text-table-cell font-table-cell text-text-primary outline-none focus:ring-1 focus:ring-primary border border-border-subtle"
+              className="w-full h-8 px-2.5 rounded-lg bg-bg-app text-table-cell font-table-cell text-text-primary outline-none focus:ring-1 focus:ring-primary border border-border-subtle truncate"
             >
-              <option value="all">All Corridors (India-Wide)</option>
-              <option value="hyderabad-chennai">Hyderabad → Chennai Corridor</option>
-              <option value="mumbai-bangalore">Mumbai → Bangalore (NH-48)</option>
-              <option value="delhi-ahmedabad">Delhi → Ahmedabad Line</option>
-              <option value="pune-hyderabad">Pune → Hyderabad Logistics</option>
+              <option value="all">All Corridors ({routes.length} Live Routes)</option>
+              {routes.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* Severity / Risk Filter */}
+          {/* Priority Filter */}
           <div className="md:col-span-2">
             <select
               value={severityFilter}
               onChange={(e) => setSeverityFilter(e.target.value)}
               className="w-full h-8 px-2.5 rounded-lg bg-bg-app text-table-cell font-table-cell text-text-primary outline-none focus:ring-1 focus:ring-primary border border-border-subtle"
             >
-              <option value="all">Severity: All Levels</option>
-              <option value="p1">P1 Critical Risk</option>
-              <option value="p2">P2 High Impact</option>
-              <option value="p3">P3 Medium Impact</option>
-              <option value="p4">P4 Low / Nominal</option>
+              <option value="all">Priority: All</option>
+              <option value="CRITICAL">Critical Priority</option>
+              <option value="HIGH">High Priority</option>
+              <option value="MEDIUM">Medium Priority</option>
+              <option value="LOW">Low Priority</option>
             </select>
           </div>
 
-          {/* Carrier Filter */}
+          {/* Carrier Filter (Populated from live carriers) */}
           <div className="md:col-span-2">
             <select
               value={carrierFilter}
               onChange={(e) => setCarrierFilter(e.target.value)}
               className="w-full h-8 px-2.5 rounded-lg bg-bg-app text-table-cell font-table-cell text-text-primary outline-none focus:ring-1 focus:ring-primary border border-border-subtle"
             >
-              <option value="all">Carrier: All Fleets</option>
-              <option value="coldtrans">ColdTrans Logistics Ltd</option>
-              <option value="bluedart">Blue Dart Express</option>
-              <option value="safexpress">SafeXpress Heavy</option>
-              <option value="tci">TCI Freight Line</option>
-              <option value="dhl">DHL Global Forwarding</option>
-              <option value="transchem">TransChem Cargo</option>
+              <option value="all">Carrier: All</option>
+              {carriers.map((c) => (
+                <option key={c.id} value={c.code}>
+                  {c.code} – {c.name}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* Quick Actions */}
-          <div className="md:col-span-2 flex items-center justify-end">
+          {/* Reset Filters */}
+          <div className="md:col-span-1 flex items-center justify-end">
             <button
               onClick={resetFilters}
-              className="h-8 px-3 rounded-lg bg-surface-container text-text-secondary hover:text-text-primary font-caption text-caption flex items-center gap-1 border border-border-subtle transition-colors"
+              className="w-full h-8 px-2 rounded-lg bg-surface-container text-text-secondary hover:text-text-primary font-caption text-caption flex items-center justify-center gap-1 border border-border-subtle transition-colors"
               type="button"
+              title="Reset all filters"
             >
               <span className="material-symbols-outlined text-[14px]">restart_alt</span>
               <span>Reset</span>
@@ -599,37 +482,27 @@ export default function ShipmentsPage() {
 
         {/* Micro Filter Switches */}
         <div className="flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-border-subtle/50">
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-4 flex-wrap text-xs">
             <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
               <input
                 checked={filterDisruptedOnly}
                 onChange={(e) => setFilterDisruptedOnly(e.target.checked)}
-                className="rounded bg-bg-app text-primary-container focus:ring-0 focus:outline-none w-3.5 h-3.5"
+                className="rounded bg-bg-app text-primary focus:ring-0 focus:outline-none w-3.5 h-3.5"
                 type="checkbox"
               />
               <span className="font-caption text-caption text-text-secondary">
-                Disrupted Corridors Only (Flooding / Congestion)
+                At-Risk / Delayed Only
               </span>
-            </label>
-            <div className="w-1 h-3 rounded-full bg-surface-container-high"></div>
-            <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
-              <input
-                checked={filterHighValueOnly}
-                onChange={(e) => setFilterHighValueOnly(e.target.checked)}
-                className="rounded bg-bg-app text-primary-container focus:ring-0 focus:outline-none w-3.5 h-3.5"
-                type="checkbox"
-              />
-              <span className="font-caption text-caption text-text-secondary">High Value Cargo (&gt; ₹50 Lakhs)</span>
             </label>
             <div className="w-1 h-3 rounded-full bg-surface-container-high"></div>
             <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
               <input
                 checked={filterStrictColdChain}
                 onChange={(e) => setFilterStrictColdChain(e.target.checked)}
-                className="rounded bg-bg-app text-primary-container focus:ring-0 focus:outline-none w-3.5 h-3.5"
+                className="rounded bg-bg-app text-primary focus:ring-0 focus:outline-none w-3.5 h-3.5"
                 type="checkbox"
               />
-              <span className="font-caption text-caption text-text-secondary">Strict Telemetry (Cold Chain IoT)</span>
+              <span className="font-caption text-caption text-text-secondary">Cold Chain Cargo Only (2°C–8°C)</span>
             </label>
           </div>
 
@@ -641,141 +514,177 @@ export default function ShipmentsPage() {
         </div>
       </div>
 
-      {/* Primary Split Workspace: 65% Enterprise Data Table | 35% Deep-Dive Investigation Panel */}
+      {/* Primary Split Workspace: Shipments Table | Selected Shipment Detail Drawer */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5">
-        {/* LEFT 65%: Operational Shipments Data Table */}
+        {/* LEFT (8 Columns): Live Shipments Table from Supabase */}
         <div className="xl:col-span-8 flex flex-col gap-2.5">
           <div className="rounded-xl bg-bg-surface shadow-sm overflow-hidden flex flex-col border border-border-subtle">
-            {/* Table Control Toolbar */}
+            {/* Table Header Bar */}
             <div className="h-10 px-3 bg-surface-container-lowest flex items-center justify-between text-caption font-caption text-text-muted border-b border-border-subtle">
               <div className="flex items-center gap-3">
                 <span className="text-text-primary font-medium">
-                  Filtered Results: {filteredShipments.length} Shipments
+                  Supabase Records: {filteredShipments.length} of {shipments.length}
                 </span>
-                <span className="text-text-disabled">|</span>
-                <div className="flex items-center gap-1 text-risk-critical">
-                  <span className="w-1.5 h-1.5 rounded-full bg-risk-critical"></span>
-                  <span>18 Require Intervention</span>
-                </div>
+                {atRiskCount > 0 && (
+                  <>
+                    <span className="text-text-disabled">|</span>
+                    <div className="flex items-center gap-1 text-risk-critical font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-risk-critical animate-pulse"></span>
+                      <span>{atRiskCount} Require Intervention</span>
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => resetFilters()}
-                  className="px-2 py-1 rounded bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover flex items-center gap-1 border border-border-subtle"
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[13px]">refresh</span>
-                  <span>Refresh</span>
-                </button>
-              </div>
+              <span className="text-[11px] text-text-muted font-mono">
+                PostgreSQL rest/v1/shipments
+              </span>
             </div>
 
-            {/* Scrollable Table Body */}
+            {/* Table */}
             <div className="overflow-x-auto w-full">
               <table className="w-full text-left font-table-cell text-table-cell border-collapse">
                 <thead>
                   <tr className="h-9 bg-bg-sidebar text-text-muted font-caption text-caption uppercase tracking-wider select-none border-b border-border-subtle">
                     <th className="w-8 px-3 text-center">#</th>
-                    <th className="px-2 font-medium">Shipment ID</th>
-                    <th className="px-2 font-medium">Route &amp; Cargo Spec</th>
-                    <th className="px-2 font-medium">Carrier &amp; Unit</th>
+                    <th className="px-2 font-medium">Tracking Number</th>
+                    <th className="px-2 font-medium">Origin → Destination</th>
+                    <th className="px-2 font-medium text-center">Carrier</th>
                     <th className="px-2 font-medium text-center">Priority</th>
-                    <th className="px-2 font-medium">ETA &amp; Delay</th>
-                    <th className="px-2 font-medium">Telemetry Risk</th>
+                    <th className="px-2 font-medium text-center">Risk Score</th>
+                    <th className="px-2 font-medium">Status</th>
+                    <th className="px-2 font-medium">Telemetry</th>
                     <th className="px-3 font-medium text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border-subtle/40 text-text-primary">
-                  {filteredShipments.map((s, idx) => {
-                    const isSelected = selectedShipmentId === s.id;
-                    const priorityClass =
-                      s.priority === 'P1 Critical'
-                        ? 'bg-error-container/30 text-error border border-error/30'
-                        : s.priority === 'P2 High'
-                          ? 'bg-risk-high/20 text-risk-high border border-risk-high/30'
-                          : s.priority === 'P3 Medium'
-                            ? 'bg-risk-medium/20 text-risk-medium border border-risk-medium/30'
-                            : 'bg-surface-container-high text-text-secondary';
+                <tbody className="divide-y divide-border-subtle/40 text-text-primary text-xs">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={9} className="px-3 py-12 text-center text-text-muted">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <span className="material-symbols-outlined text-[24px] text-primary animate-spin">progress_activity</span>
+                          <span>Loading shipments from Supabase PostgreSQL...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : filteredShipments.length > 0 ? (
+                    filteredShipments.map((s, idx) => {
+                      const isSelected = selectedShipmentId === s.id;
+                      const sensor = sensors.find((sen) => sen.shipmentId === s.id);
+                      const isAtRisk = s.status === 'AT_RISK' || (s.riskScore !== null && s.riskScore >= 0.7);
+                      const isDelayed = s.status === 'DELAYED';
 
-                    const telemetryClass =
-                      s.telemetryType === 'temp'
-                        ? 'bg-error-container/20 text-error border border-error/30'
-                        : s.telemetryType === 'flood'
-                          ? 'bg-risk-high/20 text-risk-high border border-risk-high/30'
-                          : s.telemetryType === 'mechanical'
-                            ? 'bg-risk-medium/20 text-risk-medium border border-risk-medium/30'
-                            : s.telemetryType === 'halt'
-                              ? 'bg-risk-high/20 text-risk-high border border-risk-high/30'
-                              : 'bg-risk-low/20 text-risk-low border border-risk-low/30';
-
-                    return (
-                      <tr
-                        key={s.id}
-                        onClick={() => setSelectedShipmentId(s.id)}
-                        className={`h-14 transition-colors cursor-pointer relative group ${isSelected ? 'bg-bg-surface-hover ring-1 ring-primary/40' : 'hover:bg-bg-surface-hover'
+                      return (
+                        <tr
+                          key={s.id}
+                          onClick={() => setSelectedShipmentId(s.id)}
+                          className={`h-12 transition-colors cursor-pointer relative group ${
+                            isSelected ? 'bg-primary-soft/60 ring-1 ring-primary/40' : 'hover:bg-bg-surface-hover'
                           }`}
-                      >
-                        <td className="w-8 px-3 text-center relative py-2">
-                          {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>}
-                          <span className="text-text-disabled text-xs">{idx + 1}</span>
-                        </td>
-                        <td className="px-2 font-semibold text-primary py-2">
-                          <div className="flex items-center gap-1.5">
-                            <span>{s.id}</span>
-                            {s.isColdChain && (
-                              <span className="material-symbols-outlined text-[13px] text-status-info" title="IoT Connected Cold Chain">
-                                sensors
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-2 py-2 min-w-[190px]">
-                          <div className="font-medium text-text-primary leading-snug">{s.route}</div>
-                          <div className="text-[11px] text-text-muted mt-0.5 leading-normal">
-                            {s.cargo} • {s.cargoValue}
-                          </div>
-                        </td>
-                        <td className="px-2 py-2 min-w-[150px]">
-                          <div className="text-text-secondary leading-snug">{s.carrier}</div>
-                          <div className="text-[11px] text-text-muted mt-0.5 leading-normal">
-                            {s.unit} • Driver: {s.driver}
-                          </div>
-                        </td>
-                        <td className="px-2 text-center py-2">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-badge-label text-badge-label font-medium whitespace-nowrap ${priorityClass}`}>
-                            {s.priority}
-                          </span>
-                        </td>
-                        <td className="px-2 py-2 min-w-[120px]">
-                          <div
-                            className={`font-medium leading-snug ${s.delayEst.includes('Delay') ? 'text-risk-high' : 'text-risk-low'
+                        >
+                          <td className="w-8 px-3 text-center relative py-2">
+                            {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>}
+                            <span className="text-text-disabled text-xs">{idx + 1}</span>
+                          </td>
+                          <td className="px-2 font-semibold text-primary py-2 whitespace-nowrap">
+                            <div className="flex items-center gap-1.5">
+                              <span>{s.trackingNumber}</span>
+                              {s.isColdChain && (
+                                <span className="material-symbols-outlined text-[13px] text-sky-400" title="Cold Chain Monitored">
+                                  ac_unit
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-2 py-2 min-w-[170px]">
+                            <div className="font-medium text-text-primary leading-snug">
+                              {s.origin} → {s.destination}
+                            </div>
+                            <div className="text-[10px] text-text-muted mt-0.5">
+                              ETA: {s.estimatedArrival ? new Date(s.estimatedArrival).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Pending'}
+                            </div>
+                          </td>
+                          <td className="px-2 text-center py-2">
+                            <span className="px-1.5 py-0.5 rounded text-[10px] bg-bg-surface border border-border-subtle font-mono text-text-primary">
+                              {s.carrier}
+                            </span>
+                          </td>
+                          <td className="px-2 text-center py-2">
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full font-badge-label text-[10px] font-medium whitespace-nowrap ${
+                                s.priority === 'CRITICAL'
+                                  ? 'bg-risk-critical/15 text-risk-critical border border-risk-critical/30'
+                                  : s.priority === 'HIGH'
+                                  ? 'bg-risk-high/15 text-risk-high border border-risk-high/30'
+                                  : 'bg-surface-container-high text-text-secondary'
                               }`}
-                          >
-                            {s.delayEst}
-                          </div>
-                          <div className="text-[11px] text-text-muted mt-0.5 leading-normal">{s.eta}</div>
-                        </td>
-                        <td className="px-2 py-2 min-w-[150px]">
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-badge-label text-badge-label font-medium whitespace-nowrap shadow-sm ${telemetryClass}`}>
-                            <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-                            {s.telemetryBadge}
-                          </span>
-                        </td>
-                        <td className="px-3 text-right py-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/shipments/${s.id}`);
-                            }}
-                            className="h-7 px-2.5 rounded bg-primary-container text-on-primary-container hover:bg-primary-hover font-card-title text-card-title text-[11px] transition-colors shadow-sm whitespace-nowrap"
-                            type="button"
-                          >
-                            Inspect
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                            >
+                              {s.priority}
+                            </span>
+                          </td>
+                          <td className="px-2 text-center py-2">
+                            <span
+                              className={`font-semibold text-[11px] ${
+                                isAtRisk
+                                  ? 'text-risk-critical'
+                                  : isDelayed
+                                  ? 'text-risk-medium'
+                                  : 'text-risk-low'
+                              }`}
+                            >
+                              {s.riskScore !== null ? `${(s.riskScore * 100).toFixed(0)}%` : 'Nominal'}
+                            </span>
+                          </td>
+                          <td className="px-2 py-2">
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                s.status === 'AT_RISK'
+                                  ? 'bg-risk-critical/15 text-risk-critical border border-risk-critical/30'
+                                  : s.status === 'DELAYED'
+                                  ? 'bg-risk-medium/15 text-risk-medium border border-risk-medium/30'
+                                  : 'bg-risk-low/15 text-risk-low border border-risk-low/30'
+                              }`}
+                            >
+                              {s.status}
+                            </span>
+                          </td>
+                          <td className="px-2 py-2 min-w-[130px]">
+                            {s.isColdChain && sensor ? (
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium ${
+                                  sensor.status === 'EXCURSION'
+                                    ? 'bg-risk-critical/15 text-risk-critical border border-risk-critical/30'
+                                    : 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
+                                }`}
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                {sensor.lastReadingCelsius !== null ? `${sensor.lastReadingCelsius}°C` : 'Temp OK'}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-text-muted">Ambient Flow</span>
+                            )}
+                          </td>
+                          <td className="px-3 text-right py-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/shipments/${s.id}`);
+                              }}
+                              className="h-6 px-2.5 rounded bg-primary text-on-primary hover:bg-primary-hover font-caption text-[11px] font-medium transition-colors shadow-xs"
+                              type="button"
+                            >
+                              Inspect
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={9} className="px-3 py-12 text-center text-text-muted">
+                        No shipments matching the applied filters found in Supabase database.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -783,338 +692,215 @@ export default function ShipmentsPage() {
             {/* Table Footer */}
             <div className="h-10 px-3 bg-surface-container-lowest flex items-center justify-between font-caption text-caption text-text-muted select-none border-t border-border-subtle">
               <div>
-                Showing <strong className="text-text-primary">1–{filteredShipments.length}</strong> of{' '}
-                <strong className="text-text-primary">{filteredShipments.length}</strong> filtered records (Total: 1,248)
+                Showing <strong className="text-text-primary">{filteredShipments.length}</strong> of{' '}
+                <strong className="text-text-primary">{shipments.length}</strong> Supabase rows
               </div>
-              <div className="flex items-center gap-1">
-                <button
-                  className="w-6 h-6 rounded bg-primary-container text-on-primary-container flex items-center justify-center font-medium"
-                  type="button"
-                >
-                  1
-                </button>
-                <button
-                  className="w-6 h-6 rounded bg-bg-surface text-text-secondary hover:text-text-primary flex items-center justify-center"
-                  type="button"
-                >
-                  2
-                </button>
-              </div>
+              <span className="text-[11px] text-text-muted">Real-time REST client</span>
             </div>
-          </div>
-
-          {/* Live Corridor Disruption Strip */}
-          <div className="p-3 bg-bg-surface rounded-xl shadow-sm flex items-center justify-between gap-4 border border-border-subtle">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-error-container/20 flex items-center justify-center flex-shrink-0 text-error">
-                <span className="material-symbols-outlined text-[18px]">flood</span>
-              </div>
-              <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-card-title text-card-title text-text-primary truncate">
-                    Active Disruption: NH-48 Pune-Hyderabad Corridor Flooding
-                  </span>
-                  <span className="px-1.5 py-0.2 rounded bg-error-container/30 text-error font-caption text-caption font-medium">
-                    High Impact
-                  </span>
-                </div>
-                <span className="font-caption text-caption text-text-muted truncate">
-                  Affecting 17 Active Shipments • Reroute recommendations simulated for 12 transit units
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={() => navigate('/disruptions')}
-              className="h-7 px-3 rounded-lg bg-surface-container-high hover:bg-surface-bright text-text-secondary hover:text-text-primary font-card-title text-card-title text-[12px] flex items-center gap-1.5 flex-shrink-0 transition-colors"
-              type="button"
-            >
-              <span>Inspect Corridor Map</span>
-              <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-            </button>
           </div>
         </div>
 
-        {/* RIGHT 35%: Selected Shipment Deep-Dive Panel */}
+        {/* RIGHT (4 Columns): Selected Shipment Deep-Dive Panel */}
         <div className="xl:col-span-4 flex flex-col gap-3">
-          <div className="bg-bg-surface-raised rounded-xl shadow-md p-4 flex flex-col gap-3.5 border border-border-subtle">
-            {/* Header */}
-            <div className="flex items-start justify-between gap-3 pb-2 border-b border-border-subtle/40">
-              <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-section-title text-section-title text-text-primary font-semibold">
-                    {selectedShipment.id}
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-error-container/30 text-error font-badge-label text-badge-label font-semibold flex items-center gap-1.5 whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-risk-critical animate-ping"></span>
-                    {selectedShipment.priority}
-                  </span>
-                </div>
-                <span className="font-caption text-caption text-text-muted mt-1 leading-normal">
-                  Route: {selectedShipment.route}
-                </span>
-              </div>
-              <button
-                onClick={() => navigate(`/shipments/${selectedShipment.id}`)}
-                className="p-1.5 rounded-lg bg-surface-container hover:bg-surface-bright text-text-secondary hover:text-text-primary transition-colors flex-shrink-0"
-                title="Expand Full View"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-              </button>
-            </div>
-
-            {/* AI Operational Rationale */}
-            <div className="p-3.5 rounded-lg bg-bg-surface border-l-2 border-primary-container shadow-sm flex flex-col gap-2">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 text-primary font-caption text-caption font-semibold">
-                  <span className="material-symbols-outlined text-[16px]">neurology</span>
-                  <span>SupplyShield AI Operational Rationale</span>
-                </div>
-                <span className="font-caption text-caption text-text-muted bg-surface-container-high px-2 py-0.5 rounded font-medium whitespace-nowrap">
-                  94% Confidence
-                </span>
-              </div>
-              <p className="font-body-default text-body-default text-on-surface text-[12px] leading-relaxed">
-                Corridor delay at Solapur Chokepoint has affected transit schedule. For unit{' '}
-                <strong className="text-text-primary font-semibold">{selectedShipment.unit}</strong>, temperature is recorded at{' '}
-                <span className="text-risk-critical font-semibold">{selectedShipment.currentTemp || '8.2°C'}</span> (Target: 2.0°C – 8.0°C).
-              </p>
-              <div className="flex items-center gap-2 pt-1 font-caption text-caption text-error border-t border-border-subtle/30">
-                <span className="material-symbols-outlined text-[15px]">timer</span>
-                <span>
-                  Estimated buffer window: <strong className="font-semibold">1h 22m</strong> remaining.
-                </span>
-              </div>
-            </div>
-
-            {/* Real-Time Telemetry Curve (Inline SVG) */}
-            <div className="p-3.5 bg-surface-container-lowest rounded-lg flex flex-col gap-2.5 border border-border-subtle">
-              <div className="flex items-center justify-between gap-2 text-caption font-caption">
-                <span className="text-text-secondary font-medium truncate">Temperature Sensor Stream (Core Probe)</span>
-                <span className="text-risk-critical font-semibold text-[12px] whitespace-nowrap flex-shrink-0">
-                  {selectedShipment.currentTemp || '9.4°C'} Current
-                </span>
-              </div>
-              <div className="relative h-20 w-full bg-surface-container-low/40 rounded overflow-hidden pt-1">
-                <div className="absolute left-0 right-0 top-[28%] bottom-[25%] bg-risk-low/10 pointer-events-none flex items-center justify-end px-2.5">
-                  <span className="text-[9px] text-risk-low font-medium tracking-tight">Safe Zone [2°C - 8°C]</span>
-                </div>
-                <div className="absolute left-0 right-0 top-[28%] border-b border-error/40 border-dashed"></div>
-                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 300 70">
-                  <defs>
-                    <linearGradient id="tempGradient" x1="0" x2="0" y1="0" y2="1">
-                      <stop offset="0%" stopColor="#ef4444" stopOpacity="0.3" />
-                      <stop offset="70%" stopColor="#38bdf8" stopOpacity="0.05" />
-                      <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M0,45 Q30,42 60,44 T120,40 T180,48 T220,38 T260,20 T300,12 L300,70 L0,70 Z" fill="url(#tempGradient)" />
-                  <path d="M0,45 Q30,42 60,44 T120,40 T180,48 T220,38 T260,20 T300,12" fill="none" stroke="#ef4444" strokeLinecap="round" strokeWidth="2" />
-                  <circle cx="300" cy="12" fill="#ef4444" r="3.5" stroke="#ffffff" strokeWidth="1.5" />
-                </svg>
-              </div>
-              <div className="flex items-center justify-between text-[11px] text-text-muted pt-1">
-                <span>04:00 (4.2°C)</span>
-                <span>08:30 (Excursion Start)</span>
-                <span className="text-error font-medium">Now ({selectedShipment.currentTemp || '9.4°C'} Alert)</span>
-              </div>
-            </div>
-
-            {/* Route Milestones */}
-            <div className="flex flex-col gap-2.5">
-              <span className="font-card-title text-card-title text-text-secondary">Route Milestones &amp; Chokepoints</span>
-              <div className="flex flex-col gap-3 pl-1.5 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-surface-container-high">
-                <div className="flex items-start gap-3 relative">
-                  <div className="w-4 h-4 rounded-full bg-risk-low flex items-center justify-center flex-shrink-0 z-10 mt-0.5">
-                    <span className="material-symbols-outlined text-[11px] text-bg-app">check</span>
-                  </div>
-                  <div className="flex flex-col min-w-0 flex-1">
-                    <div className="flex items-center justify-between w-full gap-2">
-                      <span className="font-table-cell text-table-cell font-medium text-text-primary truncate">
-                        Origin: {selectedShipment.route.split('→')[0]}
-                      </span>
-                      <span className="font-caption text-caption text-text-muted whitespace-nowrap">Dep: 04:30 AM</span>
-                    </div>
-                    <span className="font-caption text-caption text-text-muted leading-normal">
-                      Loaded payload at certified safe threshold
+          {selectedShipment ? (
+            <div className="bg-bg-surface rounded-xl shadow-md p-4 flex flex-col gap-3.5 border border-border-subtle">
+              {/* Header */}
+              <div className="flex items-start justify-between gap-3 pb-2 border-b border-border-subtle/40">
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-section-title text-section-title text-text-primary font-semibold">
+                      {selectedShipment.trackingNumber}
+                    </span>
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full font-badge-label text-badge-label font-semibold flex items-center gap-1.5 whitespace-nowrap ${
+                        selectedShipment.status === 'AT_RISK'
+                          ? 'bg-risk-critical/15 text-risk-critical border border-risk-critical/30'
+                          : selectedShipment.status === 'DELAYED'
+                          ? 'bg-risk-medium/15 text-risk-medium border border-risk-medium/30'
+                          : 'bg-risk-low/15 text-risk-low border border-risk-low/30'
+                      }`}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-current animate-ping"></span>
+                      {selectedShipment.status}
                     </span>
                   </div>
-                </div>
-
-                <div className="flex items-start gap-3 relative">
-                  <div className="w-4 h-4 rounded-full bg-risk-critical flex items-center justify-center flex-shrink-0 z-10 shadow-[0_0_0_3px_rgba(239,68,68,0.25)] mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-                  </div>
-                  <div className="flex flex-col min-w-0 flex-1">
-                    <div className="flex items-center justify-between w-full gap-2">
-                      <span className="font-table-cell text-table-cell font-medium text-error truncate">
-                        Current: Solapur Checkpoint
-                      </span>
-                      <span className="font-caption text-caption text-error font-semibold whitespace-nowrap">LIVE ALERT</span>
-                    </div>
-                    <span className="font-caption text-caption text-text-secondary leading-normal">
-                      Vehicle moving at 24 km/h • Secondary compressor active
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 relative">
-                  <div className="w-4 h-4 rounded-full bg-surface-container-high flex items-center justify-center flex-shrink-0 z-10 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-text-disabled"></span>
-                  </div>
-                  <div className="flex flex-col min-w-0 flex-1">
-                    <div className="flex items-center justify-between w-full gap-2">
-                      <span className="font-table-cell text-table-cell font-medium text-text-muted truncate">
-                        Destination: {selectedShipment.route.split('→')[1]}
-                      </span>
-                      <span className="font-caption text-caption text-text-muted whitespace-nowrap">
-                        Est: {selectedShipment.eta}
-                      </span>
-                    </div>
-                    <span className="font-caption text-caption text-text-disabled leading-normal">
-                      Target unloading bay Cold Vault
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Telemetry Matrix */}
-            <div className="grid grid-cols-2 gap-2.5 pt-1">
-              <div className="p-2.5 bg-bg-surface rounded-lg flex flex-col justify-between min-h-[64px] border border-border-subtle">
-                <span className="font-caption text-caption text-text-muted block">Cargo Value</span>
-                <span className="font-card-title text-card-title text-text-primary font-semibold mt-0.5">
-                  {selectedShipment.cargoValue}
-                </span>
-                <span className="font-caption text-caption text-text-secondary block truncate mt-0.5">
-                  {selectedShipment.cargo}
-                </span>
-              </div>
-              <div className="p-2.5 bg-bg-surface rounded-lg flex flex-col justify-between min-h-[64px] border border-border-subtle">
-                <span className="font-caption text-caption text-text-muted block">Carrier Unit</span>
-                <span className="font-card-title text-card-title text-text-primary font-semibold mt-0.5">
-                  {selectedShipment.unit}
-                </span>
-                <span className="font-caption text-caption text-text-secondary block truncate mt-0.5">
-                  {selectedShipment.carrier}
-                </span>
-              </div>
-            </div>
-
-            {/* AI Prescription & Action */}
-            <div className="p-3.5 bg-surface-container-high rounded-xl flex flex-col gap-3 shadow-sm">
-              <div className="flex items-center gap-2 text-text-primary">
-                <span className="material-symbols-outlined text-[18px] text-primary">auto_fix_high</span>
-                <span className="font-card-title text-card-title font-semibold">Prescribed Mitigations</span>
-              </div>
-              <div className="p-3 rounded-lg bg-bg-app text-table-cell font-table-cell text-on-surface flex flex-col gap-1.5 border border-border-subtle/50">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="font-semibold text-text-primary leading-snug">Option A: Solapur Cold Depot Offload</span>
-                  <span className="font-caption text-caption text-risk-low bg-risk-low/10 px-2 py-0.5 rounded font-semibold whitespace-nowrap flex-shrink-0">
-                    AI Recommended
+                  <span className="font-caption text-caption text-text-muted mt-0.5">
+                    Carrier: {selectedShipment.carrier} • Priority: {selectedShipment.priority}
                   </span>
                 </div>
-                <span className="text-caption font-caption text-text-muted leading-relaxed">
-                  Facility 14.2 km away (22m transit) with certified 4°C medical bays. Prevents cargo spoilage.
-                </span>
-              </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
                 <button
-                  onClick={() => setEmergencyActionAuthorized(!emergencyActionAuthorized)}
-                  className={`w-full sm:flex-1 h-8 px-3 rounded-lg font-card-title text-card-title text-[12px] flex items-center justify-center gap-1.5 shadow-sm transition-all duration-150 active:scale-[0.98] whitespace-nowrap ${emergencyActionAuthorized
-                      ? 'bg-risk-low text-on-primary font-semibold'
-                      : 'bg-primary-container text-on-primary-container hover:bg-primary-hover font-semibold'
+                  onClick={() => navigate(`/shipments/${selectedShipment.id}`)}
+                  className="px-2 py-1 rounded bg-bg-surface-raised hover:bg-bg-surface-hover text-text-secondary text-xs border border-border-subtle flex items-center gap-1"
+                  type="button"
+                >
+                  <span className="material-symbols-outlined text-[13px]">open_in_new</span>
+                  <span>Full View</span>
+                </button>
+              </div>
+
+              {/* Consignment Origin & Destination Route */}
+              <div className="p-3 bg-surface-container-lowest rounded-lg border border-border-subtle flex flex-col gap-2">
+                <div className="flex items-center justify-between text-xs font-semibold text-text-primary">
+                  <span>Transit Corridor</span>
+                  <span className="text-primary">{selectedShipment.carrier}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="material-symbols-outlined text-[16px] text-primary">location_on</span>
+                  <span className="font-medium text-text-primary">{selectedShipment.origin}</span>
+                  <span className="text-text-disabled">➔</span>
+                  <span className="font-medium text-text-primary">{selectedShipment.destination}</span>
+                </div>
+                <div className="text-[11px] text-text-muted flex items-center justify-between pt-1 border-t border-border-subtle/50">
+                  <span>Estimated Arrival:</span>
+                  <span className="font-medium text-text-primary">
+                    {selectedShipment.estimatedArrival
+                      ? new Date(selectedShipment.estimatedArrival).toLocaleString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                      : 'Pending'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Cold Chain & Sensor Telemetry */}
+              {selectedShipment.isColdChain ? (
+                <div className="p-3 bg-sky-500/5 rounded-lg border border-sky-500/30 flex flex-col gap-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-sky-400 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[15px]">ac_unit</span>
+                      Cold Chain Telemetry
+                    </span>
+                    <span className="px-1.5 py-0.2 rounded bg-sky-500/15 text-sky-400 text-[10px] font-medium">
+                      WHO 2°C–8°C
+                    </span>
+                  </div>
+                  {selectedSensor ? (
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                      <div>
+                        <span className="text-[10px] text-text-muted block">Sensor Code</span>
+                        <span className="font-mono font-medium text-text-primary">{selectedSensor.sensorCode}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-text-muted block">Current Reading</span>
+                        <span
+                          className={`font-semibold ${
+                            selectedSensor.status === 'EXCURSION' ? 'text-risk-critical' : 'text-sky-400'
+                          }`}
+                        >
+                          {selectedSensor.lastReadingCelsius !== null ? `${selectedSensor.lastReadingCelsius}°C` : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-text-muted">
+                      Sensor stream configured. Awaiting initial payload reading from IoT beacon.
+                    </p>
+                  )}
+                </div>
+              ) : null}
+
+              {/* Risk Score & AI Prediction */}
+              <div className="p-3 bg-surface-container-low rounded-lg border border-border-subtle flex flex-col gap-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-text-primary">AI Risk Score</span>
+                  <span
+                    className={`font-bold text-sm ${
+                      selectedShipment.riskScore && selectedShipment.riskScore >= 0.7
+                        ? 'text-risk-critical'
+                        : selectedShipment.riskScore && selectedShipment.riskScore >= 0.4
+                        ? 'text-risk-medium'
+                        : 'text-risk-low'
                     }`}
+                  >
+                    {selectedShipment.riskScore !== null ? `${(selectedShipment.riskScore * 100).toFixed(0)}%` : '0%'}
+                  </span>
+                </div>
+                <div className="w-full bg-surface-container-high rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      selectedShipment.riskScore && selectedShipment.riskScore >= 0.7
+                        ? 'bg-risk-critical'
+                        : selectedShipment.riskScore && selectedShipment.riskScore >= 0.4
+                        ? 'bg-risk-medium'
+                        : 'bg-risk-low'
+                    }`}
+                    style={{ width: `${(selectedShipment.riskScore || 0.1) * 100}%` }}
+                  ></div>
+                </div>
+                <p className="text-[11px] text-text-secondary leading-tight mt-1">
+                  {selectedShipment.riskScore && selectedShipment.riskScore >= 0.7
+                    ? 'Elevated risk from corridor disruptions or thermal breach. Auto-reroute evaluation active.'
+                    : 'Consignment telemetry operating within normal parameters.'}
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  onClick={() => navigate('/simulations')}
+                  className="flex-1 h-8 rounded-lg bg-primary text-on-primary hover:bg-primary-hover font-card-title text-card-title text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors"
                   type="button"
                 >
-                  <span className="material-symbols-outlined text-[15px]">
-                    {emergencyActionAuthorized ? 'check_circle' : 'alt_route'}
-                  </span>
-                  <span>{emergencyActionAuthorized ? 'Reroute Dispatched' : 'Authorize Emergency Reroute'}</span>
+                  <span className="material-symbols-outlined text-[15px]">alt_route</span>
+                  <span>Simulate Bypass Reroute</span>
                 </button>
                 <button
-                  onClick={() => alert(`Calling Dispatch Desk for driver ${selectedShipment.driver} (${selectedShipment.unit})`)}
-                  className="w-full sm:w-auto px-3.5 h-8 rounded-lg bg-surface-container-highest text-text-secondary hover:text-text-primary font-card-title text-card-title text-[12px] flex items-center justify-center gap-1 transition-colors whitespace-nowrap"
+                  onClick={() => navigate('/audit')}
+                  className="h-8 px-3 rounded-lg bg-bg-surface-raised hover:bg-bg-surface-hover text-text-primary font-card-title text-card-title text-xs border border-border-subtle transition-colors"
                   type="button"
                 >
-                  <span className="material-symbols-outlined text-[15px]">call</span>
-                  <span>Call Driver</span>
+                  Audit Trail
                 </button>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="p-8 bg-bg-surface rounded-xl border border-border-subtle text-center text-text-muted">
+              <span className="material-symbols-outlined text-[32px] text-text-disabled mb-2">local_shipping</span>
+              <p className="text-sm font-medium text-text-primary">No Shipment Selected</p>
+              <p className="text-xs mt-1">Select any consignment row to inspect its live telemetry.</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Ingest Shipment Modal Dialog */}
+      {/* Ingestion Modal (Tagged with Upcoming Feature badge) */}
       {isIngestModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-bg-surface-raised border border-border-strong rounded-xl p-5 w-full max-w-md shadow-2xl flex flex-col gap-4">
-            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-bg-surface border border-border-strong rounded-xl p-5 shadow-2xl max-w-md w-full flex flex-col gap-4">
+            <div className="flex items-center justify-between pb-2 border-b border-border-subtle">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-[20px]">add_circle</span>
-                <h3 className="font-section-title text-section-title text-text-primary">Add / Ingest New Shipment</h3>
+                <h3 className="font-section-title text-section-title text-text-primary">Add / Ingest Shipment</h3>
               </div>
               <button
                 onClick={() => setIsIngestModalOpen(false)}
                 className="text-text-muted hover:text-text-primary"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[18px]">close</span>
+                ✕
               </button>
             </div>
 
-            <div className="flex flex-col gap-3 font-caption text-caption text-text-secondary">
-              <div>
-                <label className="block text-text-muted mb-1">Shipment Tracking ID</label>
-                <input
-                  defaultValue={`SHP-0${Math.floor(100 + Math.random() * 900)}`}
-                  className="w-full h-8 px-3 rounded-lg bg-bg-app border border-border-subtle text-text-primary outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-text-muted mb-1">Origin Hub → Destination Port</label>
-                <input
-                  defaultValue="Pune Hub → Chennai DC"
-                  className="w-full h-8 px-3 rounded-lg bg-bg-app border border-border-subtle text-text-primary outline-none"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-text-muted mb-1">Cargo Spec</label>
-                  <input
-                    defaultValue="Vaccines / Pharma"
-                    className="w-full h-8 px-3 rounded-lg bg-bg-app border border-border-subtle text-text-primary outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-text-muted mb-1">Cargo Value (₹)</label>
-                  <input
-                    defaultValue="₹1.20 Cr"
-                    className="w-full h-8 px-3 rounded-lg bg-bg-app border border-border-subtle text-text-primary outline-none"
-                  />
-                </div>
-              </div>
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary-soft/50 border border-primary/30 text-xs text-primary">
+              <span className="material-symbols-outlined text-[16px]">info</span>
+              <span><strong>Upcoming Feature:</strong> Automated ERP / EDI 214 webhook ingestion connector.</span>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-subtle">
+            <p className="text-xs text-text-secondary leading-normal">
+              New shipments can be directly inserted into the Supabase PostgreSQL <code className="text-primary font-mono font-semibold">shipments</code> table or synchronized via SAP / Oracle SCM webhook listeners.
+            </p>
+
+            <div className="flex justify-end gap-2 pt-2">
               <button
                 onClick={() => setIsIngestModalOpen(false)}
-                className="px-3 py-1.5 rounded-lg bg-bg-surface text-text-secondary hover:text-text-primary text-xs"
+                className="px-4 py-1.5 rounded-lg bg-bg-surface-raised hover:bg-bg-surface-hover text-text-secondary text-xs border border-border-subtle"
                 type="button"
               >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  alert('Shipment successfully ingested into telemetry stream!');
-                  setIsIngestModalOpen(false);
-                }}
-                className="px-4 py-1.5 rounded-lg bg-primary-container text-on-primary-container text-xs font-semibold"
-                type="button"
-              >
-                Save &amp; Track
+                Close
               </button>
             </div>
           </div>

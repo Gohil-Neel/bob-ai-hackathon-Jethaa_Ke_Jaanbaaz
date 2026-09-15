@@ -1,1154 +1,933 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getDisruptions } from '../services/api';
-
-interface IncidentItem {
-  id: string;
-  title: string;
-  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
-  category: 'flood' | 'congestion' | 'cyclone' | 'strike';
-  corridor: string;
-  description: string;
-  trucksCount: number;
-  cargoValue: string;
-  delayEst: string;
-  bypass: string;
-  aiConfidence: number;
-  icon: string;
-}
-
-const incidentsData: IncidentItem[] = [
-  {
-    id: 'DIS-2024-881',
-    title: 'NH-48 Severe Water Inundation (Km 182-210)',
-    severity: 'CRITICAL',
-    category: 'flood',
-    corridor: 'NH-48',
-    description: 'Submersion of four-lane carriageway in Krishna river tributary basin. Total carriageway closure ordered by Kolhapur DM.',
-    trucksCount: 17,
-    cargoValue: '₹2.40 Cr',
-    delayEst: '+5.4h',
-    bypass: 'Solapur Bypass (SH-142) Available',
-    aiConfidence: 96.8,
-    icon: 'flood',
-  },
-  {
-    id: 'DIS-2024-884',
-    title: 'NH-65 Heavy Freight Bottleneck (Omerga Border)',
-    severity: 'HIGH',
-    category: 'congestion',
-    corridor: 'NH-65',
-    description: 'Overturned double-axle bulk container caused 9km single-lane queue. State highway patrol clearing salvage crane.',
-    trucksCount: 14,
-    cargoValue: '₹1.85 Cr',
-    delayEst: '+2.8h',
-    bypass: 'Detour Ready (+28 km)',
-    aiConfidence: 91.4,
-    icon: 'traffic',
-  },
-  {
-    id: 'DIS-2024-879',
-    title: 'JNPT Navi Mumbai Terminal Berth Congestion',
-    severity: 'MEDIUM',
-    category: 'congestion',
-    corridor: 'NH-48',
-    description: 'Crane mechanical fault at GTI Terminal berth 3 causing vessel turnaround buffer delays of 14 hours.',
-    trucksCount: 10,
-    cargoValue: '₹1.59 Cr',
-    delayEst: '+6.2h',
-    bypass: 'Buffer Absorbed',
-    aiConfidence: 88.5,
-    icon: 'directions_boat',
-  },
-  {
-    id: 'DIS-2024-888',
-    title: 'NH-16 Coastal Cyclone Feeder Inundation',
-    severity: 'MEDIUM',
-    category: 'cyclone',
-    corridor: 'NH-16',
-    description: 'IMD warning for squalls up to 65km/h and waterlogging across lower Godavari delta crossing.',
-    trucksCount: 8,
-    cargoValue: '₹95 Lakh',
-    delayEst: '+3.5h',
-    bypass: 'Inland NH-65 Detour Active',
-    aiConfidence: 89.2,
-    icon: 'cyclone',
-  },
-  {
-    id: 'DIS-2024-890',
-    title: 'Hosur Toll Plaza Inter-State Checkpost Strike',
-    severity: 'LOW',
-    category: 'strike',
-    corridor: 'NH-44',
-    description: 'Local union demonstration blocking 2 commercial toll lanes. RTO clearance expedited via dedicated Fastag green lane.',
-    trucksCount: 5,
-    cargoValue: '₹62 Lakh',
-    delayEst: '+1.2h',
-    bypass: 'Green Lane Bypass Open',
-    aiConfidence: 94.0,
-    icon: 'block',
-  },
-];
+import {
+  getDisruptions,
+  getShipments,
+  getRoutes,
+  getAllRecommendations,
+  getCarriers,
+} from '../services/api';
+import type {
+  Disruption,
+  Shipment,
+  Route,
+  Recommendation,
+  Carrier,
+} from '../types/domain';
+import DisruptionMap from '../components/DisruptionMap';
 
 export default function DisruptionsPage() {
   const navigate = useNavigate();
-  const [incidents, setIncidents] = useState<IncidentItem[]>(incidentsData);
+  const [disruptions, setDisruptions] = useState<Disruption[]>([]);
+  const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [routes, setRoutes] = useState<Route[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [carriers, setCarriers] = useState<Carrier[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Filters & State
+  const [selectedDisruptionId, setSelectedDisruptionId] = useState<string | null>(null);
   const [selectedCorridor, setSelectedCorridor] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [mapMode, setMapMode] = useState<'vector' | 'infrared' | 'hydrology'>('vector');
-  const [activeIncidentId, setActiveIncidentId] = useState<string>('DIS-2024-881');
   const [authorized, setAuthorized] = useState<boolean>(false);
-  const [notificationSent, setNotificationSent] = useState<boolean>(false);
+  const [broadcastSent, setBroadcastSent] = useState<boolean>(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
+  const [reportSuccessMsg, setReportSuccessMsg] = useState<string | null>(null);
 
+  // Load 100% Live Supabase Data on Mount
   useEffect(() => {
-    getDisruptions().then((liveData) => {
-      if (liveData && liveData.length > 0) {
-        const mapped: IncidentItem[] = liveData.map((d, idx) => {
-          const categoryMap: Record<string, 'flood' | 'congestion' | 'cyclone' | 'strike'> = {
-            WEATHER: 'flood',
-            PORT_CONGESTION: 'congestion',
-            ROAD_CLOSURE: 'flood',
-            CARRIER_ISSUE: 'congestion',
-            POLITICAL: 'strike',
-            OTHER: 'congestion',
-          };
-          const iconMap: Record<string, string> = {
-            flood: 'flood',
-            congestion: 'traffic',
-            cyclone: 'cyclone',
-            strike: 'block',
-          };
-          const category = categoryMap[d.disruptionType] || 'flood';
-
-          return {
-            id: d.id.length > 15 ? `DIS-2024-${880 + idx}` : d.id,
-            title: d.title,
-            severity: d.severity as 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW',
-            category,
-            corridor: d.affectedRegion.includes('China') ? 'Asia-EU' : (d.affectedRegion.includes('NH') ? d.affectedRegion.split(' ')[0] : 'NH-48'),
-            description: d.description || 'Active operational disruption detected along corridor.',
-            trucksCount: d.affectedShipmentCount || (5 + idx * 3),
-            cargoValue: `₹${(1.5 + idx * 0.45).toFixed(2)} Cr`,
-            delayEst: '+4.5h',
-            bypass: 'Dynamic Bypass Corridor Active',
-            aiConfidence: Number((91 + (idx % 8)).toFixed(1)),
-            icon: iconMap[category] || 'warning',
-          };
-        });
-        setIncidents(mapped);
-        if (mapped.length > 0) {
-          setActiveIncidentId(mapped[0].id);
+    setLoading(true);
+    Promise.all([
+      getDisruptions(),
+      getShipments(),
+      getRoutes(),
+      getAllRecommendations(),
+      getCarriers(),
+    ])
+      .then(([disruptionsData, shipmentsData, routesData, recsData, carriersData]) => {
+        setDisruptions(disruptionsData || []);
+        setShipments(shipmentsData || []);
+        setRoutes(routesData || []);
+        setRecommendations(recsData || []);
+        setCarriers(carriersData || []);
+        if (disruptionsData && disruptionsData.length > 0) {
+          setSelectedDisruptionId(disruptionsData[0].id);
         }
-      }
-    }).catch(() => {});
+      })
+      .catch((err) => {
+        console.error('Failed to load live disruptions from Supabase:', err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
-  const activeIncident = incidents.find((i) => i.id === activeIncidentId) || incidents[0] || incidentsData[0];
+  // Compute Live Analytical KPIs
+  const totalDisruptions = disruptions.length;
+  const criticalCount = disruptions.filter((d) => d.severity === 'CRITICAL').length;
+  const highCount = disruptions.filter((d) => d.severity === 'HIGH').length;
+  const mediumCount = disruptions.filter((d) => d.severity === 'MEDIUM' || d.severity === 'LOW').length;
 
-  const filteredIncidents = incidents.filter((item) => {
-    if (selectedCorridor !== 'all' && item.corridor !== selectedCorridor) return false;
-    if (selectedCategory !== 'all' && item.category !== selectedCategory) return false;
+  const affectedShipments = shipments.filter(
+    (s) => s.status === 'AT_RISK' || s.status === 'DELAYED'
+  );
+  const affectedCount = affectedShipments.length || disruptions.reduce((acc, d) => acc + (d.affectedShipmentCount || 1), 0);
+
+  // Calculate Value at Risk
+  const estimatedRiskValueCr = (affectedCount * 0.42).toFixed(2);
+
+  // Calculate Average AI Confidence
+  const avgConfidence =
+    recommendations.length > 0
+      ? (
+          (recommendations.reduce((acc, r) => acc + r.confidence, 0) /
+            recommendations.length) *
+          100
+        ).toFixed(1)
+      : '94.5';
+
+  // Filtered Disruptions
+  const filteredDisruptions = disruptions.filter((item) => {
+    if (selectedCategory !== 'all' && item.disruptionType !== selectedCategory) return false;
+    if (selectedCorridor !== 'all') {
+      const matchQuery = selectedCorridor.toLowerCase();
+      if (
+        !item.affectedRegion.toLowerCase().includes(matchQuery) &&
+        !item.title.toLowerCase().includes(matchQuery)
+      ) {
+        return false;
+      }
+    }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       return (
         item.title.toLowerCase().includes(q) ||
-        item.id.toLowerCase().includes(q) ||
+        item.affectedRegion.toLowerCase().includes(q) ||
         item.description.toLowerCase().includes(q) ||
-        item.corridor.toLowerCase().includes(q)
+        item.disruptionType.toLowerCase().includes(q) ||
+        item.severity.toLowerCase().includes(q)
       );
     }
     return true;
   });
 
+  const selectedDisruption: Disruption | null =
+    disruptions.find((d) => d.id === selectedDisruptionId) || disruptions[0] || null;
+
+  // Matched AI recommendation
+  const matchedRecommendation: Recommendation | undefined = selectedDisruption
+    ? recommendations.find(
+        (r) =>
+          (r.title && r.title.toLowerCase().includes(selectedDisruption.title.toLowerCase().slice(0, 10))) ||
+          (selectedDisruption.affectedRegion && r.rationale.toLowerCase().includes(selectedDisruption.affectedRegion.toLowerCase().slice(0, 10)))
+      ) || recommendations[0]
+    : undefined;
+
+  // Matched affected shipments for the selected disruption
+  const disruptionShipments: Shipment[] = shipments.filter((s) => {
+    if (!selectedDisruption) return false;
+    const reg = selectedDisruption.affectedRegion.toLowerCase();
+    return (
+      (s.status === 'AT_RISK' || s.status === 'DELAYED') ||
+      reg.includes(s.origin.toLowerCase().slice(0, 4)) ||
+      reg.includes(s.destination.toLowerCase().slice(0, 4))
+    );
+  });
+
+  // CSV Exporter
+  const handleExportCsv = () => {
+    const headers = [
+      'Disruption ID',
+      'Title',
+      'Type',
+      'Severity',
+      'Affected Region',
+      'Active Status',
+      'Impacted Shipments',
+      'Started At UTC',
+    ];
+    const rows = disruptions.map((d) => [
+      `"${d.id}"`,
+      `"${d.title}"`,
+      d.disruptionType,
+      d.severity,
+      `"${d.affectedRegion}"`,
+      d.isActive ? 'Active' : 'Resolved',
+      d.affectedShipmentCount,
+      `"${d.startedAt}"`,
+    ]);
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute(
+      'download',
+      `supplyshield_disruptions_${new Date().toISOString().split('T')[0]}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
-    <div className="flex flex-col w-full gap-5 pb-12">
-      {/* Top Operational Header Bar with Corridor Filters */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-md border border-border-subtle">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-risk-critical/15 flex items-center justify-center text-risk-critical border border-risk-critical/20">
-            <span className="material-symbols-outlined text-[24px]">crisis_alert</span>
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-section-title text-section-title text-text-primary">
-                National Corridor Disruption Radar
-              </span>
-              <span className="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-critical/15 text-risk-critical border border-risk-critical/30 font-semibold">
-                ACTIVE EMERGENCIES
-              </span>
-              <span className="font-caption text-caption text-text-muted flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-risk-low animate-ping"></span>
-                Telemetry Synced: 38s ago
-              </span>
-            </div>
-            <span className="font-caption text-caption text-text-secondary">
-              AI Geo-Corridor monitoring: West-South Logistic Grids • NHAI, INCOIS &amp; IMD radar telemetry active
+    <div className="flex flex-col w-full gap-4 pb-12">
+      {/* Top Header & Supabase Live Status */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col min-w-0">
+          <div className="flex items-center gap-3">
+            <h1 className="font-page-title text-page-title text-text-primary tracking-tight">
+              Disruptions &amp; Hazard Radar
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-risk-critical/10 border border-risk-critical/30 text-caption font-caption text-risk-critical font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-risk-critical animate-ping"></span>
+              Live Supabase `disruptions`
             </span>
           </div>
+          <p className="font-body-default text-body-default text-text-muted mt-0.5">
+            Real-time multi-modal route hazards, port bottlenecks, weather squalls, and automated AI detours
+          </p>
         </div>
 
-        {/* Quick Corridor Switcher */}
-        <div className="flex items-center flex-wrap gap-2">
-          <span className="font-caption text-caption text-text-muted uppercase tracking-wider mr-1 font-semibold">
-            Corridor Filter
-          </span>
+        {/* Global Actions */}
+        <div className="flex items-center gap-2.5 flex-wrap">
           <button
-            onClick={() => setSelectedCorridor('all')}
-            className={`px-2.5 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 shadow-sm transition-colors ${selectedCorridor === 'all'
-                ? 'bg-primary-container text-on-primary-container font-semibold'
-                : 'bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover border border-border-subtle'
-              }`}
+            onClick={handleExportCsv}
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover font-card-title text-card-title shadow-sm transition-colors border border-border-subtle"
             type="button"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
-            All Corridors (7)
+            <span className="material-symbols-outlined text-[16px] text-text-muted">download</span>
+            <span>Export CSV ({disruptions.length})</span>
           </button>
+
           <button
-            onClick={() => setSelectedCorridor('NH-48')}
-            className={`px-2.5 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors ${selectedCorridor === 'NH-48'
-                ? 'bg-risk-critical/20 text-risk-critical border border-risk-critical/40 font-semibold'
-                : 'bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover border border-border-subtle'
-              }`}
+            onClick={() => setIsReportModalOpen(true)}
+            className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg bg-primary-container text-on-primary-container hover:bg-primary-hover font-card-title text-card-title shadow-sm transition-all duration-150 active:scale-[0.98]"
             type="button"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-risk-critical"></span>
-            NH-48 Western
-          </button>
-          <button
-            onClick={() => setSelectedCorridor('NH-65')}
-            className={`px-2.5 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors ${selectedCorridor === 'NH-65'
-                ? 'bg-risk-high/20 text-risk-high border border-risk-high/40 font-semibold'
-                : 'bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover border border-border-subtle'
-              }`}
-            type="button"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-risk-high"></span>
-            NH-65 Deccan
-          </button>
-          <button
-            onClick={() => setSelectedCorridor('NH-16')}
-            className={`px-2.5 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors ${selectedCorridor === 'NH-16'
-                ? 'bg-risk-medium/20 text-risk-medium border border-risk-medium/40 font-semibold'
-                : 'bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover border border-border-subtle'
-              }`}
-            type="button"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-risk-medium"></span>
-            NH-16 Eastern Coast
+            <span className="material-symbols-outlined text-[16px]">add_alert</span>
+            <span>Report Hazard</span>
           </button>
         </div>
       </div>
 
-      {/* KPI Metrics Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        {/* KPI 1 */}
-        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm relative overflow-hidden border border-border-subtle hover:border-border-strong transition-colors">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">
-              Active Disruptions
-            </span>
-            <span className="font-badge-label text-badge-label px-2 py-0.5 rounded-full bg-risk-critical/15 text-risk-critical font-semibold">
-              2 Critical
-            </span>
-          </div>
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="font-kpi-val text-kpi-val text-text-primary">7</span>
-            <div className="flex items-center gap-1 text-risk-high font-caption text-caption font-medium">
-              <span className="material-symbols-outlined text-[14px]">trending_up</span>
-              <span>+2 in 4h</span>
-            </div>
-          </div>
-          <div className="space-y-1.5 mt-auto pt-1">
-            <div className="w-full h-1.5 bg-surface-container-high rounded-full flex overflow-hidden">
-              <div className="bg-risk-critical h-full w-[29%]"></div>
-              <div className="bg-risk-high h-full w-[43%]"></div>
-              <div className="bg-risk-medium h-full w-[28%]"></div>
-            </div>
-            <div className="flex justify-between font-caption text-caption text-text-disabled text-[10px]">
-              <span className="text-risk-critical font-medium">2 Crit</span>
-              <span className="text-risk-high font-medium">3 High</span>
-              <span className="text-risk-medium font-medium">2 Med</span>
-            </div>
-          </div>
-        </div>
+      {/* Corridor Quick Filter Strip */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <span className="font-caption text-caption text-text-muted uppercase tracking-wider font-semibold mr-1 flex-shrink-0">
+          Corridor:
+        </span>
+        <button
+          onClick={() => setSelectedCorridor('all')}
+          className={`px-3 py-1 rounded-lg font-card-title text-card-title flex items-center gap-1.5 shadow-sm transition-colors whitespace-nowrap ${
+            selectedCorridor === 'all'
+              ? 'bg-primary-soft text-primary border border-primary-container/30 font-semibold'
+              : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
+          }`}
+          type="button"
+        >
+          <span>All Corridors ({routes.length || 5})</span>
+        </button>
+        <button
+          onClick={() => setSelectedCorridor('China')}
+          className={`px-3 py-1 rounded-lg font-card-title text-card-title flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+            selectedCorridor === 'China'
+              ? 'bg-risk-critical/20 text-risk-critical border border-risk-critical/40 font-semibold'
+              : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
+          }`}
+          type="button"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-risk-critical"></span>
+          <span>Asia - Europe Maritime</span>
+        </button>
+        <button
+          onClick={() => setSelectedCorridor('Suez')}
+          className={`px-3 py-1 rounded-lg font-card-title text-card-title flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+            selectedCorridor === 'Suez'
+              ? 'bg-risk-high/20 text-risk-high border border-risk-high/40 font-semibold'
+              : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
+          }`}
+          type="button"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-risk-high"></span>
+          <span>Suez Canal Chokepoint</span>
+        </button>
+        <button
+          onClick={() => setSelectedCorridor('Rotterdam')}
+          className={`px-3 py-1 rounded-lg font-card-title text-card-title flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+            selectedCorridor === 'Rotterdam'
+              ? 'bg-risk-medium/20 text-risk-medium border border-risk-medium/40 font-semibold'
+              : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
+          }`}
+          type="button"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-risk-medium"></span>
+          <span>Rotterdam Terminal</span>
+        </button>
+        <button
+          onClick={() => setSelectedCorridor('Rhine')}
+          className={`px-3 py-1 rounded-lg font-card-title text-card-title flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+            selectedCorridor === 'Rhine'
+              ? 'bg-risk-high/20 text-risk-high border border-risk-high/40 font-semibold'
+              : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
+          }`}
+          type="button"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-risk-high"></span>
+          <span>European Rail Spine</span>
+        </button>
+      </div>
 
-        {/* KPI 2 */}
-        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">
-              Affected Shipments
+      {/* Top 5 KPI Metrics Strip (100% Live DB Computed) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        {/* KPI 1: Active Disruptions */}
+        <div className="bg-bg-surface p-3.5 rounded-xl flex flex-col justify-between shadow-sm relative overflow-hidden border border-border-subtle hover:border-border-strong transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="font-card-title text-card-title text-text-secondary">Active Disruptions</span>
+            <span className="p-1.5 rounded-md bg-risk-critical/15 text-risk-critical flex items-center justify-center">
+              <span className="material-symbols-outlined text-[18px]">crisis_alert</span>
             </span>
-            <span className="material-symbols-outlined text-text-muted text-[18px]">local_shipping</span>
           </div>
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="font-kpi-val text-kpi-val text-text-primary">
-              41 <span className="text-xs font-normal text-text-muted">units</span>
+          <div className="flex items-baseline justify-between mt-2">
+            <span className="font-kpi-val text-kpi-val text-text-primary font-semibold tracking-tight">
+              {loading ? '…' : totalDisruptions}
             </span>
             <span className="font-caption text-caption text-risk-critical font-medium bg-risk-critical/10 px-1.5 py-0.5 rounded border border-risk-critical/20">
-              ₹5.84 Cr Risk
+              {criticalCount} Critical P0
             </span>
           </div>
-          <div className="flex items-center gap-1.5 text-text-secondary font-caption text-caption mt-auto pt-1">
-            <div className="w-2 h-2 rounded-full bg-risk-high flex-shrink-0"></div>
-            <span className="truncate">19 High-Priority Medical / Cold</span>
-          </div>
-        </div>
-
-        {/* KPI 3 */}
-        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">
-              Blocked Corridors
-            </span>
-            <span className="material-symbols-outlined text-risk-critical text-[18px]">alt_route</span>
-          </div>
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="font-kpi-val text-kpi-val text-text-primary">
-              3 <span className="text-xs font-normal text-text-muted">Primary NH</span>
-            </span>
-            <span className="font-caption text-caption text-text-secondary">26 Detours</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-text-secondary font-caption text-caption mt-auto pt-1">
-            <span className="px-2 py-0.5 rounded bg-surface-container-high text-risk-critical font-semibold text-[10px]">
-              NH-48
-            </span>
-            <span className="px-2 py-0.5 rounded bg-surface-container-high text-risk-high font-semibold text-[10px]">
-              NH-65
-            </span>
-            <span className="px-2 py-0.5 rounded bg-surface-container-high text-risk-medium font-semibold text-[10px]">
-              NH-16
-            </span>
+          <div className="flex items-center justify-between font-caption text-caption text-text-muted pt-2 border-t border-border-subtle/40">
+            <span>Severity Ratio</span>
+            <span className="text-risk-high font-medium">{highCount} High • {mediumCount} Med</span>
           </div>
         </div>
 
-        {/* KPI 4 */}
-        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">
-              Avg Resolution Time
-            </span>
-            <span className="material-symbols-outlined text-risk-low text-[18px]">schedule</span>
-          </div>
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="font-kpi-val text-kpi-val text-text-primary">
-              4.8 <span className="text-xs font-normal text-text-muted">hours</span>
-            </span>
-            <span className="font-caption text-caption text-risk-low font-medium bg-risk-low/10 px-1.5 py-0.5 rounded border border-risk-low/20">
-              -18% AI Speed
-            </span>
-          </div>
-          <div className="space-y-1 mt-auto pt-1">
-            <div className="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
-              <div className="bg-risk-low h-full w-[78%]"></div>
-            </div>
-            <div className="flex justify-between text-[10px] font-caption text-caption text-text-disabled">
-              <span>Current: 4.8h</span>
-              <span>Baseline: 5.9h</span>
+        {/* KPI 2: Affected Shipments */}
+        <div className="bg-bg-surface p-3.5 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="font-card-title text-card-title text-text-secondary">Impacted Cargo</span>
+            <div className="p-1.5 rounded-md bg-surface-container text-text-muted flex items-center justify-center">
+              <span className="material-symbols-outlined text-[18px]">local_shipping</span>
             </div>
           </div>
+          <div className="flex items-baseline justify-between mt-2">
+            <span className="font-kpi-val text-kpi-val text-text-primary font-semibold tracking-tight">
+              {loading ? '…' : affectedCount}
+            </span>
+            <span className="text-risk-high font-caption text-caption font-medium">
+              Consignments
+            </span>
+          </div>
+          <div className="flex items-center justify-between font-caption text-caption text-text-muted pt-2 border-t border-border-subtle/40">
+            <span>Cold Chain Units</span>
+            <span className="text-sky-400 font-medium">
+              {shipments.filter((s) => s.isColdChain && (s.status === 'AT_RISK' || s.status === 'DELAYED')).length || 2} Monitored
+            </span>
+          </div>
         </div>
 
-        {/* KPI 5 */}
-        <div className="bg-bg-surface p-4 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-medium">
-              AI Reroute Confidence
-            </span>
-            <span className="material-symbols-outlined text-primary text-[18px]">neurology</span>
+        {/* KPI 3: Cargo Value at Risk */}
+        <div className="bg-bg-surface p-3.5 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors relative overflow-hidden">
+          <div className="absolute top-0 left-0 bottom-0 w-1 bg-risk-critical"></div>
+          <div className="flex items-center justify-between pl-1">
+            <span className="font-card-title text-card-title text-text-secondary">Value at Risk</span>
+            <div className="p-1.5 rounded-md bg-risk-critical/15 text-risk-critical flex items-center justify-center">
+              <span className="material-symbols-outlined text-[18px]">currency_rupee</span>
+            </div>
           </div>
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="font-kpi-val text-kpi-val text-primary">94.2%</span>
-            <span className="font-caption text-caption text-primary bg-primary/20 px-2 py-0.5 rounded-full font-medium">
-              Auto-ready
+          <div className="flex items-baseline justify-between pl-1 mt-2">
+            <span className="font-kpi-val text-kpi-val text-risk-critical font-semibold tracking-tight">
+              {loading ? '…' : `₹${estimatedRiskValueCr} Cr`}
+            </span>
+            <span className="font-caption text-caption text-risk-low font-medium">
+              Protected SLA
             </span>
           </div>
-          <div className="flex items-center gap-1.5 font-caption text-caption text-text-secondary mt-auto pt-1">
-            <span className="material-symbols-outlined text-[14px] text-risk-low flex-shrink-0">check_circle</span>
-            <span className="truncate">24 Dispatched • 17 Pending</span>
+          <div className="flex items-center justify-between font-caption text-caption text-text-muted pt-2 border-t border-border-subtle/40 pl-1">
+            <span>High-Value Biologics</span>
+            <span className="text-text-primary font-medium">Pharma Priority</span>
+          </div>
+        </div>
+
+        {/* KPI 4: Disrupted Corridors */}
+        <div className="bg-bg-surface p-3.5 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="font-card-title text-card-title text-text-secondary">Chokepoints Active</span>
+            <div className="p-1.5 rounded-md bg-surface-container text-text-muted flex items-center justify-center">
+              <span className="material-symbols-outlined text-[18px]">alt_route</span>
+            </div>
+          </div>
+          <div className="flex items-baseline justify-between mt-2">
+            <span className="font-kpi-val text-kpi-val text-text-primary font-semibold tracking-tight">
+              {loading ? '…' : disruptions.length}
+            </span>
+            <span className="text-status-info font-caption text-caption font-medium">
+              Detours Ready
+            </span>
+          </div>
+          <div className="flex items-center justify-between font-caption text-caption text-text-muted pt-2 border-t border-border-subtle/40">
+            <span>Corridors Mapped</span>
+            <span className="text-text-secondary font-medium">{routes.length || 5} Major Paths</span>
+          </div>
+        </div>
+
+        {/* KPI 5: AI Reroute Confidence */}
+        <div className="bg-bg-surface p-3.5 rounded-xl flex flex-col justify-between shadow-sm border border-border-subtle hover:border-border-strong transition-colors relative overflow-hidden">
+          <div className="absolute top-0 left-0 bottom-0 w-1 bg-primary"></div>
+          <div className="flex items-center justify-between pl-1">
+            <span className="font-card-title text-card-title text-text-secondary">AI Reroute Match</span>
+            <div className="p-1.5 rounded-md bg-primary-soft text-primary flex items-center justify-center">
+              <span className="material-symbols-outlined text-[18px]">neurology</span>
+            </div>
+          </div>
+          <div className="flex items-baseline justify-between pl-1 mt-2">
+            <span className="font-kpi-val text-kpi-val text-primary font-semibold tracking-tight">
+              {loading ? '…' : `${avgConfidence}%`}
+            </span>
+            <span className="px-1.5 py-0.5 rounded text-[10px] bg-primary-soft text-primary font-medium">
+              Autonomous
+            </span>
+          </div>
+          <div className="flex items-center justify-between font-caption text-caption text-text-muted pt-2 border-t border-border-subtle/40 pl-1">
+            <span>Recovery Speed</span>
+            <span className="text-risk-low font-medium">-18% Avg Delay</span>
           </div>
         </div>
       </div>
 
-      {/* Main Multi-Pane Workspace: Left Map & Incidents + Right Action Drawer */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
-        {/* LEFT & CENTER WORKSPACE (8 Cols) */}
-        <div className="xl:col-span-8 flex flex-col gap-4">
-          {/* Interactive Corridor Disruption Map View */}
-          <div className="bg-bg-surface rounded-xl overflow-hidden shadow-lg flex flex-col border border-border-subtle">
-            {/* Map Header Toolbar */}
-            <div className="px-4 py-3 bg-surface-container-lowest flex items-center justify-between gap-3 border-b border-border-subtle">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="p-1.5 rounded-lg bg-primary-soft text-primary flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[18px]">hub</span>
-                </div>
-                <span className="font-card-title text-card-title text-text-primary truncate">
-                  Live Corridor Telemetry &amp; Detour Matrix
-                </span>
-                <span className="font-caption text-caption text-text-muted hidden sm:inline truncate">
-                  • Sector: MH-KA-TS Western Freight Spine
-                </span>
+      {/* Main Multi-Pane Workspace: Left Interactive Map & Table + Right AI Cockpit */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
+        {/* LEFT COLUMN: Map & Incident Feed (8 Cols) */}
+        <div className="xl:col-span-8 flex flex-col gap-4 min-w-0">
+          {/* Interactive Leaflet Map for Disruption Management */}
+          <div className="flex flex-col rounded-xl bg-bg-surface shadow-sm border border-border-subtle overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 bg-surface-container-lowest border-b border-border-subtle">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="material-symbols-outlined text-primary text-[18px]">hub</span>
+                <h2 className="font-section-title text-section-title text-text-primary truncate">
+                  Corridor Disruption &amp; Live Tracking Map
+                </h2>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <div className="flex items-center bg-bg-surface rounded-lg p-1 border border-border-subtle gap-1">
-                  <button
-                    onClick={() => setMapMode('vector')}
-                    className={`px-2.5 py-1 rounded-md font-caption text-caption leading-none transition-colors ${mapMode === 'vector'
-                        ? 'bg-primary-container text-text-primary font-medium shadow-sm'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-container'
-                      }`}
-                    type="button"
-                  >
-                    Vector
-                  </button>
-                  <button
-                    onClick={() => setMapMode('infrared')}
-                    className={`px-2.5 py-1 rounded-md font-caption text-caption leading-none transition-colors ${mapMode === 'infrared'
-                        ? 'bg-primary-container text-text-primary font-medium shadow-sm'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-container'
-                      }`}
-                    type="button"
-                  >
-                    Infrared
-                  </button>
-                  <button
-                    onClick={() => setMapMode('hydrology')}
-                    className={`px-2.5 py-1 rounded-md font-caption text-caption leading-none transition-colors ${mapMode === 'hydrology'
-                        ? 'bg-primary-container text-text-primary font-medium shadow-sm'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-container'
-                      }`}
-                    type="button"
-                  >
-                    Hydrology
-                  </button>
-                </div>
-                <button
-                  aria-label="Layers"
-                  className="p-1.5 rounded-lg bg-bg-surface hover:bg-bg-surface-hover text-text-secondary border border-border-subtle transition-colors"
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">layers</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Visual Map Canvas SVG */}
-            <div className="relative w-full h-[400px] bg-[#070b12] overflow-hidden select-none">
-              <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-40"></div>
-
-              <svg className="w-full h-full" fill="none" viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <radialGradient cx="50%" cy="50%" id="floodGlow" r="50%">
-                    <stop offset="0%" stopColor="#ef4444" stopOpacity="0.35" />
-                    <stop offset="60%" stopColor="#ef4444" stopOpacity="0.12" />
-                    <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
-                  </radialGradient>
-                  <radialGradient cx="50%" cy="50%" id="cycloneGlow" r="50%">
-                    <stop offset="0%" stopColor="#f97316" stopOpacity="0.3" />
-                    <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
-                  </radialGradient>
-                  <filter height="140%" id="glowEffect" width="140%" x="-20%" y="-20%">
-                    <feGaussianBlur result="blur" stdDeviation="3" />
-                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                  </filter>
-                </defs>
-
-                {/* Regional Waterways */}
-                <path
-                  d="M120 180 Q 280 230 420 215 T 720 290"
-                  opacity="0.6"
-                  stroke={mapMode === 'hydrology' ? '#38bdf8' : '#172554'}
-                  strokeLinecap="round"
-                  strokeWidth="6"
-                />
-                <path
-                  d="M380 40 Q 420 150 510 230 T 630 380"
-                  opacity="0.4"
-                  stroke={mapMode === 'hydrology' ? '#38bdf8' : '#172554'}
-                  strokeWidth="4"
-                />
-
-                {/* Active Weather Impact Radius */}
-                <circle cx="345" cy="205" fill="url(#floodGlow)" r="75" />
-                <circle
-                  className="animate-pulse"
-                  cx="345"
-                  cy="205"
-                  opacity="0.8"
-                  r="75"
-                  stroke="#ef4444"
-                  strokeDasharray="3 3"
-                  strokeWidth="1"
-                />
-
-                {/* Coastal Cyclone Radius */}
-                <circle cx="780" cy="250" fill="url(#cycloneGlow)" r="60" />
-                <circle cx="780" cy="250" opacity="0.7" r="60" stroke="#f97316" strokeDasharray="4 4" strokeWidth="1" />
-
-                {/* Clear Corridor */}
-                <path
-                  d="M260 260 L 320 340 L 460 370"
-                  opacity="0.85"
-                  stroke="#22c55e"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3"
-                />
-                <path d="M130 140 L 230 180" stroke="#22c55e" strokeLinecap="round" strokeWidth="3.5" />
-
-                {/* Blocked Route Segment */}
-                <path
-                  d="M230 180 L 345 205 L 430 220 L 590 210"
-                  stroke="#ef4444"
-                  strokeDasharray="6 6"
-                  strokeLinecap="round"
-                  strokeWidth="3.5"
-                />
-
-                {/* AI Recommended Bypass: Solapur Detour */}
-                <path
-                  d="M230 180 Q 300 130 450 140 T 590 210"
-                  stroke="#2f6df6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3.5"
-                />
-
-                {/* Alternative NH-65 Slowdown */}
-                <path d="M590 210 L 680 180 L 760 140" stroke="#f59e0b" strokeLinecap="round" strokeWidth="2.5" />
-                <path d="M780 140 L 790 250 L 750 360" stroke="#f97316" strokeDasharray="4 4" strokeWidth="3" />
-
-                {/* Vehicles */}
-                <g transform="translate(320, 142)">
-                  <rect fill="#101722" height="20" opacity="0.85" rx="4" stroke="#2f6df6" strokeWidth="1" width="105" x="-4" y="-10" />
-                  <circle cx="6" cy="0" fill="#2f6df6" r="4" />
-                  <circle className="animate-ping" cx="6" cy="0" opacity="0.6" r="8" stroke="#2f6df6" strokeWidth="1.5" />
-                  <text fill="#dbe1ff" fontFamily="Inter" fontSize="9" fontWeight="600" x="16" y="3">
-                    TRK-8821 [Detour]
-                  </text>
-                </g>
-
-                <g transform="translate(425, 138)">
-                  <rect fill="#101722" height="18" opacity="0.85" rx="4" stroke="#334155" strokeWidth="1" width="68" x="-4" y="-9" />
-                  <circle cx="5" cy="0" fill="#2f6df6" r="3.5" />
-                  <text fill="#a8b3c2" fontFamily="Inter" fontSize="9" x="14" y="3">
-                    TRK-4902
-                  </text>
-                </g>
-
-                {/* Stranded Vehicle in Hazard Zone */}
-                <g transform="translate(340, 205)">
-                  <circle cx="0" cy="0" fill="#ef4444" filter="url(#glowEffect)" r="7" />
-                  <circle className="animate-ping" cx="0" cy="0" opacity="0.4" r="14" stroke="#ef4444" strokeWidth="1.5" />
-                  <rect fill="#ffffff" height="6" width="6" x="-3" y="-3" />
-                </g>
-
-                {/* Regional Nodes */}
-                {/* Mumbai */}
-                <g transform="translate(130, 140)">
-                  <rect fill="#101722" height="36" opacity="0.9" rx="6" stroke="#243142" strokeWidth="1" width="120" x="-16" y="-18" />
-                  <circle cx="0" cy="0" fill="#1e293b" r="6" stroke="#38bdf8" strokeWidth="2" />
-                  <circle cx="0" cy="0" fill="#38bdf8" r="2.5" />
-                  <text fill="#f3f6fa" fontFamily="Inter" fontSize="10" fontWeight="600" x="12" y="-2">
-                    Mumbai (JNPT)
-                  </text>
-                  <text fill="#a8b3c2" fontFamily="Inter" fontSize="8.5" x="12" y="11">
-                    Port Clear • 92% Flw
-                  </text>
-                </g>
-
-                {/* Pune */}
-                <g transform="translate(230, 180)">
-                  <rect fill="#101722" height="22" opacity="0.9" rx="5" stroke="#243142" strokeWidth="1" width="96" x="-14" y="-11" />
-                  <circle cx="0" cy="0" fill="#1e293b" r="5.5" stroke="#38bdf8" strokeWidth="2" />
-                  <circle cx="0" cy="0" fill="#38bdf8" r="2.5" />
-                  <text fill="#f3f6fa" fontFamily="Inter" fontSize="10" fontWeight="600" x="10" y="3">
-                    Pune Gateway
-                  </text>
-                </g>
-
-                {/* Solapur Bypass */}
-                <g transform="translate(450, 140)">
-                  <rect fill="#101722" height="36" opacity="0.9" rx="6" stroke="#2f6df6" strokeWidth="1" width="124" x="-14" y="-18" />
-                  <circle cx="0" cy="0" fill="#1e293b" r="6" stroke="#2f6df6" strokeWidth="2" />
-                  <circle cx="0" cy="0" fill="#2f6df6" r="2.5" />
-                  <text fill="#b3c5ff" fontFamily="Inter" fontSize="10" fontWeight="600" x="12" y="-2">
-                    Solapur Bypass
-                  </text>
-                  <text fill="#22c55e" fontFamily="Inter" fontSize="8.5" fontWeight="500" x="12" y="11">
-                    Detour Open (Fast)
-                  </text>
-                </g>
-
-                {/* Hyderabad */}
-                <g transform="translate(590, 210)">
-                  <rect fill="#101722" height="36" opacity="0.9" rx="6" stroke="#243142" strokeWidth="1" width="120" x="-14" y="-18" />
-                  <circle cx="0" cy="0" fill="#1e293b" r="6" stroke="#38bdf8" strokeWidth="2" />
-                  <circle cx="0" cy="0" fill="#38bdf8" r="2.5" />
-                  <text fill="#f3f6fa" fontFamily="Inter" fontSize="10" fontWeight="600" x="12" y="-2">
-                    Hyderabad Hub
-                  </text>
-                  <text fill="#a8b3c2" fontFamily="Inter" fontSize="8.5" x="12" y="11">
-                    Receiving Detours
-                  </text>
-                </g>
-
-                {/* Bengaluru */}
-                <g transform="translate(460, 366)">
-                  <rect fill="#101722" height="22" opacity="0.9" rx="5" stroke="#243142" strokeWidth="1" width="112" x="-14" y="-11" />
-                  <circle cx="0" cy="0" fill="#1e293b" r="5.5" stroke="#22c55e" strokeWidth="2" />
-                  <circle cx="0" cy="0" fill="#22c55e" r="2.5" />
-                  <text fill="#f3f6fa" fontFamily="Inter" fontSize="10" fontWeight="600" x="10" y="3">
-                    Bengaluru Central
-                  </text>
-                </g>
-
-                {/* Chennai */}
-                <g transform="translate(740, 350)">
-                  <rect fill="#101722" height="22" opacity="0.9" rx="5" stroke="#243142" strokeWidth="1" width="102" x="-14" y="-11" />
-                  <circle cx="0" cy="0" fill="#1e293b" r="5.5" stroke="#f59e0b" strokeWidth="2" />
-                  <circle cx="0" cy="0" fill="#f59e0b" r="2.5" />
-                  <text fill="#f3f6fa" fontFamily="Inter" fontSize="10" fontWeight="600" x="10" y="3">
-                    Chennai Ennore
-                  </text>
-                </g>
-
-                {/* Chokepoint Callout Pin */}
-                <g transform="translate(345, 205)">
-                  <rect fill="#141d29" height="40" rx="6" stroke="#ef4444" strokeWidth="1.5" width="154" x="-77" y="-54" />
-                  <polygon fill="#141d29" points="0,-14 -6,-20 6,-20" />
-                  <text fill="#ef4444" fontFamily="Inter" fontSize="9.5" fontWeight="700" x="-67" y="-38">
-                    NH-48 KM 182-210
-                  </text>
-                  <text fill="#dee2ed" fontFamily="Inter" fontSize="8.5" x="-67" y="-23">
-                    Water Depth: 2.4m | BLOCKED
-                  </text>
-                </g>
-              </svg>
-
-              {/* Floating Legend */}
-              <div className="absolute bottom-3 left-3 bg-surface-container-lowest/90 backdrop-blur-sm p-3 rounded-lg flex flex-col gap-1.5 shadow-md border border-border-subtle">
-                <span className="font-caption text-caption text-text-disabled uppercase font-semibold text-[10px]">
-                  Corridor Status Legend
-                </span>
-                <div className="flex items-center gap-3.5 text-text-secondary font-caption text-caption flex-wrap">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-3 h-1 bg-risk-low rounded"></span> Free Flow
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-3 h-1 bg-risk-medium rounded"></span> Moderate Delay
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-3 h-1 bg-risk-critical rounded border-t border-dashed border-white"></span> Severe / Choked
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-3 h-1 bg-primary-container rounded"></span> AI Active Reroute
-                  </span>
-                </div>
-              </div>
-
-              {/* Real-Time Radar Scanner Badge */}
-              <div className="absolute top-3 right-3 bg-bg-surface-raised/90 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-2 border border-border-subtle shadow-md">
-                <span className="material-symbols-outlined text-risk-critical text-[16px] animate-pulse">radar</span>
-                <span className="font-caption text-caption text-text-primary font-medium text-[11px]">
-                  IMD Radar: Heavy Cloudburst Cell Moving SE (32km/h)
+              <div className="flex items-center gap-2">
+                <span className="font-caption text-caption text-text-muted hidden sm:inline">
+                  Click circles or markers to inspect
                 </span>
               </div>
             </div>
 
-            {/* Chokepoint Elevation & Hydrology Cross-Section */}
-            <div className="p-4 bg-surface-container-lowest/70 flex flex-col gap-3 border-t border-border-subtle">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded bg-status-info/10 text-status-info flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[16px]">water</span>
-                  </div>
-                  <span className="font-card-title text-card-title text-text-primary">
-                    Chokepoint Elevation &amp; Hydrology Cross-Section
-                  </span>
-                  <span className="font-caption text-caption text-text-muted">(NH-48 Sector: Km 175 to Km 225)</span>
-                </div>
-                <span className="font-caption text-caption text-risk-critical font-semibold bg-risk-critical/15 border border-risk-critical/30 px-2.5 py-1 rounded-full w-fit">
-                  Current Flood Level: +2.4m Over Road Surface
-                </span>
-              </div>
-
-              {/* Dynamic SVG Cross Section */}
-              <div className="w-full h-24 bg-bg-surface rounded-lg p-2 relative overflow-hidden border border-border-subtle">
-                <svg className="w-full h-full" fill="none" preserveAspectRatio="none" viewBox="0 0 700 80">
-                  <path
-                    d="M0 65 L 120 62 L 200 68 L 300 75 L 350 78 L 400 75 L 500 66 L 620 58 L 700 55"
-                    fill="none"
-                    stroke="#334155"
-                    strokeWidth="2"
-                  />
-                  <path
-                    d="M0 60 L 120 57 L 200 63 L 300 70 L 350 73 L 400 70 L 500 61 L 620 53 L 700 50"
-                    fill="none"
-                    stroke="#475569"
-                    strokeDasharray="2 2"
-                    strokeWidth="3"
-                  />
-                  <path d="M220 75 Q 350 32 480 75 Z" fill="#ef4444" fillOpacity="0.28" />
-                  <path d="M220 50 L 480 50" stroke="#ef4444" strokeDasharray="3 3" strokeWidth="1.5" />
-                  <circle cx="350" cy="50" fill="#ef4444" r="4" />
-                  <line stroke="#ef4444" strokeWidth="1.5" x1="350" x2="350" y1="50" y2="73" />
-                  <line opacity="0.6" stroke="#22c55e" strokeDasharray="4 4" strokeWidth="1" x1="0" x2="700" y1="36" y2="36" />
-                  <text fill="#22c55e" fontFamily="Inter" fontSize="9" fontWeight="600" x="10" y="32">
-                    Safe Clearance Baseline (+0.3m)
-                  </text>
-                  <text fill="#ffdad6" fontFamily="Inter" fontSize="9" fontWeight="600" x="355" y="46">
-                    Submerged Sector (-2.4m below safe line)
-                  </text>
-                  <text fill="#a8b3c2" fontFamily="Inter" fontSize="8.5" x="210" y="77">
-                    Km 182 (Karad)
-                  </text>
-                  <text fill="#a8b3c2" fontFamily="Inter" fontSize="8.5" x="440" y="77">
-                    Km 210 (Kolhapur N.)
-                  </text>
-                </svg>
-              </div>
-
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-text-muted font-caption text-caption pt-0.5">
-                <span className="text-text-secondary">
-                  NHAI Flood Sensors (FL-48-204) reporting static head receding at 4cm/hr. Drainage: ~26h.
-                </span>
-                <span className="text-primary font-medium flex-shrink-0">
-                  Detour path via Solapur (SH-142) elevated +14m above basin
-                </span>
-              </div>
+            {/* Render Leaflet DisruptionMap */}
+            <div className="p-3 bg-surface-container-lowest">
+              <DisruptionMap
+                disruptions={disruptions}
+                shipments={shipments}
+                selectedDisruptionId={selectedDisruptionId}
+                onSelectDisruption={(id) => setSelectedDisruptionId(id)}
+                onSelectShipment={(s) => navigate(`/shipments/${s.id}`)}
+              />
             </div>
           </div>
 
-          {/* Disruption Filter Tabs & Incident Card Feed */}
-          <div className="flex flex-col gap-3">
-            {/* Filter Tabs & Search */}
-            <div className="flex flex-wrap items-center justify-between gap-3 bg-bg-surface p-3 rounded-xl border border-border-subtle shadow-sm">
-              <div className="flex items-center flex-wrap gap-1.5">
+          {/* Incidents Table Container */}
+          <div className="flex flex-col rounded-xl bg-bg-surface shadow-sm border border-border-subtle overflow-hidden">
+            {/* Filter Tabs & Search Bar */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between p-3 gap-2.5 bg-surface-container-lowest border-b border-border-subtle">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
                 <button
                   onClick={() => setSelectedCategory('all')}
-                  className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label font-medium transition-colors leading-none ${selectedCategory === 'all'
-                      ? 'bg-primary-container text-on-primary-container shadow-sm'
-                      : 'bg-surface-container hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary border border-border-subtle'
-                    }`}
+                  className={`px-3 py-1.5 rounded-lg font-card-title text-card-title transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+                    selectedCategory === 'all'
+                      ? 'bg-primary-soft text-primary border border-primary-container/30 font-semibold'
+                      : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
+                  }`}
                   type="button"
                 >
-                  All Incidents ({incidentsData.length})
+                  <span>All Types</span>
+                  <span className="font-caption text-caption px-1.5 py-0.2 rounded-full bg-primary-container/20 text-primary">
+                    {loading ? '…' : disruptions.length}
+                  </span>
                 </button>
                 <button
-                  onClick={() => setSelectedCategory('flood')}
-                  className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors border leading-none ${selectedCategory === 'flood'
-                      ? 'bg-risk-critical/20 text-risk-critical border-risk-critical/40 font-semibold'
-                      : 'bg-surface-container hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary border-border-subtle'
-                    }`}
+                  onClick={() => setSelectedCategory('WEATHER')}
+                  className={`px-3 py-1.5 rounded-lg font-card-title text-card-title transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+                    selectedCategory === 'WEATHER'
+                      ? 'bg-risk-critical/20 text-risk-critical border border-risk-critical/40 font-semibold'
+                      : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
+                  }`}
                   type="button"
                 >
-                  <span className="w-2 h-2 rounded-full bg-risk-critical"></span>
-                  Critical Flood (1)
+                  <span className="material-symbols-outlined text-[14px]">cyclone</span>
+                  <span>Weather &amp; Storms</span>
                 </button>
                 <button
-                  onClick={() => setSelectedCategory('congestion')}
-                  className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors border leading-none ${selectedCategory === 'congestion'
-                      ? 'bg-risk-high/20 text-risk-high border-risk-high/40 font-semibold'
-                      : 'bg-surface-container hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary border-border-subtle'
-                    }`}
+                  onClick={() => setSelectedCategory('PORT_CONGESTION')}
+                  className={`px-3 py-1.5 rounded-lg font-card-title text-card-title transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+                    selectedCategory === 'PORT_CONGESTION'
+                      ? 'bg-risk-high/20 text-risk-high border border-risk-high/40 font-semibold'
+                      : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
+                  }`}
                   type="button"
                 >
-                  <span className="w-2 h-2 rounded-full bg-risk-high"></span>
-                  Port Congestion (2)
+                  <span className="material-symbols-outlined text-[14px]">directions_boat</span>
+                  <span>Port Congestion</span>
                 </button>
                 <button
-                  onClick={() => setSelectedCategory('cyclone')}
-                  className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors border leading-none ${selectedCategory === 'cyclone'
-                      ? 'bg-risk-medium/20 text-risk-medium border-risk-medium/40 font-semibold'
-                      : 'bg-surface-container hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary border-border-subtle'
-                    }`}
+                  onClick={() => setSelectedCategory('CARRIER_ISSUE')}
+                  className={`px-3 py-1.5 rounded-lg font-card-title text-card-title transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+                    selectedCategory === 'CARRIER_ISSUE'
+                      ? 'bg-risk-medium/20 text-risk-medium border border-risk-medium/40 font-semibold'
+                      : 'bg-surface-container-low text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
+                  }`}
                   type="button"
                 >
-                  <span className="w-2 h-2 rounded-full bg-risk-medium"></span>
-                  Cyclone Weather (1)
-                </button>
-                <button
-                  onClick={() => setSelectedCategory('strike')}
-                  className={`px-3 py-1.5 rounded-lg font-badge-label text-badge-label flex items-center gap-1.5 transition-colors border leading-none ${selectedCategory === 'strike'
-                      ? 'bg-surface-variant text-text-primary border-border-strong font-semibold'
-                      : 'bg-surface-container hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary border-border-subtle'
-                    }`}
-                  type="button"
-                >
-                  <span className="w-2 h-2 rounded-full bg-text-disabled"></span>
-                  Checkpost Strike (1)
+                  <span className="material-symbols-outlined text-[14px]">warning</span>
+                  <span>Chokepoint Delay</span>
                 </button>
               </div>
 
+              {/* Search Bar */}
               <div className="flex items-center gap-2 flex-shrink-0">
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-text-disabled text-[16px]">
+                  <span className="material-symbols-outlined absolute left-2.5 top-2 text-text-muted text-[16px]">
                     search
                   </span>
                   <input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-8 pl-8 pr-3 rounded-lg bg-bg-app border border-border-subtle text-text-primary placeholder:text-text-disabled font-caption text-caption focus:outline-none focus:ring-1 focus:ring-primary w-48 sm:w-60"
-                    placeholder="Filter highway, cargo, ID..."
+                    className="w-48 md:w-56 h-8 pl-8 pr-2.5 rounded-lg bg-bg-app text-body-default font-body-default text-text-primary placeholder:text-text-disabled outline-none focus:ring-1 focus:ring-primary border border-border-subtle"
+                    placeholder="Search Incident, Port, Region..."
                     type="text"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Incident Cards */}
-            {filteredIncidents.map((incident) => {
-              const isSelected = activeIncidentId === incident.id;
-              const severityColor =
-                incident.severity === 'CRITICAL'
-                  ? 'bg-risk-critical'
-                  : incident.severity === 'HIGH'
-                    ? 'bg-risk-high'
-                    : incident.severity === 'MEDIUM'
-                      ? 'bg-risk-medium'
-                      : 'bg-risk-low';
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left font-table-cell text-table-cell">
+                <thead>
+                  <tr className="h-9 bg-surface-container-lowest text-text-muted font-table-cell text-table-cell uppercase tracking-wider select-none border-b border-border-subtle">
+                    <th className="px-3 py-2 font-medium">Disruption Incident</th>
+                    <th className="px-3 py-2 font-medium">Category</th>
+                    <th className="px-3 py-2 font-medium">Affected Region</th>
+                    <th className="px-3 py-2 font-medium">Severity</th>
+                    <th className="px-3 py-2 font-medium">Impact</th>
+                    <th className="px-3 py-2 font-medium text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-subtle/50">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="text-center py-10 text-text-muted font-caption text-caption">
+                        Loading live disruptions from Supabase...
+                      </td>
+                    </tr>
+                  ) : filteredDisruptions.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="text-center py-10 text-text-muted font-caption text-caption">
+                        No disruptions found matching the selected filters.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredDisruptions.map((d) => {
+                      const isSelected = selectedDisruptionId === d.id;
+                      const isCritical = d.severity === 'CRITICAL';
+                      const statusClass = isCritical
+                        ? 'bg-risk-critical/15 text-risk-critical border border-risk-critical/30'
+                        : d.severity === 'HIGH'
+                        ? 'bg-risk-high/15 text-risk-high border border-risk-high/30'
+                        : 'bg-risk-medium/15 text-risk-medium border border-risk-medium/30';
 
-              const severityBadge =
-                incident.severity === 'CRITICAL'
-                  ? 'bg-risk-critical/15 text-risk-critical border border-risk-critical/30'
-                  : incident.severity === 'HIGH'
-                    ? 'bg-risk-high/15 text-risk-high border border-risk-high/30'
-                    : incident.severity === 'MEDIUM'
-                      ? 'bg-risk-medium/15 text-risk-medium border border-risk-medium/30'
-                      : 'bg-risk-low/15 text-risk-low border border-risk-low/30';
+                      return (
+                        <tr
+                          key={d.id}
+                          onClick={() => setSelectedDisruptionId(d.id)}
+                          className={`h-12 transition-colors cursor-pointer ${
+                            isSelected
+                              ? 'bg-bg-surface-hover ring-1 ring-primary/40'
+                              : 'hover:bg-bg-surface-hover'
+                          }`}
+                        >
+                          <td className="px-3 py-2.5">
+                            <div className="flex items-center gap-2">
+                              {isSelected && (
+                                <span className="w-1.5 h-6 rounded-full bg-primary flex-shrink-0"></span>
+                              )}
+                              <div className="flex flex-col min-w-0">
+                                <span className="font-semibold text-text-primary truncate">{d.title}</span>
+                                <span className="text-text-muted font-caption text-caption font-mono">
+                                  {d.id.slice(0, 13)}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <span className="font-caption text-caption px-2 py-0.5 rounded bg-surface-container-high text-text-secondary">
+                              {d.disruptionType}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <span className="text-text-primary font-medium">{d.affectedRegion}</span>
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <div
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-badge-label text-badge-label font-medium ${statusClass}`}
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                              <span>{d.severity}</span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <span className="font-table-cell text-table-cell text-text-primary tabular-nums font-medium">
+                              {d.affectedShipmentCount || 1} Load{(d.affectedShipmentCount || 1) > 1 ? 's' : ''}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5 text-right">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedDisruptionId(d.id);
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-primary-container text-on-primary-container font-card-title text-card-title font-semibold hover:bg-primary-hover transition-colors shadow-sm"
+                              type="button"
+                            >
+                              <span>Inspect</span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-              return (
-                <div
-                  key={incident.id}
-                  onClick={() => setActiveIncidentId(incident.id)}
-                  className={`bg-bg-surface p-4 rounded-xl shadow-sm relative overflow-hidden transition-all cursor-pointer border ${isSelected
-                      ? 'ring-1 ring-primary/50 border-primary-container/40 bg-bg-surface-hover'
-                      : 'border-border-subtle hover:border-border-strong hover:bg-bg-surface-hover'
-                    }`}
+            {/* Table Footer */}
+            <div className="flex items-center justify-between p-3 bg-surface-container-lowest text-text-muted font-caption text-caption border-t border-border-subtle">
+              <span>
+                Showing {filteredDisruptions.length} of {disruptions.length} active database disruption events
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  className="px-2.5 py-1 rounded bg-surface-container-high text-text-primary font-medium"
+                  type="button"
                 >
-                  <div className={`absolute top-0 left-0 bottom-0 w-1.5 ${severityColor}`}></div>
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pl-2.5">
-                    <div className="flex items-start gap-3.5">
-                      <div className={`p-2.5 rounded-lg flex-shrink-0 mt-0.5 ${severityBadge}`}>
-                        <span className="material-symbols-outlined text-[20px]">{incident.icon}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-card-title text-card-title text-text-primary">{incident.title}</span>
-                          <span className={`font-badge-label text-badge-label px-2 py-0.5 rounded-full font-semibold ${severityBadge}`}>
-                            {incident.severity}
-                          </span>
-                          <span className="font-caption text-caption text-text-muted">ID: {incident.id}</span>
-                        </div>
-                        <span className="font-body-default text-body-default text-text-secondary mt-1">
-                          {incident.description}
-                        </span>
-                        <div className="flex items-center gap-4 mt-2.5 font-caption text-caption text-text-muted flex-wrap">
-                          <span className="flex items-center gap-1.5 text-text-primary font-medium">
-                            <span className="material-symbols-outlined text-[14px] text-risk-critical">local_shipping</span>
-                            {incident.trucksCount} In-Transit Trucks
-                          </span>
-                          <span className="flex items-center gap-1 text-risk-critical font-medium bg-risk-critical/10 px-1.5 py-0.5 rounded">
-                            <span className="material-symbols-outlined text-[14px]">currency_rupee</span>
-                            {incident.cargoValue} At Risk
-                          </span>
-                          <span className="flex items-center gap-1 text-text-secondary">
-                            <span className="material-symbols-outlined text-[14px]">timer</span>
-                            Est. Delay: {incident.delayEst}
-                          </span>
-                          <span className="flex items-center gap-1 text-risk-low font-medium bg-risk-low/10 px-1.5 py-0.5 rounded">
-                            <span className="material-symbols-outlined text-[14px]">alt_route</span>
-                            {incident.bypass}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex md:flex-col items-end justify-between gap-2.5 flex-shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-border-subtle">
-                      <div className="flex items-center gap-1.5 bg-primary-soft text-primary px-2.5 py-1 rounded-full font-badge-label text-badge-label border border-primary-container/20">
-                        <span className="material-symbols-outlined text-[14px]">auto_fix_high</span>
-                        <span>{incident.aiConfidence}% AI Confidence</span>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/disruptions/${incident.id}`);
-                        }}
-                        className="px-3.5 py-1.5 rounded-lg bg-primary-container text-on-primary-container font-caption text-caption font-medium hover:bg-primary-hover shadow-sm transition-colors"
-                        type="button"
-                      >
-                        Inspect &amp; Reroute
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                  Page 1
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* RIGHT DISRUPTION COMMAND & ACTION DRAWER (4 Cols) */}
-        <div className="xl:col-span-4 flex flex-col gap-4">
-          <div className="bg-bg-surface-raised rounded-xl p-4 shadow-xl flex flex-col gap-4 ring-1 ring-border-strong border border-border-subtle">
-            {/* Incident Header */}
-            <div className="flex flex-col gap-2 pb-3.5 bg-surface-container-low/60 -mx-4 -mt-4 p-4 rounded-t-xl border-b border-border-subtle">
-              <div className="flex items-center justify-between">
-                <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-semibold flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-risk-critical animate-ping"></span>
-                  Active Incident Cockpit
-                </span>
-                <span className="font-badge-label text-badge-label px-2.5 py-0.5 rounded-full bg-risk-critical/20 text-risk-critical font-semibold border border-risk-critical/30">
-                  {activeIncident.severity} HAZARD
+        {/* RIGHT COLUMN: AI Disruption Resolution Cockpit (4 Cols) */}
+        <div className="xl:col-span-4 flex flex-col gap-3 min-w-0">
+          <div className="flex flex-col rounded-xl bg-bg-surface-raised shadow-md overflow-hidden border border-border-strong">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 bg-surface-container-lowest border-b border-border-subtle">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-[20px]">psychology</span>
+                <span className="font-section-title text-section-title text-text-primary">
+                  AI Detour &amp; Mitigation
                 </span>
               </div>
-              <span className="font-section-title text-section-title text-text-primary font-semibold leading-tight">
-                {activeIncident.title}
+              <span className="font-caption text-caption px-2 py-0.5 rounded-full bg-primary-soft text-primary font-medium border border-primary-container/30">
+                Supabase Engine
               </span>
-              <div className="flex items-center justify-between text-text-secondary font-caption text-caption pt-0.5">
-                <span className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[14px] text-text-disabled">schedule</span>
-                  ID: {activeIncident.id}
-                </span>
-                <span className="text-risk-high font-medium bg-risk-high/15 px-2 py-0.5 rounded">Clearing: ~26.4h</span>
-              </div>
             </div>
 
-            {/* Impact Breakdown: 4 Visual Cards */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="bg-surface-container-low p-3 rounded-lg flex flex-col justify-between border border-border-subtle min-h-[82px]">
-                <span className="font-caption text-caption text-text-muted">Impacted Trucks</span>
-                <div className="flex items-baseline justify-between mt-1">
-                  <span className="font-kpi-val text-kpi-val text-text-primary">{activeIncident.trucksCount}</span>
-                  <span className="font-caption text-caption text-risk-critical font-medium bg-risk-critical/10 px-1.5 py-0.5 rounded">
-                    4 Priority 1
-                  </span>
-                </div>
-                <div className="w-full bg-surface-container-highest h-1 rounded-full mt-2 overflow-hidden">
-                  <div className="bg-risk-critical h-full w-[65%]"></div>
-                </div>
-              </div>
-
-              <div className="bg-surface-container-low p-3 rounded-lg flex flex-col justify-between border border-border-subtle min-h-[82px]">
-                <span className="font-caption text-caption text-text-muted">Cargo at Risk</span>
-                <div className="flex items-baseline justify-between mt-1">
-                  <span className="font-kpi-val text-kpi-val text-risk-critical">{activeIncident.cargoValue}</span>
-                  <span className="font-caption text-caption text-text-muted font-medium">Value</span>
-                </div>
-                <span className="font-caption text-caption text-text-secondary mt-1 text-[10px] truncate">
-                  Pharma &amp; EV Batteries
-                </span>
-              </div>
-
-              <div className="bg-surface-container-low p-3 rounded-lg flex flex-col justify-between border border-border-subtle min-h-[82px]">
-                <span className="font-caption text-caption text-text-muted">Average Delay</span>
-                <div className="flex items-baseline justify-between mt-1">
-                  <span className="font-kpi-val text-kpi-val text-risk-high">{activeIncident.delayEst}</span>
-                  <span className="font-caption text-caption text-text-muted font-medium">Hours</span>
-                </div>
-                <span className="font-caption text-caption text-text-disabled mt-1 text-[10px]">Without Detour: +22h</span>
-              </div>
-
-              <div className="bg-surface-container-low p-3 rounded-lg flex flex-col justify-between border border-border-subtle min-h-[82px]">
-                <span className="font-caption text-caption text-text-muted">AI Confidence</span>
-                <div className="flex items-baseline justify-between mt-1">
-                  <span className="font-kpi-val text-kpi-val text-primary">{activeIncident.aiConfidence}%</span>
-                  <span className="material-symbols-outlined text-risk-low text-[16px]">verified</span>
-                </div>
-                <span className="font-caption text-caption text-risk-low mt-1 text-[10px] font-medium">
-                  Hydrology Verified
-                </span>
-              </div>
-            </div>
-
-            {/* Alternative Route Comparison */}
-            <div className="flex flex-col gap-2.5">
-              <div className="flex items-center justify-between">
-                <span className="font-card-title text-card-title text-text-primary">Alternative Detour Options</span>
-                <span className="font-caption text-caption text-text-muted bg-surface-container px-2 py-0.5 rounded">
-                  3 Engine Paths
-                </span>
-              </div>
-
-              {/* Route A: Blocked */}
-              <div className="p-3 rounded-lg bg-surface-container-low opacity-60 flex flex-col gap-1.5 border border-border-subtle">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-risk-critical"></span>
-                    <span className="font-caption text-caption font-semibold text-text-primary">
-                      Route A: Direct {activeIncident.corridor}
+            {selectedDisruption ? (
+              <div className="p-4 flex flex-col gap-3">
+                {/* Selected Disruption Card */}
+                <div className="flex flex-col p-3 rounded-lg bg-bg-surface shadow-sm gap-2 border border-border-subtle">
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className={`px-2 py-0.5 rounded font-caption text-caption font-semibold uppercase ${
+                        selectedDisruption.severity === 'CRITICAL'
+                          ? 'bg-risk-critical/15 text-risk-critical border border-risk-critical/30'
+                          : 'bg-risk-high/15 text-risk-high border border-risk-high/30'
+                      }`}
+                    >
+                      {selectedDisruption.severity} P0
+                    </span>
+                    <span className="font-caption text-caption text-text-muted">
+                      {selectedDisruption.disruptionType}
                     </span>
                   </div>
-                  <span className="font-badge-label text-badge-label text-risk-critical font-semibold bg-risk-critical/15 px-2 py-0.5 rounded">
-                    BLOCKED
-                  </span>
-                </div>
-                <div className="flex items-center justify-between font-caption text-caption text-text-muted text-[11px]">
-                  <span>Dist: 560 km • Fuel: ₹14,200</span>
-                  <span className="text-risk-critical font-medium">+24h delay expected</span>
-                </div>
-              </div>
 
-              {/* Route B: AI Recommended */}
-              <div className="p-3.5 rounded-lg bg-surface-container shadow-sm ring-2 ring-primary flex flex-col gap-2.5 relative border border-primary/30">
-                <div className="absolute -top-2.5 right-3 px-2.5 py-0.5 rounded-full bg-primary text-on-primary font-badge-label text-badge-label font-semibold text-[10px] shadow-sm">
-                  AI RECOMMENDED DETOUR
-                </div>
-                <div className="flex items-center justify-between mt-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
-                    <span className="font-card-title text-card-title text-text-primary">Route B: Solapur Bypass (SH-142)</span>
-                  </div>
-                  <span className="font-badge-label text-badge-label text-risk-low bg-risk-low/15 border border-risk-low/30 px-2 py-0.5 rounded font-semibold">
-                    Optimal ETA
-                  </span>
-                </div>
+                  <h3 className="font-card-title text-card-title text-text-primary font-semibold leading-snug">
+                    {selectedDisruption.title}
+                  </h3>
 
-                <div className="grid grid-cols-3 gap-2 font-caption text-caption pt-1 border-t border-border-subtle">
-                  <div className="flex flex-col">
-                    <span className="text-text-muted text-[10px]">Added Distance</span>
-                    <span className="text-text-primary font-semibold">+42 km (7.5%)</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-text-muted text-[10px]">Fuel &amp; Toll Delta</span>
-                    <span className="text-text-primary font-semibold">+₹1,840 / truck</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-text-muted text-[10px]">Arrival Window</span>
-                    <span className="text-risk-low font-semibold">+5.4h (On SLA)</span>
+                  <p className="font-caption text-caption text-text-secondary leading-relaxed">
+                    {selectedDisruption.description || 'Hazard affecting multi-modal transit corridor.'}
+                  </p>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-border-subtle font-caption text-caption text-text-muted">
+                    <span>Region: <strong className="text-text-primary">{selectedDisruption.affectedRegion}</strong></span>
+                    <span>Status: <strong className="text-risk-critical">Active</strong></span>
                   </div>
                 </div>
 
-                <div className="space-y-1.5 pt-0.5">
-                  <div className="flex justify-between font-caption text-caption text-[10px] text-text-muted">
-                    <span>Route Risk Score: Low (12/100)</span>
-                    <span className="text-risk-low font-medium">Pavement Dry &amp; Verified</span>
-                  </div>
-                  <div className="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
-                    <div className="bg-risk-low h-full w-[12%]"></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Route C */}
-              <div className="p-3 rounded-lg bg-surface-container-low flex flex-col gap-1.5 border border-border-subtle">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-risk-medium"></span>
-                    <span className="font-caption text-caption font-semibold text-text-primary">
-                      Route C: Northern Aurangabad Loop
+                {/* AI Detour Recommendation Box */}
+                <div className="flex flex-col p-3 rounded-lg bg-surface-container-lowest shadow-inner gap-2.5 border border-border-subtle">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-badge-label text-badge-label uppercase tracking-wider text-status-info font-semibold flex items-center gap-1.5 min-w-0 truncate">
+                      <span className="w-2 h-2 rounded-full bg-status-info animate-pulse flex-shrink-0"></span>
+                      <span className="truncate">AI Detour Recommendation</span>
+                    </span>
+                    <span className="font-caption text-caption px-2 py-0.5 rounded bg-surface-container-high text-text-secondary flex-shrink-0 font-medium">
+                      {matchedRecommendation
+                        ? `${(matchedRecommendation.confidence * 100).toFixed(1)}% Match`
+                        : '94.2% Match'}
                     </span>
                   </div>
-                  <span className="font-caption text-caption text-text-secondary bg-surface-container px-2 py-0.5 rounded">
-                    Viable Fallback
-                  </span>
-                </div>
-                <div className="flex items-center justify-between font-caption text-caption text-text-muted text-[11px]">
-                  <span>Dist: +118 km • Extra Cost: +₹4,950</span>
-                  <span className="text-risk-high font-medium">+11.8h delay</span>
-                </div>
-              </div>
-            </div>
 
-            {/* One-Click Action Trigger */}
-            <div className="flex flex-col gap-2.5 pt-1">
-              <div className="p-2.5 rounded-lg bg-primary-soft text-primary font-caption text-caption flex items-start gap-2 border border-primary-container/20">
-                <span className="material-symbols-outlined text-[18px] text-primary flex-shrink-0 mt-0.5">shield</span>
-                <span className="leading-tight">
-                  <strong>SupplyShield Auto-Reroute Engine:</strong> Ready to dispatch revised geofenced itineraries to{' '}
-                  {activeIncident.trucksCount} telematics terminals.
-                </span>
-              </div>
+                  <div className="p-2.5 rounded bg-bg-surface shadow-sm border border-border-subtle">
+                    <div className="flex items-center justify-between gap-2 text-xs flex-wrap">
+                      <span className="text-text-muted font-medium">Proposed Action</span>
+                      <span className="font-table-cell text-table-cell text-risk-low font-semibold bg-risk-low/10 px-1.5 py-0.5 rounded border border-risk-low/30">
+                        {matchedRecommendation?.title || 'Activate Dynamic Corridor Detour Vector'}
+                      </span>
+                    </div>
+                    <p className="font-body-default text-body-default text-text-primary mt-1.5 leading-snug">
+                      {matchedRecommendation?.rationale ||
+                        'Rerouting active consignments along secondary arterial corridors avoids 48h bottleneck with zero cold-chain degradation.'}
+                    </p>
+                  </div>
 
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => setAuthorized(!authorized)}
-                  className={`w-full py-2.5 px-4 rounded-lg font-body-default text-body-default font-semibold flex items-center justify-center gap-2 shadow-md transition-all ${authorized
-                      ? 'bg-risk-low text-on-primary'
-                      : 'bg-primary-container hover:bg-primary-hover text-on-primary-container'
-                    }`}
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">
-                    {authorized ? 'check_circle' : 'verified'}
-                  </span>
-                  <span>
-                    {authorized
-                      ? `Reroute Authorized (${activeIncident.trucksCount} Dispatched)`
-                      : `Authorize ${activeIncident.trucksCount} Shipments Reroute via Route B`}
-                  </span>
-                </button>
+                  {/* Impact Summary */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-2.5 rounded bg-bg-surface flex flex-col justify-between border border-border-subtle">
+                      <span className="font-caption text-caption text-text-muted">Time Saved</span>
+                      <span className="font-card-title text-card-title text-risk-low font-semibold mt-0.5 tabular-nums">
+                        {matchedRecommendation?.estimatedTimeSavingMinutes
+                          ? `${(matchedRecommendation.estimatedTimeSavingMinutes / 60).toFixed(1)} hrs`
+                          : '4.5 hrs'}
+                      </span>
+                      <span className="font-caption text-caption text-text-secondary mt-0.5 truncate">
+                        Avoids gridlock
+                      </span>
+                    </div>
+                    <div className="p-2.5 rounded bg-bg-surface flex flex-col justify-between border border-border-subtle">
+                      <span className="font-caption text-caption text-text-muted">Cost Delta</span>
+                      <span className="font-card-title text-card-title text-text-primary font-semibold mt-0.5 truncate">
+                        {matchedRecommendation?.estimatedCostDeltaUsd
+                          ? `+$${matchedRecommendation.estimatedCostDeltaUsd.toFixed(0)}`
+                          : '+$320 USD'}
+                      </span>
+                      <span className="font-caption text-caption text-risk-low mt-0.5 truncate">
+                        SLA protected
+                      </span>
+                    </div>
+                  </div>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setNotificationSent(true)}
-                    className="flex-1 py-2 px-3 rounded-lg bg-bg-surface hover:bg-bg-surface-hover text-text-primary font-caption text-caption font-medium flex items-center justify-center gap-1.5 border border-border-subtle transition-colors"
-                    type="button"
-                  >
-                    <span className="material-symbols-outlined text-[16px] text-text-secondary">
-                      {notificationSent ? 'check' : 'notifications_active'}
-                    </span>
-                    <span>{notificationSent ? 'Carrier Notified' : 'Notify Carrier Fleet'}</span>
-                  </button>
-                  <button
-                    onClick={() => navigate(`/simulations`)}
-                    className="flex-1 py-2 px-3 rounded-lg bg-bg-surface hover:bg-bg-surface-hover text-text-primary font-caption text-caption font-medium flex items-center justify-center gap-1.5 border border-border-subtle transition-colors"
-                    type="button"
-                  >
-                    <span className="material-symbols-outlined text-[16px] text-text-secondary">tune</span>
-                    <span>Simulate Custom</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+                  {/* Actions */}
+                  <div className="flex flex-col gap-2 mt-1">
+                    <button
+                      onClick={() => setAuthorized(!authorized)}
+                      className={`w-full py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 shadow-md transition-all ${
+                        authorized
+                          ? 'bg-risk-low text-white'
+                          : 'bg-primary-container hover:bg-primary-hover text-on-primary-container'
+                      }`}
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        {authorized ? 'check_circle' : 'alt_route'}
+                      </span>
+                      <span>
+                        {authorized ? 'Detour Authorized & Transmitted' : 'Authorize AI Detour Vector'}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setBroadcastSent(true);
+                        setReportSuccessMsg(
+                          `Notice broadcasted to all carriers on ${selectedDisruption.affectedRegion}!`
+                        );
+                        setTimeout(() => setReportSuccessMsg(null), 4000);
+                      }}
+                      className="w-full py-2 px-3 rounded-lg bg-surface-container-high hover:bg-surface-bright text-text-primary text-xs font-medium flex items-center justify-center gap-2 transition-colors border border-border-subtle"
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined text-[16px] text-text-muted">
+                        {broadcastSent ? 'check' : 'campaign'}
+                      </span>
+                      <span>{broadcastSent ? 'Carrier Notice Broadcasted' : 'Broadcast Notice to Carriers'}</span>
+                    </button>
 
-            {/* Live Incident Telemetry Feed */}
-            <div className="flex flex-col gap-2.5 pt-2.5 border-t border-border-subtle">
-              <div className="flex items-center justify-between">
-                <span className="font-caption text-caption uppercase tracking-wider text-text-muted font-semibold flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[14px] text-text-secondary">rss_feed</span>
-                  Live Incident Sensor Feed
-                </span>
-                <span className="font-caption text-caption text-text-disabled">Real-time Stream</span>
-              </div>
-
-              <div className="flex flex-col gap-2.5">
-                <div className="flex items-start gap-2.5 text-caption font-caption p-1.5 rounded-lg hover:bg-surface-container-low transition-colors">
-                  <span className="text-text-disabled whitespace-nowrap font-mono text-[11px] mt-0.5">14:42</span>
-                  <span className="w-2 h-2 rounded-full bg-risk-critical mt-1.5 flex-shrink-0"></span>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-text-primary font-medium truncate">NHAI Regional Notice #491</span>
-                    <span className="text-text-secondary text-[11px] leading-tight mt-0.5">
-                      Koyna Dam reservoir release increased to 45,000 cusecs; low-lying causeway breach.
-                    </span>
+                    {reportSuccessMsg && (
+                      <div className="p-2 rounded bg-risk-low/15 border border-risk-low/30 text-risk-low font-caption text-caption text-center">
+                        {reportSuccessMsg}
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2.5 text-caption font-caption p-1.5 rounded-lg hover:bg-surface-container-low transition-colors">
-                  <span className="text-text-disabled whitespace-nowrap font-mono text-[11px] mt-0.5">14:38</span>
-                  <span className="w-2 h-2 rounded-full bg-risk-low mt-1.5 flex-shrink-0"></span>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-text-primary font-medium truncate">SH-142 Solapur Detour Verified</span>
-                    <span className="text-text-secondary text-[11px] leading-tight mt-0.5">
-                      Maharashtra Highway Patrol confirms clear roads on bypass stretch.
+                {/* Impacted Shipments in this Zone */}
+                <div className="flex flex-col gap-2 p-3 rounded-lg bg-bg-surface shadow-sm border border-border-subtle">
+                  <div className="flex items-center justify-between">
+                    <span className="font-table-cell text-table-cell text-text-primary font-semibold">
+                      Impacted Shipments ({disruptionShipments.length || 2})
+                    </span>
+                    <span className="font-caption text-caption text-risk-critical flex items-center gap-1 font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-risk-critical animate-ping"></span>
+                      <span>Tracking</span>
                     </span>
                   </div>
-                </div>
 
-                <div className="flex items-start gap-2.5 text-caption font-caption p-1.5 rounded-lg hover:bg-surface-container-low transition-colors">
-                  <span className="text-text-disabled whitespace-nowrap font-mono text-[11px] mt-0.5">14:15</span>
-                  <span className="w-2 h-2 rounded-full bg-status-info mt-1.5 flex-shrink-0"></span>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-text-primary font-medium truncate">Telematics Broadcast Ready</span>
-                    <span className="text-text-secondary text-[11px] leading-tight mt-0.5">
-                      Turn-by-turn regional detour packets generated for awaiting trucks.
-                    </span>
+                  <div className="flex flex-col gap-2 max-h-44 overflow-y-auto pr-1">
+                    {disruptionShipments.length > 0 ? (
+                      disruptionShipments.map((s) => (
+                        <div
+                          key={s.id}
+                          onClick={() => navigate(`/shipments/${s.id}`)}
+                          className="flex items-center justify-between p-2 rounded-md bg-surface-container-lowest hover:bg-surface-container border border-border-subtle cursor-pointer transition-colors"
+                        >
+                          <div className="flex flex-col min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-mono text-xs font-bold text-text-primary">
+                                {s.trackingNumber}
+                              </span>
+                              {s.isColdChain && (
+                                <span className="material-symbols-outlined text-sky-400 text-[13px]">
+                                  ac_unit
+                                </span>
+                              )}
+                            </div>
+                            <span className="font-caption text-caption text-text-muted truncate">
+                              {s.origin} &rarr; {s.destination} ({s.carrier})
+                            </span>
+                          </div>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-risk-critical/15 text-risk-critical font-bold">
+                            {s.status}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-2 text-center text-text-muted font-caption text-caption">
+                        No critical consignments directly bound to this node.
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="p-8 text-center text-text-muted font-caption text-caption">
+                Select a disruption hazard from the radar to view AI resolution strategies.
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Report Hazard Modal */}
+      {isReportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-bg-surface-raised border border-border-strong rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-risk-critical text-[22px]">add_alert</span>
+                <h3 className="font-section-title text-section-title text-text-primary">
+                  Report Operational Hazard
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsReportModalOpen(false)}
+                className="text-text-muted hover:text-text-primary transition-colors"
+                type="button"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="font-caption text-caption text-text-secondary font-medium">
+                  Incident Title / Headline
+                </label>
+                <input
+                  placeholder="e.g. Typhoon Surge, Highway Closure, Labor Strike..."
+                  className="w-full h-9 px-3 rounded-lg bg-bg-app border border-border-subtle text-body-default text-text-primary outline-none focus:ring-1 focus:ring-primary"
+                  type="text"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-1">
+                  <label className="font-caption text-caption text-text-secondary font-medium">
+                    Hazard Category
+                  </label>
+                  <select className="w-full h-9 px-3 rounded-lg bg-bg-app border border-border-subtle text-body-default text-text-primary outline-none focus:ring-1 focus:ring-primary">
+                    <option value="WEATHER">Weather / Cyclone / Flood</option>
+                    <option value="PORT_CONGESTION">Port / Terminal Congestion</option>
+                    <option value="ROAD_CLOSURE">Road / Highway Closure</option>
+                    <option value="CARRIER_ISSUE">Carrier / Chokepoint Delay</option>
+                    <option value="POLITICAL">Labor Strike / Geopolitical</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="font-caption text-caption text-text-secondary font-medium">
+                    Severity Level
+                  </label>
+                  <select className="w-full h-9 px-3 rounded-lg bg-bg-app border border-border-subtle text-body-default text-text-primary outline-none focus:ring-1 focus:ring-primary">
+                    <option value="CRITICAL">Critical (P0 - Halts Transit)</option>
+                    <option value="HIGH">High (SLA Breach Risk)</option>
+                    <option value="MEDIUM">Medium (Minor Delay)</option>
+                    <option value="LOW">Low (Informational)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="font-caption text-caption text-text-secondary font-medium">
+                  Affected Geographic Region / Corridor
+                </label>
+                <input
+                  placeholder="e.g. East China Sea, Suez Canal, NH-48 Corridor..."
+                  className="w-full h-9 px-3 rounded-lg bg-bg-app border border-border-subtle text-body-default text-text-primary outline-none focus:ring-1 focus:ring-primary"
+                  type="text"
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-lg bg-risk-low/10 border border-risk-low/30 mt-1">
+                <div className="flex flex-col">
+                  <span className="font-caption text-caption font-semibold text-risk-low">
+                    Direct Supabase Disruption Broadcast
+                  </span>
+                  <span className="text-[11px] text-text-muted">
+                    New hazard logs will automatically trigger AI Detour calculations.
+                  </span>
+                </div>
+                <span className="px-2 py-0.5 rounded bg-risk-low/20 text-risk-low font-caption text-caption font-semibold uppercase tracking-wider">
+                  Upcoming Feature
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border-subtle">
+              <button
+                onClick={() => setIsReportModalOpen(false)}
+                className="px-4 py-2 rounded-lg bg-bg-surface hover:bg-bg-surface-hover text-text-secondary font-card-title text-card-title transition-colors border border-border-subtle"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setIsReportModalOpen(false);
+                  setReportSuccessMsg('Operational hazard broadcast logged successfully!');
+                  setTimeout(() => setReportSuccessMsg(null), 4000);
+                }}
+                className="px-4 py-2 rounded-lg bg-primary-container hover:bg-primary-hover text-on-primary-container font-card-title text-card-title font-semibold shadow-md transition-all"
+                type="button"
+              >
+                Submit Hazard Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

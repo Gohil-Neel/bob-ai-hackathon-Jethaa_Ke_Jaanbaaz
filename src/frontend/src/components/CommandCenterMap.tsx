@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Disruption, Route, Shipment } from '../types/domain';
+import { fetchLiveNodeWeather, type WeatherNodeData } from '../services/weatherService';
 
 // ── Geographic Node Coordinates ─────────────────────────────────────────────
 interface GeoNode {
@@ -264,14 +265,14 @@ export default function CommandCenterMap({
     shipmentsGroup?: L.LayerGroup;
   }>({});
 
-  const [mapStyle, setMapStyle] = useState<'DARK' | 'STREET' | 'SATELLITE'>('DARK');
+  const [mapStyle, setMapStyle] = useState<'STREET' | 'SATELLITE'>('STREET');
   const [activeTrackingShipment, setActiveTrackingShipment] = useState<Shipment | null>(null);
 
   // Initialize Map
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
-    // Leaflet global dark command center map
+    // Leaflet command center map with default Street view
     const map = L.map(mapContainerRef.current, {
       center: [26, 42],
       zoom: 2.4,
@@ -284,9 +285,8 @@ export default function CommandCenterMap({
 
     mapInstanceRef.current = map;
 
-    // Tile URL dictionary (100% Free Open APIs)
+    // Tile URL dictionary (Only Street Map & Satellite Map)
     const tileUrls = {
-      DARK: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
       STREET: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       SATELLITE: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     };
@@ -301,6 +301,7 @@ export default function CommandCenterMap({
     layersRef.current.disruptionsGroup = L.layerGroup().addTo(map);
     layersRef.current.nodesGroup = L.layerGroup().addTo(map);
     layersRef.current.shipmentsGroup = L.layerGroup().addTo(map);
+    layersRef.current.weatherGroup = L.layerGroup().addTo(map);
 
     return () => {
       map.remove();
@@ -308,12 +309,21 @@ export default function CommandCenterMap({
     };
   }, []);
 
+  // Live Weather Radar Stream (Open-Meteo API)
+  const [showWeatherRadar, setShowWeatherRadar] = useState<boolean>(true);
+  const [weatherNodes, setWeatherNodes] = useState<WeatherNodeData[]>([]);
+
+  useEffect(() => {
+    fetchLiveNodeWeather().then((data) => {
+      setWeatherNodes(data);
+    });
+  }, []);
+
   // Update Tile Style Layer
   useEffect(() => {
     if (!mapInstanceRef.current || !layersRef.current.tileLayer) return;
 
     const tileUrls = {
-      DARK: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
       STREET: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       SATELLITE: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     };
@@ -576,7 +586,77 @@ export default function CommandCenterMap({
 
       shipmentsGroup.addLayer(marker);
     });
-  }, [routes, disruptions, shipments, selectedRouteId, selectedDisruptionId, mapLayer, showBlastRadius, showReroutes, activeTrackingShipment]);
+
+    // ── 5. RENDER LIVE METEOROLOGY & WEATHER RADAR ────────────────────────
+    const { weatherGroup } = layersRef.current;
+    if (weatherGroup) {
+      weatherGroup.clearLayers();
+
+      if (showWeatherRadar && weatherNodes.length > 0) {
+        weatherNodes.forEach((w) => {
+          const isHazard = w.isHazardous;
+          const badgeColor = isHazard ? (w.hazardSeverity === 'CRITICAL' ? '#ef4444' : '#f97316') : '#0284c7';
+
+          // Live Weather Badge Icon
+          const weatherIcon = L.divIcon({
+            className: 'custom-weather-badge',
+            html: `
+              <div style="
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                padding: 2px 5px;
+                border-radius: 6px;
+                background: ${isHazard ? '#7f1d1dee' : '#0f172aee'};
+                border: 1.5px solid ${badgeColor};
+                color: #f8fafc;
+                font-family: Inter, sans-serif;
+                font-size: 10px;
+                font-weight: 600;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+                transform: translate(-50%, -120%);
+                cursor: pointer;
+                white-space: nowrap;
+              ">
+                <span class="material-symbols-outlined" style="font-size: 12px; color: ${isHazard ? '#fca5a5' : '#7dd3fc'};">
+                  ${w.weatherIcon}
+                </span>
+                <span>${w.temperatureCelsius > 0 ? `+${w.temperatureCelsius}°C` : `${w.temperatureCelsius}°C`}</span>
+                ${isHazard ? `<span style="color: #fecaca; font-size: 9px;">${w.windGustsKmh}kph</span>` : ''}
+              </div>
+            `,
+            iconSize: [0, 0],
+          });
+
+          const marker = L.marker([w.latitude, w.longitude], { icon: weatherIcon });
+
+          marker.bindTooltip(`
+            <div style="font-family: Inter, sans-serif; font-size: 11px; padding: 2px;">
+              <strong style="color: #38bdf8;">${w.name}</strong> (${w.country})<br/>
+              <span>Condition: <strong>${w.weatherCondition}</strong></span><br/>
+              <span>Temperature: <strong>${w.temperatureCelsius}°C</strong> • Wind: <strong>${w.windSpeedKmh} km/h (Gusts: ${w.windGustsKmh} km/h)</strong></span><br/>
+              ${w.hazardDescription ? `<span style="color: #ef4444; font-weight: 600; font-size: 10px;">⚠️ ${w.hazardDescription}</span>` : '<span style="color: #10b981; font-size: 10px;">✓ Atmospheric conditions normal</span>'}
+            </div>
+          `);
+
+          weatherGroup.addLayer(marker);
+
+          // Pulsating storm ring around severe weather hazards
+          if (isHazard && (w.hazardSeverity === 'CRITICAL' || w.hazardSeverity === 'HIGH')) {
+            const stormRing = L.circle([w.latitude, w.longitude], {
+              radius: 200000,
+              color: badgeColor,
+              fillColor: badgeColor,
+              fillOpacity: 0.12,
+              weight: 1.5,
+              dashArray: '4, 4',
+            });
+            weatherGroup.addLayer(stormRing);
+          }
+        });
+      }
+    }
+  }, [routes, disruptions, shipments, selectedRouteId, selectedDisruptionId, mapLayer, showBlastRadius, showReroutes, activeTrackingShipment, showWeatherRadar, weatherNodes]);
 
   // Handle Fly-To Focus when selectedRouteId changes
   useEffect(() => {
@@ -602,43 +682,44 @@ export default function CommandCenterMap({
       {/* Real Interactive Map Canvas */}
       <div ref={mapContainerRef} className="w-full h-full z-0" />
 
-      {/* Map Style Controls (Tactical Dark, Satellite, Street) */}
-      <div className="absolute top-3 left-3 flex items-center bg-slate-900/90 border border-slate-700/80 rounded-lg p-0.5 shadow-xl backdrop-blur-md z-10 text-xs">
-        <button
-          onClick={() => setMapStyle('DARK')}
-          className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 ${
-            mapStyle === 'DARK'
-              ? 'bg-primary text-on-primary font-semibold shadow-xs'
-              : 'text-slate-300 hover:text-white'
-          }`}
-          type="button"
-        >
-          <span className="material-symbols-outlined text-[14px]">dark_mode</span>
-          Tactical Dark
-        </button>
-        <button
-          onClick={() => setMapStyle('SATELLITE')}
-          className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 ${
-            mapStyle === 'SATELLITE'
-              ? 'bg-primary text-on-primary font-semibold shadow-xs'
-              : 'text-slate-300 hover:text-white'
-          }`}
-          type="button"
-        >
-          <span className="material-symbols-outlined text-[14px]">satellite_alt</span>
-          Satellite
-        </button>
+      {/* Map Style & Live Weather Radar Controls */}
+      <div className="absolute top-3 left-3 flex items-center bg-slate-900/90 border border-slate-700/80 rounded-lg p-0.5 shadow-xl backdrop-blur-md z-10 text-xs flex-wrap gap-1">
         <button
           onClick={() => setMapStyle('STREET')}
-          className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 ${
-            mapStyle === 'STREET'
+          className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 ${mapStyle === 'STREET'
               ? 'bg-primary text-on-primary font-semibold shadow-xs'
               : 'text-slate-300 hover:text-white'
-          }`}
+            }`}
           type="button"
         >
           <span className="material-symbols-outlined text-[14px]">map</span>
           Street Map
+        </button>
+        <button
+          onClick={() => setMapStyle('SATELLITE')}
+          className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 ${mapStyle === 'SATELLITE'
+              ? 'bg-primary text-on-primary font-semibold shadow-xs'
+              : 'text-slate-300 hover:text-white'
+            }`}
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[14px]">satellite_alt</span>
+          Satellite Map
+        </button>
+        <div className="w-px h-4 bg-slate-700 mx-0.5"></div>
+        <button
+          onClick={() => setShowWeatherRadar(!showWeatherRadar)}
+          className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 ${showWeatherRadar
+              ? 'bg-sky-600 text-white font-semibold shadow-xs'
+              : 'text-slate-300 hover:text-white'
+            }`}
+          type="button"
+          title="Toggle Real-Time Open-Meteo Weather Radar Stream"
+        >
+          <span className="material-symbols-outlined text-[14px]">
+            {showWeatherRadar ? 'cyclone' : 'cloud'}
+          </span>
+          <span>Live Weather Radar</span>
         </button>
       </div>
 

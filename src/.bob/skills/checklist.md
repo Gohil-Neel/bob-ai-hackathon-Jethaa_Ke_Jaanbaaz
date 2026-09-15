@@ -6,7 +6,7 @@
 - [x] Entity Framework Core
 - [x] PostgreSQL/Supabase
 - [x] Python/FastAPI is ONLY AI/ML service
-- [ ] IBM watsonx.ai
+- [x] IBM watsonx.ai
 - [ ] SignalR where needed
 
 ## Phases
@@ -75,8 +75,8 @@
 - [ ] Python ML service
 - [ ] Model evaluation/versioning
 - [ ] ASP.NET ↔ ML integration
-- [ ] Grounded watsonx.ai
-- [ ] AI response validation
+- [x] Grounded watsonx.ai
+- [x] AI response validation
 
 ### 14–15 Integration
 - [ ] What-If simulation

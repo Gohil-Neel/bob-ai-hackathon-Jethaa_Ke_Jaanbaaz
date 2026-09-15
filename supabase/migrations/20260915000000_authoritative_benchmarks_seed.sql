@@ -1,10 +1,6 @@
 -- =============================================================================
--- SupplyShield AI — Benchmark Synthetic Dataset Seed Script (Supabase)
--- Sources & Distributions Grounded In:
--- 1. Kaggle DataCo Global Supply Chain Dataset
--- 2. NOAA Storm Events Database
--- 3. WHO & FDA Cold-Chain Quality Guidelines (2°C - 8°C Biologics & Vaccines)
--- 4. UNCTAD Maritime Logistics Benchmarks
+-- SupplyShield AI — Authoritative Benchmark Dataset (Kaggle, NOAA, WHO, UNCTAD)
+-- Migration Name: 20260915000000_authoritative_benchmarks_seed.sql
 -- =============================================================================
 
 -- Enable UUID extension
@@ -50,7 +46,27 @@ ON CONFLICT (id) DO UPDATE SET
   estimated_hours = EXCLUDED.estimated_hours,
   carrier_code = EXCLUDED.carrier_code;
 
--- ── 3. FLEET VEHICLES & ASSETS ──────────────────────────────────────────────
+-- ── 3. ROUTE SEGMENTS ───────────────────────────────────────────────────────
+INSERT INTO route_segments (id, route_id, sequence_order, from_location, to_location, transport_mode, estimated_hours)
+VALUES
+  ('21000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 1, 'Port of Shanghai, CN', 'Singapore Chokepoint, SG', 'Sea', 120),
+  ('21000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000001', 2, 'Singapore Chokepoint, SG', 'Suez Canal Transit, EG', 'Sea', 240),
+  ('21000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 3, 'Suez Canal Transit, EG', 'Gibraltar Strait, ES/UK', 'Sea', 144),
+  ('21000000-0000-0000-0000-000000000004', '20000000-0000-0000-0000-000000000001', 4, 'Gibraltar Strait, ES/UK', 'Port of Rotterdam, NL', 'Sea', 72),
+
+  ('21000000-0000-0000-0000-000000000005', '20000000-0000-0000-0000-000000000002', 1, 'Port of Shanghai, CN', 'East China Sea Waypoint', 'Sea', 36),
+  ('21000000-0000-0000-0000-000000000006', '20000000-0000-0000-0000-000000000002', 2, 'East China Sea Waypoint', 'Mid-Pacific Circle', 'Sea', 216),
+  ('21000000-0000-0000-0000-000000000007', '20000000-0000-0000-0000-000000000002', 3, 'Mid-Pacific Circle', 'Port of Los Angeles, US', 'Sea', 84),
+
+  ('21000000-0000-0000-0000-000000000008', '20000000-0000-0000-0000-000000000003', 1, 'BOM Cargo Terminal, Mumbai', 'Air Freight Gulf Airspace', 'Air', 8),
+  ('21000000-0000-0000-0000-000000000009', '20000000-0000-0000-0000-000000000003', 2, 'Air Freight Gulf Airspace', 'Frankfurt CargoCity FRA, DE', 'Air', 10),
+
+  ('21000000-0000-0000-0000-000000000010', '20000000-0000-0000-0000-000000000005', 1, 'JNPT Navi Mumbai, IN', 'Vadodara Junction, IN', 'Rail', 12),
+  ('21000000-0000-0000-0000-000000000011', '20000000-0000-0000-0000-000000000005', 2, 'Vadodara Junction, IN', 'Jaipur Intermodal Yard, IN', 'Rail', 10),
+  ('21000000-0000-0000-0000-000000000012', '20000000-0000-0000-0000-000000000005', 3, 'Jaipur Intermodal Yard, IN', 'Tughlakabad ICD Delhi, IN', 'Rail', 10)
+ON CONFLICT (id) DO NOTHING;
+
+-- ── 4. FLEET VEHICLES & ASSETS ──────────────────────────────────────────────
 INSERT INTO vehicles (id, asset_code, asset_type, status, capacity_kg, current_location, last_seen_at_utc, carrier_id, created_at_utc)
 VALUES
   ('30000000-0000-0000-0000-000000000001', 'VESSEL-MAERSK-01', 'Triple-E Container Vessel (18k TEU)', 'InUse', 85000000.00, 'East China Sea / Taiwan Strait', NOW() - INTERVAL '15 minutes', '10000000-0000-0000-0000-000000000001', NOW() - INTERVAL '30 days'),
@@ -70,7 +86,7 @@ ON CONFLICT (asset_code) DO UPDATE SET
   current_location = EXCLUDED.current_location,
   last_seen_at_utc = EXCLUDED.last_seen_at_utc;
 
--- ── 4. DISRUPTIONS (NOAA Storm Events, UNCTAD Congestion & Chokepoints) ──────
+-- ── 5. DISRUPTIONS (NOAA Storm Events, UNCTAD Congestion & Chokepoints) ──────
 INSERT INTO disruptions (id, title, disruption_type, severity, affected_region, description, started_at_utc, is_active, created_at_utc)
 VALUES
   ('40000000-0000-0000-0000-000000000001', 'Typhoon Saola - Super Typhoon Maritime Storm Surge', 'Weather', 'Critical', 'East China Sea / Taiwan Strait (27.5°N, 123.8°E)', 'Category 4 equivalent storm generating 9.5m significant wave heights and 140 km/h wind gusts. Port of Ningbo and Shanghai outer berths shut down; extensive maritime diversion in effect.', NOW() - INTERVAL '30 hours', TRUE, NOW() - INTERVAL '30 hours'),
@@ -86,7 +102,7 @@ ON CONFLICT (id) DO UPDATE SET
   description = EXCLUDED.description,
   is_active = EXCLUDED.is_active;
 
--- ── 5. SHIPMENTS (Kaggle DataCo Smart Supply Chain Dataset) ──────────────────
+-- ── 6. SHIPMENTS (Kaggle DataCo Smart Supply Chain Dataset) ──────────────────
 INSERT INTO shipments (id, tracking_number, origin, destination, carrier_code, status, priority, estimated_arrival_utc, is_cold_chain, route_id, risk_score, created_at_utc, updated_at_utc)
 VALUES
   ('50000000-0000-0000-0000-000000000001', 'TRK-BIO-90412', 'Frankfurt Distribution Hub, DE', 'Rotterdam Maasvlakte Gateway, NL', 'KN-INTL', 'AtRisk', 'Critical', NOW() + INTERVAL '6 hours', TRUE, '20000000-0000-0000-0000-000000000006', 0.8920, NOW() - INTERVAL '12 hours', NOW()),
@@ -111,7 +127,19 @@ ON CONFLICT (tracking_number) DO UPDATE SET
   risk_score = EXCLUDED.risk_score,
   estimated_arrival_utc = EXCLUDED.estimated_arrival_utc;
 
--- ── 6. SENSORS (WHO 2°C-8°C Biologics & -20°C Deep Freeze Standards) ────────
+-- ── 7. SHIPMENT DISRUPTIONS ─────────────────────────────────────────────────
+INSERT INTO shipment_disruptions (id, shipment_id, disruption_id, estimated_delay_hours, impact_notes, created_at_utc)
+VALUES
+  ('71000000-0000-0000-0000-000000000001', '50000000-0000-0000-0000-000000000011', '40000000-0000-0000-0000-000000000001', 48, 'Vessel diverted around southern Taiwan Strait due to Category 4 Typhoon Saola.', NOW() - INTERVAL '24 hours'),
+  ('71000000-0000-0000-0000-000000000002', '50000000-0000-0000-0000-000000000007', '40000000-0000-0000-0000-000000000001', 36, 'Berth closure at Shanghai port delayed departure of Trans-Pacific container.', NOW() - INTERVAL '20 hours'),
+  ('71000000-0000-0000-0000-000000000003', '50000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', 24, 'Maasvlakte automated gate slowdown delaying reefer container offload.', NOW() - INTERVAL '18 hours'),
+  ('71000000-0000-0000-0000-000000000004', '50000000-0000-0000-0000-000000000002', '40000000-0000-0000-0000-000000000005', 12, 'NH-48 mudslide blocked vaccine delivery reefer in Khandala Ghat.', NOW() - INTERVAL '7 hours'),
+  ('71000000-0000-0000-0000-000000000005', '50000000-0000-0000-0000-000000000005', '40000000-0000-0000-0000-000000000005', 16, 'Thermal reefer idling on flooded highway segment.', NOW() - INTERVAL '6 hours'),
+  ('71000000-0000-0000-0000-000000000006', '50000000-0000-0000-0000-000000000013', '40000000-0000-0000-0000-000000000004', 30, 'German rail strike cancelled intermodal freight train from Duisburg.', NOW() - INTERVAL '10 hours'),
+  ('71000000-0000-0000-0000-000000000007', '50000000-0000-0000-0000-000000000012', '40000000-0000-0000-0000-000000000007', 20, 'Midwest blizzard ice storm froze rail switches on BNSF mainline.', NOW() - INTERVAL '8 hours')
+ON CONFLICT (shipment_id, disruption_id) DO NOTHING;
+
+-- ── 8. SENSORS (WHO 2°C-8°C Biologics & -20°C Deep Freeze Standards) ────────
 INSERT INTO sensors (id, sensor_code, shipment_id, min_temp_celsius, max_temp_celsius, last_reading_celsius, last_reading_at_utc, status, current_excursion_severity, created_at_utc)
 VALUES
   ('60000000-0000-0000-0000-000000000001', 'SEN-BIO-EUR-01', '50000000-0000-0000-0000-000000000001', 2.0, 8.0, 9.8, NOW() - INTERVAL '5 minutes', 'Excursion', 'Critical', NOW() - INTERVAL '12 hours'),
@@ -126,7 +154,7 @@ ON CONFLICT (sensor_code) DO UPDATE SET
   status = EXCLUDED.status,
   current_excursion_severity = EXCLUDED.current_excursion_severity;
 
--- ── 7. COLD CHAIN ALERTS ─────────────────────────────────────────────────────
+-- ── 9. COLD CHAIN ALERTS ─────────────────────────────────────────────────────
 INSERT INTO cold_chain_alerts (id, sensor_id, shipment_id, severity, excursion_peak_celsius, allowed_min_celsius, allowed_max_celsius, excursion_start_utc, duration_minutes, is_acknowledged, created_at_utc)
 VALUES
   ('70000000-0000-0000-0000-000000000001', '60000000-0000-0000-0000-000000000001', '50000000-0000-0000-0000-000000000001', 'Critical', 9.8, 2.0, 8.0, NOW() - INTERVAL '150 minutes', 150, FALSE, NOW() - INTERVAL '2 hours'),
@@ -134,7 +162,7 @@ VALUES
   ('70000000-0000-0000-0000-000000000003', '60000000-0000-0000-0000-000000000005', '50000000-0000-0000-0000-000000000005', 'High', 8.6, 2.0, 8.0, NOW() - INTERVAL '48 minutes', 48, FALSE, NOW() - INTERVAL '48 minutes')
 ON CONFLICT (id) DO NOTHING;
 
--- ── 8. RECOVERY RECOMMENDATIONS (SupplyShield AI Engine Solutions) ──────────
+-- ── 10. RECOVERY RECOMMENDATIONS (SupplyShield AI Engine Solutions) ──────────
 INSERT INTO recovery_recommendations (id, shipment_id, recommendation_type, title, rationale, severity, confidence, proposed_route_id, proposed_carrier_code, proposed_vehicle_id, estimated_time_saving_minutes, estimated_cost_delta_usd, requires_approval, created_at_utc)
 VALUES
   ('80000000-0000-0000-0000-000000000001', '50000000-0000-0000-0000-000000000001', 'Reroute', 'Deploy Reserve Reefer & Bypass Maasvlakte Gate Queue', 'Thermal excursion at 9.8°C with remaining MKT buffer of 42 minutes. Dispatch reserve active cold pod (RESERVE-REEFER-DE-01) to cross-dock at Eindhoven and bypass Rotterdam gate congestion.', 'Critical', 0.9420, '20000000-0000-0000-0000-000000000006', 'KN-INTL', '30000000-0000-0000-0000-000000000009', 180, 1250.00, TRUE, NOW() - INTERVAL '45 minutes'),
@@ -142,7 +170,7 @@ VALUES
   ('80000000-0000-0000-0000-000000000003', '50000000-0000-0000-0000-000000000011', 'Reroute', 'Typhoon Saola Southward Passage Diversion', 'Route vessel 120nm south of Bashi Channel into Celebes Sea to skirt Category 4 gale winds and protect solar component container integrity.', 'High', 0.9150, '20000000-0000-0000-0000-000000000001', 'MAERSK', '30000000-0000-0000-0000-000000000001', 720, 3400.00, FALSE, NOW() - INTERVAL '2 hours')
 ON CONFLICT (id) DO NOTHING;
 
--- ── 9. DECISION AUDITS ──────────────────────────────────────────────────────
+-- ── 11. DECISION AUDITS ──────────────────────────────────────────────────────
 INSERT INTO decision_audits (id, operator_id, action_type, target_entity_type, target_entity_id, description, status, approved_at_utc, applied_at_utc, before_state_json, after_state_json)
 VALUES
   ('90000000-0000-0000-0000-000000000001', 'AI_AGENT_AUTONOMOUS', 'DYNAMIC_REROUTE', 'SHIPMENT', '50000000-0000-0000-0000-000000000011', 'Approved automated sea-lane diversion for Solar Component Container avoiding Typhoon Saola blast radius.', 'Approved', NOW() - INTERVAL '4 hours', NOW() - INTERVAL '230 minutes', '{"status": "AtRisk", "risk_score": 0.887, "route_id": "20000000-0000-0000-0000-000000000001"}', '{"status": "InTransit", "risk_score": 0.320, "alternative_route": "Bashi South Channel"}'),

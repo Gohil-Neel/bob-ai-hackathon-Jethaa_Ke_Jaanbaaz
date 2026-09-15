@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SupplyShield.Application.Interfaces;
 using SupplyShield.Infrastructure.Integrations.Supabase;
 using SupplyShield.Infrastructure.Integrations.WatsonX;
 using SupplyShield.Infrastructure.Persistence;
+using SupplyShield.Infrastructure.Services;
 
 namespace SupplyShield.Infrastructure;
 
@@ -56,6 +58,9 @@ public static class InfrastructureServiceRegistration
             client.BaseAddress = new Uri(aiServiceBaseUrl);
             client.Timeout = TimeSpan.FromSeconds(30);
         });
+
+        // ── IAiService ────────────────────────────────────────────────────────
+        services.AddScoped<IAiService, AiServiceImpl>();
 
         return services;
     }
