@@ -138,17 +138,17 @@ export async function getShipments(): Promise<Shipment[]> {
     const rawStatus = (item.status ?? item.Status ?? 'IN_TRANSIT').toString().toUpperCase().replace('-', '_')
     const normalizedStatus: ShipmentStatus =
       rawStatus === 'ATRISK' ? 'AT_RISK' :
-      rawStatus === 'INTRANSIT' ? 'IN_TRANSIT' :
-      rawStatus === 'DELAYED' ? 'DELAYED' :
-      rawStatus === 'DELIVERED' ? 'DELIVERED' :
-      rawStatus === 'CANCELLED' ? 'CANCELLED' :
-      rawStatus === 'PENDING' ? 'PENDING' : 'IN_TRANSIT'
+        rawStatus === 'INTRANSIT' ? 'IN_TRANSIT' :
+          rawStatus === 'DELAYED' ? 'DELAYED' :
+            rawStatus === 'DELIVERED' ? 'DELIVERED' :
+              rawStatus === 'CANCELLED' ? 'CANCELLED' :
+                rawStatus === 'PENDING' ? 'PENDING' : 'IN_TRANSIT'
 
     const rawPriority = (item.priority ?? item.Priority ?? 'MEDIUM').toString().toUpperCase()
     const normalizedPriority: SeverityLevel =
       rawPriority === 'CRITICAL' ? 'CRITICAL' :
-      rawPriority === 'HIGH' ? 'HIGH' :
-      rawPriority === 'LOW' ? 'LOW' : 'MEDIUM'
+        rawPriority === 'HIGH' ? 'HIGH' :
+          rawPriority === 'LOW' ? 'LOW' : 'MEDIUM'
 
     return {
       id: item.id ?? item.Id,
@@ -176,17 +176,17 @@ export async function getShipmentById(id: string): Promise<Shipment | null> {
   const rawStatus = (item.status ?? item.Status ?? 'IN_TRANSIT').toString().toUpperCase().replace('-', '_')
   const normalizedStatus: ShipmentStatus =
     rawStatus === 'ATRISK' ? 'AT_RISK' :
-    rawStatus === 'INTRANSIT' ? 'IN_TRANSIT' :
-    rawStatus === 'DELAYED' ? 'DELAYED' :
-    rawStatus === 'DELIVERED' ? 'DELIVERED' :
-    rawStatus === 'CANCELLED' ? 'CANCELLED' :
-    rawStatus === 'PENDING' ? 'PENDING' : 'IN_TRANSIT'
+      rawStatus === 'INTRANSIT' ? 'IN_TRANSIT' :
+        rawStatus === 'DELAYED' ? 'DELAYED' :
+          rawStatus === 'DELIVERED' ? 'DELIVERED' :
+            rawStatus === 'CANCELLED' ? 'CANCELLED' :
+              rawStatus === 'PENDING' ? 'PENDING' : 'IN_TRANSIT'
 
   const rawPriority = (item.priority ?? item.Priority ?? 'MEDIUM').toString().toUpperCase()
   const normalizedPriority: SeverityLevel =
     rawPriority === 'CRITICAL' ? 'CRITICAL' :
-    rawPriority === 'HIGH' ? 'HIGH' :
-    rawPriority === 'LOW' ? 'LOW' : 'MEDIUM'
+      rawPriority === 'HIGH' ? 'HIGH' :
+        rawPriority === 'LOW' ? 'LOW' : 'MEDIUM'
 
   return {
     id: item.id ?? item.Id,
@@ -215,23 +215,23 @@ export async function getDisruptions(): Promise<Disruption[]> {
     const rawType = (item.disruption_type ?? item.disruptionType ?? item.DisruptionType ?? 'WEATHER').toString().toUpperCase()
     const normalizedType: DisruptionType =
       rawType === 'PORTCONGESTION' ? 'PORT_CONGESTION' :
-      rawType === 'ROADCLOSURE' ? 'ROAD_CLOSURE' :
-      rawType === 'CUSTOMSDELAY' ? 'CUSTOMS_DELAY' :
-      rawType === 'CARRIERISSUE' ? 'CARRIER_ISSUE' :
-      rawType === 'POLITICAL' ? 'POLITICAL' :
-      rawType === 'OTHER' ? 'OTHER' :
-      rawType === 'WEATHER' ? 'WEATHER' : 'WEATHER'
+        rawType === 'ROADCLOSURE' ? 'ROAD_CLOSURE' :
+          rawType === 'CUSTOMSDELAY' ? 'CUSTOMS_DELAY' :
+            rawType === 'CARRIERISSUE' ? 'CARRIER_ISSUE' :
+              rawType === 'POLITICAL' ? 'POLITICAL' :
+                rawType === 'OTHER' ? 'OTHER' :
+                  rawType === 'WEATHER' ? 'WEATHER' : 'WEATHER'
 
     const rawSeverity = (item.severity?.toUpperCase() ?? item.Severity?.toUpperCase() ?? 'HIGH')
     const normalizedSeverity: SeverityLevel =
       rawSeverity === 'CRITICAL' ? 'CRITICAL' :
-      rawSeverity === 'MEDIUM' ? 'MEDIUM' :
-      rawSeverity === 'LOW' ? 'LOW' : 'HIGH'
+        rawSeverity === 'MEDIUM' ? 'MEDIUM' :
+          rawSeverity === 'LOW' ? 'LOW' : 'HIGH'
 
     const shipmentCount = item.shipment_disruptions?.[0]?.count ??
-                          item.affectedShipmentsCount ??
-                          item.affectedShipmentCount ??
-                          item.affected_shipment_count ?? 0
+      item.affectedShipmentsCount ??
+      item.affectedShipmentCount ??
+      item.affected_shipment_count ?? 0
 
     return {
       id: item.id ?? item.Id,
@@ -257,11 +257,11 @@ export async function getDisruptionById(id: string): Promise<Disruption | null> 
   const rawType = (item.disruption_type ?? item.disruptionType ?? item.DisruptionType ?? 'WEATHER').toString().toUpperCase()
   const normalizedType: DisruptionType =
     rawType === 'PORTCONGESTION' ? 'PORT_CONGESTION' :
-    rawType === 'ROADCLOSURE' ? 'ROAD_CLOSURE' :
-    rawType === 'CUSTOMSDELAY' ? 'CUSTOMS_DELAY' :
-    rawType === 'CARRIERISSUE' ? 'CARRIER_ISSUE' :
-    rawType === 'POLITICAL' ? 'POLITICAL' :
-    rawType === 'OTHER' ? 'OTHER' : 'WEATHER'
+      rawType === 'ROADCLOSURE' ? 'ROAD_CLOSURE' :
+        rawType === 'CUSTOMSDELAY' ? 'CUSTOMS_DELAY' :
+          rawType === 'CARRIERISSUE' ? 'CARRIER_ISSUE' :
+            rawType === 'POLITICAL' ? 'POLITICAL' :
+              rawType === 'OTHER' ? 'OTHER' : 'WEATHER'
 
   return {
     id: item.id ?? item.Id,
@@ -288,8 +288,8 @@ export async function getFleetAssets(): Promise<FleetAsset[]> {
     const rawStatus = (item.status ?? item.Status ?? 'AVAILABLE').toString().toUpperCase()
     const normalizedStatus: FleetAssetStatus =
       rawStatus === 'INUSE' ? 'IN_USE' :
-      rawStatus === 'IDLE' ? 'IDLE' :
-      rawStatus === 'MAINTENANCE' ? 'MAINTENANCE' : 'AVAILABLE'
+        rawStatus === 'IDLE' ? 'IDLE' :
+          rawStatus === 'MAINTENANCE' ? 'MAINTENANCE' : 'AVAILABLE'
 
     return {
       id: item.id ?? item.Id,
@@ -353,13 +353,13 @@ export async function getRoutes(): Promise<Route[]> {
     const rawSegments = item.route_segments ?? item.segments ?? []
     const segments = Array.isArray(rawSegments)
       ? rawSegments.map((s: any) => ({
-          id: s.id ?? s.Id,
-          sequenceOrder: Number(s.sequence_order ?? s.sequenceOrder ?? s.SequenceOrder ?? 1),
-          fromLocation: s.from_location ?? s.fromLocation ?? s.FromLocation ?? '',
-          toLocation: s.to_location ?? s.toLocation ?? s.ToLocation ?? '',
-          transportMode: s.transport_mode ?? s.transportMode ?? s.TransportMode ?? 'Road',
-          estimatedHours: Number(s.estimated_hours ?? s.estimatedHours ?? s.EstimatedHours ?? 0),
-        }))
+        id: s.id ?? s.Id,
+        sequenceOrder: Number(s.sequence_order ?? s.sequenceOrder ?? s.SequenceOrder ?? 1),
+        fromLocation: s.from_location ?? s.fromLocation ?? s.FromLocation ?? '',
+        toLocation: s.to_location ?? s.toLocation ?? s.ToLocation ?? '',
+        transportMode: s.transport_mode ?? s.transportMode ?? s.TransportMode ?? 'Road',
+        estimatedHours: Number(s.estimated_hours ?? s.estimatedHours ?? s.EstimatedHours ?? 0),
+      }))
       : []
 
     return {
@@ -385,13 +385,13 @@ export async function getRouteById(id: string): Promise<Route | null> {
   const rawSegments = item.route_segments ?? item.segments ?? []
   const segments = Array.isArray(rawSegments)
     ? rawSegments.map((s: any) => ({
-        id: s.id ?? s.Id,
-        sequenceOrder: Number(s.sequence_order ?? s.sequenceOrder ?? s.SequenceOrder ?? 1),
-        fromLocation: s.from_location ?? s.fromLocation ?? s.FromLocation ?? '',
-        toLocation: s.to_location ?? s.toLocation ?? s.ToLocation ?? '',
-        transportMode: s.transport_mode ?? s.transportMode ?? s.TransportMode ?? 'Road',
-        estimatedHours: Number(s.estimated_hours ?? s.estimatedHours ?? s.EstimatedHours ?? 0),
-      }))
+      id: s.id ?? s.Id,
+      sequenceOrder: Number(s.sequence_order ?? s.sequenceOrder ?? s.SequenceOrder ?? 1),
+      fromLocation: s.from_location ?? s.fromLocation ?? s.FromLocation ?? '',
+      toLocation: s.to_location ?? s.toLocation ?? s.ToLocation ?? '',
+      transportMode: s.transport_mode ?? s.transportMode ?? s.TransportMode ?? 'Road',
+      estimatedHours: Number(s.estimated_hours ?? s.estimatedHours ?? s.EstimatedHours ?? 0),
+    }))
     : []
 
   return {
