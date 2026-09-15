@@ -120,13 +120,15 @@ uvicorn app.main:app --reload --port 8001
 
 ## ⚠️ Known Limitations
 
-- Phase 2 skeleton only — frontend uses mock data, backend returns placeholder responses
-- Supabase database schema not yet implemented (Phase 3+)
-- IBM watsonx.ai integration is a stub (Phase 13+)
-- ASP.NET Core service implementations deferred (Phase 6+)
-- ML predictions (scikit-learn) deferred (Phase 12+)
-- SignalR realtime updates deferred (Phase 15+)
-- Authentication and authorization not yet implemented
+- **Frontend uses mock data** — the React UI is not yet wired to the live ASP.NET Core API (Phase 6–7 integration pending)
+- **Disruption → shipment auto-linking algorithm not implemented** — disruption-to-shipment links exist in seeded data but real-time impact analysis is deferred (Phase 8)
+- **Recommendation approval workflow not implemented** — alert acknowledgement (`POST /api/alerts/{id}/acknowledge`) is the only live mutation endpoint; full operator approval + `DecisionAudit` creation is deferred (Phase 9)
+- **Fleet redeployment ranking algorithm not implemented** — fleet read API is live; proximity and compatibility scoring is deferred (Phase 10)
+- **Real-time cold-chain sensor ingestion not implemented** — historical data is seeded; live streaming ingestion is deferred (Phase 11)
+- **Trained ML model (scikit-learn) not yet implemented** — a heuristic multi-signal risk scorer is live at `POST /predict/risk-score`; a fully trained model is deferred (Phase 12)
+- **What-If simulation not implemented** — stub endpoints exist at `GET/POST /api/simulations` (Phase 14)
+- **SignalR realtime updates not implemented** (Phase 15)
+- **Authentication and authorization not implemented** (Phase 16)
 
 ---
 
