@@ -6,15 +6,15 @@ team:
   name: "Jetha Ke Jaanbaaz"
   track: "AI"
   lead:
-    name: "Team Lead"                          # REQUIRED — Update with real name
-    email: "teamlead@ibm.com"                  # REQUIRED — Update with real email
+    name: "Neel Gohil"                          # REQUIRED — Update with real name
+    email: "26msit026@charusat.edu.in"                  # REQUIRED — Update with real email
   members:
-    - name: "Member 1"
-      email: "member1@ibm.com"
-    - name: "Member 2"
-      email: "member2@ibm.com"
-    - name: "Member 3"
-      email: "member3@ibm.com"
+    - name: "Jenish Jadav"
+      email: "26msit036@charusat.edu.in"
+    - name: "Vaibhav Chavada"
+      email: "26msit013@charusat.edu.in"
+    - name: "Jaimeen Gondaliya"
+      email: "26msit030@charusat.edu.in"
 
 submission:
   title: "SupplyShield AI"
