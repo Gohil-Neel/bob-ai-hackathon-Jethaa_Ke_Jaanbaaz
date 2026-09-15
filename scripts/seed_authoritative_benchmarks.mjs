@@ -10,8 +10,8 @@
 
 import { randomUUID } from 'crypto';
 
-const SUPABASE_URL = 'https://jcctioxlzddejhhfxarx.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjY3Rpb3hsemRkZWpoaGZ4YXJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNzI1NDAsImV4cCI6MjEwNDk0ODU0MH0.-eS-vNNhqeMPVRleEm_oO9kaVTU1YXaEZdCm3fmOyiE';
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
 async function postToSupabase(table, records) {
   const endpoint = `${SUPABASE_URL}/rest/v1/${table}`;

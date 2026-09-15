@@ -6,7 +6,7 @@
  * - Calls Google Gemini API directly with full operational context
  */
 
-const GEMINI_API_KEY = 'AQ.Ab8RN6Js1plChPH-qS9sYY5dyr6itrMUr2OW0UaHhvYWsiZO0Q';
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 const GEMINI_MODELS = [
   'gemini-3.6-flash',
   'gemini-3.5-flash',

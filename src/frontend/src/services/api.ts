@@ -34,8 +34,8 @@ import {
   mockDashboardKpis,
 } from './mock/mockData'
 
-const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL || 'https://jcctioxlzddejhhfxarx.supabase.co').replace(/\/$/, '')
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjY3Rpb3hsemRkZWpoaGZ4YXJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNzI1NDAsImV4cCI6MjEwNDk0ODU0MH0.-eS-vNNhqeMPVRleEm_oO9kaVTU1YXaEZdCm3fmOyiE'
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '') : ''
 
 /**

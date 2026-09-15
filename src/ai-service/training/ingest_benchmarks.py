@@ -102,8 +102,8 @@ def fetch_live_weather_hazards():
 
 def main():
     load_env()
-    supabase_url = os.environ.get("SUPABASE_URL") or "https://jcctioxlzddejhhfxarx.supabase.co"
-    service_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_ANON_KEY") or "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjY3Rpb3hsemRkZWpoaGZ4YXJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNzI1NDAsImV4cCI6MjEwNDk0ODU0MH0.-eS-vNNhqeMPVRleEm_oO9kaVTU1YXaEZdCm3fmOyiE"
+    supabase_url = os.environ.get("SUPABASE_URL") or os.environ.get("VITE_SUPABASE_URL") or ""
+    service_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_ANON_KEY") or os.environ.get("VITE_SUPABASE_ANON_KEY") or ""
 
     print("=" * 78)
     print(" SupplyShield AI — Authoritative Benchmark Dataset & Weather Ingestion Engine")
